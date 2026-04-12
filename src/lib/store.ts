@@ -2,16 +2,15 @@
 
 import type { Report, Bank, Beneficiary, Notification, Task, AppSettings, Employee, LoginLog } from '@/types';
 import { PERMISSIONS } from '@/types';
-import {
-  reports as initialReports,
-  banks as initialBanks,
-  beneficiaries as initialBeneficiaries,
-  notifications as initialNotifications,
-  tasks as initialTasks,
-  settings as initialSettings,
-  employees as initialEmployees,
-  loginLogs as initialLoginLogs,
-} from '@/data/mock';
+import { settings as initialSettings } from '@/data/mock';
+
+const initialReports: Report[] = [];
+const initialBanks: Bank[] = [];
+const initialBeneficiaries: Beneficiary[] = [];
+const initialNotifications: Notification[] = [];
+const initialTasks: Task[] = [];
+const initialEmployees: Employee[] = [];
+const initialLoginLogs: LoginLog[] = [];
 
 /* ===== Local Storage Keys ===== */
 const STORAGE_KEYS = {

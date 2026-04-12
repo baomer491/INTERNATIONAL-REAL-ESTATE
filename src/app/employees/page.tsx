@@ -5,7 +5,6 @@ import { store } from '@/lib/store';
 import { useApp } from '@/components/layout/AppContext';
 import type { Employee, EmployeeRole, EmployeeStatus, LoginLog, Permission } from '@/types';
 import { EMPLOYEE_ROLES, PERMISSIONS, ROLE_DEFAULT_PERMISSIONS } from '@/types';
-import { employees as initialEmployees, loginLogs as initialLoginLogs } from '@/data/mock';
 import {
   Users, PlusCircle, Search, Edit3, Trash2, Shield, Ban,
   CheckCircle2, XCircle, Clock, Eye, LogIn, LogOut,

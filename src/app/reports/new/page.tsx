@@ -9,7 +9,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useOCR } from '@/hooks/useOCR';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import {
-  banks as initialBanks, propertyTypes, apartmentComponentDefaults, internalFinishingDefaults,
+  propertyTypes, apartmentComponentDefaults, internalFinishingDefaults,
 } from '@/data/mock';
 import type {
   Report, PropertyType, PropertyUsage, PropertyCondition,

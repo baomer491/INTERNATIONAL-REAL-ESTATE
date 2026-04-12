@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { store } from '@/lib/store';
 import { formatCurrency } from '@/lib/utils';
-import { employees, loginLogs, monthlyPerformance } from '@/data/mock';
+import { monthlyPerformance } from '@/data/mock';
 import { EMPLOYEE_ROLES } from '@/types';
 import type { Employee, EmployeeRole } from '@/types';
 import {
