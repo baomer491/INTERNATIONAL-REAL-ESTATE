@@ -1,0 +1,22 @@
+import React from 'react';
+import type { ReactNode } from 'react';
+
+interface WizardStepLayoutProps {
+  icon: ReactNode;
+  title: string;
+  subtitle?: string;
+  children: ReactNode;
+}
+
+export default function WizardStepLayout({ icon, title, subtitle, children }: WizardStepLayoutProps) {
+  return (
+    <div className="wizard-step-layout">
+      <div className="wizard-step-header">
+        <div className="wizard-step-header-icon">{icon}</div>
+        <h2 className="wizard-step-title">{title}</h2>
+      </div>
+      {subtitle && <p className="wizard-step-subtitle">{subtitle}</p>}
+      {children}
+    </div>
+  );
+}
