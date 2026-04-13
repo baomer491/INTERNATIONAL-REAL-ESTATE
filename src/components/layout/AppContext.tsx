@@ -2,15 +2,15 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { Notification, Employee } from '@/types';
-import { store } from '@/lib/store';
+import { store, initializeStore } from '@/lib/store';
 import { checkAndAutoArchive } from '@/lib/auto-archiver';
 import { useTheme } from '@/hooks/useTheme';
 
 interface AppContextType {
   isLoggedIn: boolean;
   currentUser: Employee | null;
-  login: (username: string, password: string) => { success: boolean; reason?: string };
-  logout: () => void;
+  login: (username: string, password: string) => Promise<{ success: boolean; reason?: string }>;
+  logout: () => Promise<void>;
   hasPermission: (permissionId: string) => boolean;
   unreadNotifications: number;
   refreshNotifications: () => void;
@@ -22,6 +22,7 @@ interface AppContextType {
   searchOpen: boolean;
   setSearchOpen: (open: boolean) => void;
   notify: (notification: Omit<Notification, 'id' | 'createdAt' | 'isRead'>) => void;
+  isLoading: boolean;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -44,6 +45,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const mq = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`);
@@ -60,24 +62,32 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     handleResize(mq);
     mq.addEventListener('change', handleResize);
 
-    const loggedIn = store.isLoggedIn();
-    setIsLoggedIn(loggedIn);
-    if (loggedIn) {
-      const user = store.getCurrentUser();
-      setCurrentUser(user || null);
-    }
-    setUnreadNotifications(store.unreadCount());
-    setMounted(true);
-
-    if (loggedIn) {
-      const archivedCount = checkAndAutoArchive();
-      if (archivedCount > 0) {
-        setTimeout(() => {
-          setToast({ message: `تمت أرشفة ${archivedCount} تقرير تلقائياً (معتمدة منذ أكثر من 7 أيام)`, type: 'info' });
-          setTimeout(() => setToast(null), 5000);
-        }, 500);
+    // Initialize store from Supabase, then set auth state
+    initializeStore().then(() => {
+      const loggedIn = store.isLoggedIn();
+      setIsLoggedIn(loggedIn);
+      if (loggedIn) {
+        const user = store.getCurrentUser();
+        setCurrentUser(user || null);
       }
-    }
+      setUnreadNotifications(store.unreadCount());
+      setMounted(true);
+      setIsLoading(false);
+
+      if (loggedIn) {
+        const archivedCount = checkAndAutoArchive();
+        if (archivedCount > 0) {
+          setTimeout(() => {
+            setToast({ message: `تمت أرشفة ${archivedCount} تقرير تلقائياً (معتمدة منذ أكثر من 7 أيام)`, type: 'info' });
+            setTimeout(() => setToast(null), 5000);
+          }, 500);
+        }
+      }
+    }).catch((err) => {
+      console.error('Failed to initialize store:', err);
+      setMounted(true);
+      setIsLoading(false);
+    });
 
     return () => mq.removeEventListener('change', handleResize);
   }, []);
@@ -91,8 +101,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setUnreadNotifications(store.unreadCount());
   }, []);
 
-  const login = useCallback((username: string, password: string) => {
-    const result = store.login(username, password);
+  const login = useCallback(async (username: string, password: string) => {
+    const result = await store.login(username, password);
     if (result.success) {
       setIsLoggedIn(true);
       const user = store.getCurrentUser();
@@ -101,8 +111,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return result;
   }, []);
 
-  const logout = useCallback(() => {
-    store.logout();
+  const logout = useCallback(async () => {
+    await store.logout();
     setIsLoggedIn(false);
     setCurrentUser(null);
   }, []);
@@ -118,7 +128,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setTimeout(() => setToast(null), 3000);
   }, []);
 
-  if (!mounted) {
+  if (!mounted || isLoading) {
     return (
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -144,7 +154,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       isLoggedIn, currentUser, login, logout, hasPermission,
       unreadNotifications, refreshNotifications, showToast, toast,
       sidebarOpen, setSidebarOpen, isMobile, searchOpen, setSearchOpen,
-      notify,
+      notify, isLoading,
     }}>
       {children}
     </AppContext.Provider>

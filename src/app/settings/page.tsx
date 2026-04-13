@@ -37,7 +37,7 @@ export default function SettingsPage() {
     showToast('تم حفظ الإعدادات بنجاح', 'success');
   };
 
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
     setPassError('');
     if (!currentPassword.trim()) { setPassError('أدخل كلمة المرور الحالية'); return; }
     if (!newPassword.trim()) { setPassError('أدخل كلمة المرور الجديدة'); return; }
@@ -47,7 +47,7 @@ export default function SettingsPage() {
     const userId = store.getCurrentUserId();
     if (!userId) return;
 
-    const result = store.changePassword(userId, currentPassword, newPassword);
+    const result = await store.changePassword(userId, currentPassword, newPassword);
     if (result.success) {
       showToast('تم تغيير كلمة المرور بنجاح', 'success');
       setCurrentPassword('');

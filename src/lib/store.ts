@@ -48,6 +48,11 @@ function setToStorage<T>(key: string, data: T): void {
 }
 
 /* ===== Store ===== */
+export async function initializeStore(): Promise<void> {
+  // localStorage-based store requires no initialization
+  // This is a no-op placeholder for compatibility with AppContext
+}
+
 export const store = {
   /* --- Auth --- */
   isLoggedIn: (): boolean => {

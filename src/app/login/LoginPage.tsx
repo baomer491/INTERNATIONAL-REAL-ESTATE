@@ -16,7 +16,7 @@ export default function LoginPage() {
 
   const dm = isDark;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -30,22 +30,23 @@ export default function LoginPage() {
     }
 
     setLoading(true);
-    setTimeout(() => {
-      const result = login(username, password);
-      if (!result.success) {
-        if (result.reason === 'suspended') {
-          setError('تم إيقاف هذا الحساب. تواصل مع مدير النظام.');
-        } else if (result.reason === 'inactive') {
-          setError('هذا الحساب غير نشط. تواصل مع مدير النظام.');
-        } else {
-          setError('اسم المستخدم أو كلمة المرور غير صحيحة');
-        }
-        showToast('فشل تسجيل الدخول', 'error');
+    // Small delay for UX
+    await new Promise(r => setTimeout(r, 800));
+
+    const result = await login(username, password);
+    if (!result.success) {
+      if (result.reason === 'suspended') {
+        setError('تم إيقاف هذا الحساب. تواصل مع مدير النظام.');
+      } else if (result.reason === 'inactive') {
+        setError('هذا الحساب غير نشط. تواصل مع مدير النظام.');
       } else {
-        showToast('تم تسجيل الدخول بنجاح', 'success');
+        setError('اسم المستخدم أو كلمة المرور غير صحيحة');
       }
-      setLoading(false);
-    }, 800);
+      showToast('فشل تسجيل الدخول', 'error');
+    } else {
+      showToast('تم تسجيل الدخول بنجاح', 'success');
+    }
+    setLoading(false);
   };
 
   return (
