@@ -122,7 +122,7 @@ export default function EmployeesPage() {
     }));
   };
 
-  const handleAdd = (data: {
+  const handleAdd = async (data: {
     fullName: string;
     username: string;
     email: string;
@@ -151,7 +151,7 @@ export default function EmployeesPage() {
       permissions: data.permissions,
       notes: data.notes,
     };
-    store.addEmployee(emp);
+    await store.addEmployee(emp);
     setEmployees(store.getEmployees());
   };
 
