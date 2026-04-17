@@ -13,6 +13,7 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
     pathname.includes('.') ||
+    pathname === '/' ||
     pathname === '/login'
   ) {
     return NextResponse.next();
@@ -22,8 +23,8 @@ export function middleware(request: NextRequest) {
   const sessionToken = request.cookies.get('ireo_session')?.value;
 
   if (!sessionToken) {
-    // Redirect to login if no session
-    const loginUrl = new URL('/login', request.url);
+    // Redirect to root (which shows login page) if no session
+    const loginUrl = new URL('/', request.url);
     return NextResponse.redirect(loginUrl);
   }
 
