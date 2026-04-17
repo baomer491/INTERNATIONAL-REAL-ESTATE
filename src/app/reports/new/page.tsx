@@ -306,6 +306,7 @@ function CreateReportWizardInner() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [showDraftModal, setShowDraftModal] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [fullscreenPreview, setFullscreenPreview] = useState<{ url: string; type: string; name: string; label: string } | null>(null);
   const [previewZoom, setPreviewZoom] = useState(1);
 
@@ -428,6 +429,9 @@ function CreateReportWizardInner() {
   };
 
   const handleSubmit = async () => {
+    if (submitting) return;
+    setSubmitting(true);
+    try {
     const settings = store.getSettings();
     const fileToDataUrl = (file: File): Promise<string> => new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -615,6 +619,11 @@ function CreateReportWizardInner() {
     notify({ type: 'approval', title: `تقرير جديد بانتظار الاعتماد: ${data.reportNumber}`, message: `تم إرسال تقرير تثمين ${propertyTypes.find(pt => pt.value === data.propertyType)?.label || ''} للمستفيد ${data.beneficiaryName} - القطعة رقم ${data.plotNumber} في ${data.wilayat}`, priority: 'high', relatedReportId: report.id });
     showToast('تم إرسال التقرير للاعتماد بنجاح', 'success');
     router.push('/reports');
+    } catch {
+      showToast('حدث خطأ أثناء إرسال التقرير', 'error');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const renderReport = () => (
@@ -839,7 +848,7 @@ function CreateReportWizardInner() {
             ) : (
               <>
                 <button onClick={() => setShowPreview(true)} className="btn btn-outline"><Eye size={18} /> معاينة</button>
-                <button onClick={() => setShowConfirm(true)} className="btn btn-success"><Send size={18} /> إرسال للاعتماد</button>
+                <button onClick={() => setShowConfirm(true)} className="btn btn-success" disabled={submitting}><Send size={18} /> إرسال للاعتماد</button>
               </>
             )}
           </div>
@@ -872,8 +881,10 @@ function CreateReportWizardInner() {
             <h3 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 8px' }}>{editId ? 'إعادة إرسال التقرير بعد التعديل؟' : 'إرسال التقرير للاعتماد؟'}</h3>
             <p style={{ fontSize: 14, color: 'var(--color-text-muted)', margin: '0 0 24px' }}>{editId ? `هل أنت متأكد من إعادة إرسال التقرير ${data.reportNumber} بعد التعديل؟` : `هل أنت متأكد من إرسال التقرير ${data.reportNumber} للاعتماد؟`}</p>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-              <button onClick={() => setShowConfirm(false)} className="btn btn-ghost">إلغاء</button>
-              <button onClick={handleSubmit} className="btn btn-primary">تأكيد الإرسال</button>
+              <button onClick={() => setShowConfirm(false)} className="btn btn-ghost" disabled={submitting}>إلغاء</button>
+              <button onClick={handleSubmit} className="btn btn-primary" disabled={submitting}>
+                {submitting ? 'جاري الإرسال...' : 'تأكيد الإرسال'}
+              </button>
             </div>
           </div>
         </div>

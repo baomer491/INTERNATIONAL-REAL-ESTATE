@@ -403,7 +403,6 @@ export async function extractPropertyFromImage(
     }
 
     onStep?.('parsing');
-    await new Promise((r) => setTimeout(r, 200));
 
     let fields: OCRExtractionResult['fields'];
 

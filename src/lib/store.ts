@@ -4,6 +4,7 @@ import type { Report, Bank, Beneficiary, Notification, Task, AppSettings, Employ
 import { PERMISSIONS } from '@/types';
 import { settings as initialSettings } from '@/data/mock';
 import { db } from './supabase';
+import { generateId } from './utils';
 
 /* ===== Password Hashing (SHA-256 based, works in non-secure HTTP contexts) ===== */
 
@@ -88,7 +89,7 @@ function generateSalt(): string {
   if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
     crypto.getRandomValues(arr);
   } else {
-    for (let i = 0; i < 16; i++) arr[i] = Math.floor(Math.random() * 256);
+    for (let i = 0; i < 16; i++) arr[i] = (Date.now() + i * 37) & 0xFF;
   }
   return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
 }
@@ -475,7 +476,7 @@ export async function initializeStore(): Promise<void> {
         is_active_session: false,
         permissions: PERMISSIONS.map(p => p.id),
         notes: 'حساب مدير النظام الافتراضي',
-        password_hash: 'admin123',
+        password_hash: await hashPassword('admin123'),
       };
       await db.from('employees').insert(adminRow);
       _employees.push(mapEmployeeRow(adminRow));
@@ -563,16 +564,12 @@ export const store = {
     });
 
     store.addLoginLog({
-      id: 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-          const r = Math.random() * 16 | 0;
-          const v = c === 'x' ? r : (r & 0x3 | 0x8);
-          return v.toString(16);
-        }),
+      id: generateId(),
       employeeId: employee.id,
       employeeName: employee.fullName,
       action: 'login',
       timestamp: new Date().toISOString(),
-      ipAddress: '192.168.1.' + Math.floor(Math.random() * 255),
+      ipAddress: '', // TODO: Capture real client IP from server-side
     });
 
     return { success: true };
@@ -588,16 +585,12 @@ export const store = {
           isActiveSession: false,
         });
         store.addLoginLog({
-          id: 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-          const r = Math.random() * 16 | 0;
-          const v = c === 'x' ? r : (r & 0x3 | 0x8);
-          return v.toString(16);
-        }),
+          id: generateId(),
           employeeId: userId,
           employeeName: emp.fullName,
           action: 'logout',
           timestamp: new Date().toISOString(),
-          ipAddress: '192.168.1.' + Math.floor(Math.random() * 255),
+          ipAddress: '', // TODO: Capture real client IP from server-side
         });
       }
     }
@@ -612,37 +605,44 @@ export const store = {
     return _reports.find((r) => r.id === id);
   },
 
-  addReport: (report: Report): void => {
+  addReport: async (report: Report): Promise<void> => {
     _reports.unshift(report);
     const row = reportToSnake(report);
     row.id = report.id;
     row.created_at = report.createdAt || new Date().toISOString();
     row.updated_at = report.updatedAt || new Date().toISOString();
-    db.from('reports').insert(row).then(({ error }) => {
-      if (error) console.error('[store] addReport error:', error.message);
-    });
-  },
-
-  updateReport: (id: string, data: Partial<Report>): void => {
-    const idx = _reports.findIndex((r) => r.id === id);
-    if (idx !== -1) {
-      _reports[idx] = { ..._reports[idx], ...data, updatedAt: new Date().toISOString() };
-      const row = reportToSnake({ ...data, updatedAt: new Date().toISOString() });
-      db.from('reports').update(row).eq('id', id).then(({ error }) => {
-        if (error) {
-          console.error('[store] updateReport error:', error.message, 'data:', JSON.stringify(row));
-          // Revert local cache on failure
-          _reports[idx] = { ..._reports[idx] };
-        }
-      });
+    const { error } = await db.from('reports').insert(row);
+    if (error) {
+      console.error('[store] addReport error:', error.message);
+      _reports = _reports.filter(r => r.id !== report.id);
+      throw new Error(error.message);
     }
   },
 
-  deleteReport: (id: string): void => {
+  updateReport: async (id: string, data: Partial<Report>): Promise<void> => {
+    const idx = _reports.findIndex((r) => r.id === id);
+    if (idx !== -1) {
+      const oldValue = { ..._reports[idx] };
+      _reports[idx] = { ..._reports[idx], ...data, updatedAt: new Date().toISOString() };
+      const row = reportToSnake({ ...data, updatedAt: new Date().toISOString() });
+      const { error } = await db.from('reports').update(row).eq('id', id);
+      if (error) {
+        console.error('[store] updateReport error:', error.message, 'data:', JSON.stringify(row));
+        _reports[idx] = oldValue;
+        throw new Error(error.message);
+      }
+    }
+  },
+
+  deleteReport: async (id: string): Promise<void> => {
+    const deleted = _reports.find(r => r.id === id);
     _reports = _reports.filter((r) => r.id !== id);
-    db.from('reports').delete().eq('id', id).then(({ error }) => {
-      if (error) console.error('[store] deleteReport error:', error.message);
-    });
+    const { error } = await db.from('reports').delete().eq('id', id);
+    if (error) {
+      console.error('[store] deleteReport error:', error.message);
+      if (deleted) _reports.unshift(deleted);
+      throw new Error(error.message);
+    }
   },
 
   /* ============================= Banks ============================= */
@@ -650,37 +650,48 @@ export const store = {
 
   getActiveBanks: (): Bank[] => _banks.filter((b) => b.isActive),
 
-  addBank: (bank: Bank): void => {
+  addBank: async (bank: Bank): Promise<void> => {
     _banks.push(bank);
     const row = bankToSnake(bank);
     row.id = bank.id;
     row.created_at = new Date().toISOString();
     row.updated_at = new Date().toISOString();
-    db.from('banks').insert(row).then(({ error }) => {
-      if (error) console.error('[store] addBank error:', error.message);
-    });
-  },
-
-  updateBank: (id: string, data: Partial<Bank>): void => {
-    const idx = _banks.findIndex((b) => b.id === id);
-    if (idx !== -1) {
-      _banks[idx] = { ..._banks[idx], ...data };
-      const row = bankToSnake(data);
-      row.updated_at = new Date().toISOString();
-      db.from('banks').update(row).eq('id', id).then(({ error }) => {
-        if (error) console.error('[store] updateBank error:', error.message);
-      });
+    const { error } = await db.from('banks').insert(row);
+    if (error) {
+      console.error('[store] addBank error:', error.message);
+      _banks = _banks.filter(b => b.id !== bank.id);
+      throw new Error(error.message);
     }
   },
 
-  toggleBank: (id: string): void => {
+  updateBank: async (id: string, data: Partial<Bank>): Promise<void> => {
     const idx = _banks.findIndex((b) => b.id === id);
     if (idx !== -1) {
+      const oldValue = { ..._banks[idx] };
+      _banks[idx] = { ..._banks[idx], ...data };
+      const row = bankToSnake(data);
+      row.updated_at = new Date().toISOString();
+      const { error } = await db.from('banks').update(row).eq('id', id);
+      if (error) {
+        console.error('[store] updateBank error:', error.message);
+        _banks[idx] = oldValue;
+        throw new Error(error.message);
+      }
+    }
+  },
+
+  toggleBank: async (id: string): Promise<void> => {
+    const idx = _banks.findIndex((b) => b.id === id);
+    if (idx !== -1) {
+      const oldValue = _banks[idx].isActive;
       _banks[idx].isActive = !_banks[idx].isActive;
       const row = { is_active: _banks[idx].isActive, updated_at: new Date().toISOString() };
-      db.from('banks').update(row).eq('id', id).then(({ error }) => {
-        if (error) console.error('[store] toggleBank error:', error.message);
-      });
+      const { error } = await db.from('banks').update(row).eq('id', id);
+      if (error) {
+        console.error('[store] toggleBank error:', error.message);
+        _banks[idx].isActive = oldValue;
+        throw new Error(error.message);
+      }
     }
   },
 
@@ -691,91 +702,116 @@ export const store = {
     return _beneficiaries.find((b) => b.id === id);
   },
 
-  addBeneficiary: (bn: Beneficiary): void => {
+  addBeneficiary: async (bn: Beneficiary): Promise<void> => {
     _beneficiaries.push(bn);
     const row = beneficiaryToSnake(bn);
     row.id = bn.id;
     row.created_at = new Date().toISOString();
     row.updated_at = new Date().toISOString();
-    db.from('beneficiaries').insert(row).then(({ error }) => {
-      if (error) console.error('[store] addBeneficiary error:', error.message);
-    });
-  },
-
-  updateBeneficiary: (id: string, data: Partial<Beneficiary>): void => {
-    const idx = _beneficiaries.findIndex((b) => b.id === id);
-    if (idx !== -1) {
-      _beneficiaries[idx] = { ..._beneficiaries[idx], ...data };
-      const row = beneficiaryToSnake(data);
-      row.updated_at = new Date().toISOString();
-      db.from('beneficiaries').update(row).eq('id', id).then(({ error }) => {
-        if (error) console.error('[store] updateBeneficiary error:', error.message);
-      });
+    const { error } = await db.from('beneficiaries').insert(row);
+    if (error) {
+      console.error('[store] addBeneficiary error:', error.message);
+      _beneficiaries = _beneficiaries.filter(b => b.id !== bn.id);
+      throw new Error(error.message);
     }
   },
 
-  deleteBeneficiary: (id: string): void => {
+  updateBeneficiary: async (id: string, data: Partial<Beneficiary>): Promise<void> => {
+    const idx = _beneficiaries.findIndex((b) => b.id === id);
+    if (idx !== -1) {
+      const oldValue = { ..._beneficiaries[idx] };
+      _beneficiaries[idx] = { ..._beneficiaries[idx], ...data };
+      const row = beneficiaryToSnake(data);
+      row.updated_at = new Date().toISOString();
+      const { error } = await db.from('beneficiaries').update(row).eq('id', id);
+      if (error) {
+        console.error('[store] updateBeneficiary error:', error.message);
+        _beneficiaries[idx] = oldValue;
+        throw new Error(error.message);
+      }
+    }
+  },
+
+  deleteBeneficiary: async (id: string): Promise<void> => {
+    const deleted = _beneficiaries.find(b => b.id === id);
     _beneficiaries = _beneficiaries.filter((b) => b.id !== id);
-    db.from('beneficiaries').delete().eq('id', id).then(({ error }) => {
-      if (error) console.error('[store] deleteBeneficiary error:', error.message);
-    });
+    const { error } = await db.from('beneficiaries').delete().eq('id', id);
+    if (error) {
+      console.error('[store] deleteBeneficiary error:', error.message);
+      if (deleted) _beneficiaries.push(deleted);
+      throw new Error(error.message);
+    }
   },
 
   /* ============================= Notifications ============================= */
   getNotifications: (): Notification[] => _notifications,
 
-  addNotification: (notification: Omit<Notification, 'id' | 'createdAt' | 'isRead'>): Notification => {
+  addNotification: async (notification: Omit<Notification, 'id' | 'createdAt' | 'isRead'>): Promise<Notification> => {
     const newNotification: Notification = {
       ...notification,
-      id: 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        const r = Math.random() * 16 | 0;
-        const v = c === 'x' ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-      }),
+      id: generateId(),
       createdAt: new Date().toISOString(),
       isRead: false,
     };
     _notifications.unshift(newNotification);
     const row = notificationToSnake(newNotification);
     row.id = newNotification.id;
-    db.from('notifications').insert(row).then(({ error }) => {
-      if (error) console.error('[store] addNotification error:', error.message);
-    });
+    const { error } = await db.from('notifications').insert(row);
+    if (error) {
+      console.error('[store] addNotification error:', error.message);
+      _notifications = _notifications.filter(n => n.id !== newNotification.id);
+      throw new Error(error.message);
+    }
     return newNotification;
   },
 
-  deleteNotification: (id: string): void => {
+  deleteNotification: async (id: string): Promise<void> => {
+    const deleted = _notifications.find(n => n.id === id);
     _notifications = _notifications.filter(n => n.id !== id);
-    db.from('notifications').delete().eq('id', id).then(({ error }) => {
-      if (error) console.error('[store] deleteNotification error:', error.message);
-    });
-  },
-
-  clearReadNotifications: (): void => {
-    const readIds = _notifications.filter(n => n.isRead).map(n => n.id);
-    _notifications = _notifications.filter(n => !n.isRead);
-    if (readIds.length > 0) {
-      db.from('notifications').delete().in('id', readIds).then(({ error }) => {
-        if (error) console.error('[store] clearReadNotifications error:', error.message);
-      });
+    const { error } = await db.from('notifications').delete().eq('id', id);
+    if (error) {
+      console.error('[store] deleteNotification error:', error.message);
+      if (deleted) _notifications.unshift(deleted);
+      throw new Error(error.message);
     }
   },
 
-  markAsRead: (id: string): void => {
+  clearReadNotifications: async (): Promise<void> => {
+    const readIds = _notifications.filter(n => n.isRead).map(n => n.id);
+    const readNotifs = _notifications.filter(n => n.isRead);
+    _notifications = _notifications.filter(n => !n.isRead);
+    if (readIds.length > 0) {
+      const { error } = await db.from('notifications').delete().in('id', readIds);
+      if (error) {
+        console.error('[store] clearReadNotifications error:', error.message);
+        _notifications = [...readNotifs, ..._notifications];
+        throw new Error(error.message);
+      }
+    }
+  },
+
+  markAsRead: async (id: string): Promise<void> => {
     const idx = _notifications.findIndex((n) => n.id === id);
     if (idx !== -1) {
       _notifications[idx].isRead = true;
-      db.from('notifications').update({ is_read: true }).eq('id', id).then(({ error }) => {
-        if (error) console.error('[store] markAsRead error:', error.message);
-      });
+      const { error } = await db.from('notifications').update({ is_read: true }).eq('id', id);
+      if (error) {
+        console.error('[store] markAsRead error:', error.message);
+        _notifications[idx].isRead = false;
+        throw new Error(error.message);
+      }
     }
   },
 
-  markAllAsRead: (): void => {
+  markAllAsRead: async (): Promise<void> => {
+    const oldNotifications = _notifications.map(n => ({ ...n }));
     _notifications = _notifications.map((n) => ({ ...n, isRead: true }));
-    db.from('notifications').update({ is_read: true }).neq('is_read', true).then(({ error }) => {
-      if (error) console.error('[store] markAllAsRead error:', error.message);
-    });
+    const { error } = await db.from('notifications').update({ is_read: true }).neq('is_read', true);
+    if (error) {
+      console.error('[store] markAllAsRead error:', error.message);
+      _notifications = oldNotifications;
+      throw new Error(error.message);
+    }
   },
 
   unreadCount: (): number => _notifications.filter((n) => !n.isRead).length,
@@ -783,32 +819,39 @@ export const store = {
   /* ============================= Tasks ============================= */
   getTasks: (): Task[] => _tasks,
 
-  addTask: (task: Task): void => {
+  addTask: async (task: Task): Promise<void> => {
     _tasks.push(task);
     const row = taskToSnake(task);
     row.id = task.id;
     row.created_at = task.createdAt || new Date().toISOString();
-    db.from('tasks').insert(row).then(({ error }) => {
-      if (error) console.error('[store] addTask error:', error.message);
-    });
-  },
-
-  updateTask: (id: string, data: Partial<Task>): void => {
-    const idx = _tasks.findIndex((t) => t.id === id);
-    if (idx !== -1) {
-      _tasks[idx] = { ..._tasks[idx], ...data };
-      const row = taskToSnake(data);
-      db.from('tasks').update(row).eq('id', id).then(({ error }) => {
-        if (error) console.error('[store] updateTask error:', error.message);
-      });
+    const { error } = await db.from('tasks').insert(row);
+    if (error) {
+      console.error('[store] addTask error:', error.message);
+      _tasks = _tasks.filter(t => t.id !== task.id);
+      throw new Error(error.message);
     }
   },
 
-  completeTask: (id: string): void => {
-    store.updateTask(id, { status: 'completed' });
+  updateTask: async (id: string, data: Partial<Task>): Promise<void> => {
+    const idx = _tasks.findIndex((t) => t.id === id);
+    if (idx !== -1) {
+      const oldValue = { ..._tasks[idx] };
+      _tasks[idx] = { ..._tasks[idx], ...data };
+      const row = taskToSnake(data);
+      const { error } = await db.from('tasks').update(row).eq('id', id);
+      if (error) {
+        console.error('[store] updateTask error:', error.message);
+        _tasks[idx] = oldValue;
+        throw new Error(error.message);
+      }
+    }
   },
 
-  updateTaskStatuses: (): void => {
+  completeTask: async (id: string): Promise<void> => {
+    await store.updateTask(id, { status: 'completed' });
+  },
+
+  updateTaskStatuses: async (): Promise<void> => {
     const now = new Date();
     let changed = false;
     const updated = _tasks.map(t => {
@@ -825,37 +868,53 @@ export const store = {
       // Sync overdue tasks to Supabase
       for (const t of _tasks) {
         if (t.status === 'overdue') {
-          db.from('tasks').update({ status: 'overdue' }).eq('id', t.id).then(() => {});
+          const { error } = await db.from('tasks').update({ status: 'overdue' }).eq('id', t.id);
+          if (error) console.error('[store] updateTaskStatuses error:', error.message);
         }
       }
     }
   },
 
-  deleteTask: (id: string): void => {
+  deleteTask: async (id: string): Promise<void> => {
+    const deleted = _tasks.find(t => t.id === id);
     _tasks = _tasks.filter((t) => t.id !== id);
-    db.from('tasks').delete().eq('id', id).then(({ error }) => {
-      if (error) console.error('[store] deleteTask error:', error.message);
-    });
+    const { error } = await db.from('tasks').delete().eq('id', id);
+    if (error) {
+      console.error('[store] deleteTask error:', error.message);
+      if (deleted) _tasks.push(deleted);
+      throw new Error(error.message);
+    }
   },
 
   /* ============================= Settings ============================= */
   getSettings: (): AppSettings => _settings,
 
-  updateSettings: (data: Partial<AppSettings>): void => {
+  updateSettings: async (data: Partial<AppSettings>): Promise<void> => {
+    const oldValue = { ..._settings };
     _settings = { ..._settings, ...data };
     const row = settingsToSnake(data);
     // Upsert: update the first row in app_settings
-    db.from('app_settings').select('id').limit(1).then(({ data: rows }) => {
-      if (rows && rows.length > 0) {
-        db.from('app_settings').update(row).eq('id', (rows[0] as Record<string, unknown>).id).then(({ error }) => {
-          if (error) console.error('[store] updateSettings error:', error.message);
-        });
-      } else {
-        db.from('app_settings').insert(row).then(({ error }) => {
-          if (error) console.error('[store] updateSettings insert error:', error.message);
-        });
+    const { data: rows, error: selectError } = await db.from('app_settings').select('id').limit(1);
+    if (selectError) {
+      console.error('[store] updateSettings select error:', selectError.message);
+      _settings = oldValue;
+      throw new Error(selectError.message);
+    }
+    if (rows && rows.length > 0) {
+      const { error } = await db.from('app_settings').update(row).eq('id', (rows[0] as Record<string, unknown>).id);
+      if (error) {
+        console.error('[store] updateSettings error:', error.message);
+        _settings = oldValue;
+        throw new Error(error.message);
       }
-    });
+    } else {
+      const { error } = await db.from('app_settings').insert(row);
+      if (error) {
+        console.error('[store] updateSettings insert error:', error.message);
+        _settings = oldValue;
+        throw new Error(error.message);
+      }
+    }
   },
 
   /* ============================= Employees ============================= */
@@ -872,15 +931,19 @@ export const store = {
     row.id = employee.id;
     row.created_at = new Date().toISOString();
     row.updated_at = new Date().toISOString();
-    db.from('employees').insert(row).then(({ error }) => {
-      if (error) console.error('[store] addEmployee error:', error.message);
-    });
+    const { error } = await db.from('employees').insert(row);
+    if (error) {
+      console.error('[store] addEmployee error:', error.message);
+      _employees = _employees.filter(e => e.id !== employee.id);
+      throw new Error(error.message);
+    }
   },
 
   updateEmployee: async (id: string, data: Partial<Employee>): Promise<void> => {
     const idx = _employees.findIndex((e) => e.id === id);
     if (idx !== -1) {
       // If password is being updated, hash it first
+      const oldValue = { ..._employees[idx] };
       let updateData = { ...data };
       if (data.password && !data.password.includes(':')) {
         updateData.password = await hashPassword(data.password);
@@ -888,25 +951,32 @@ export const store = {
       _employees[idx] = { ..._employees[idx], ...updateData };
       const row = employeeToSnake(updateData);
       row.updated_at = new Date().toISOString();
-      db.from('employees').update(row).eq('id', id).then(({ error }) => {
-        if (error) console.error('[store] updateEmployee error:', error.message);
-      });
+      const { error } = await db.from('employees').update(row).eq('id', id);
+      if (error) {
+        console.error('[store] updateEmployee error:', error.message);
+        _employees[idx] = oldValue;
+        throw new Error(error.message);
+      }
     }
   },
 
-  deleteEmployee: (id: string): void => {
+  deleteEmployee: async (id: string): Promise<void> => {
+    const deleted = _employees.find(e => e.id === id);
     _employees = _employees.filter((e) => e.id !== id);
-    db.from('employees').delete().eq('id', id).then(({ error }) => {
-      if (error) console.error('[store] deleteEmployee error:', error.message);
-    });
+    const { error } = await db.from('employees').delete().eq('id', id);
+    if (error) {
+      console.error('[store] deleteEmployee error:', error.message);
+      if (deleted) _employees.push(deleted);
+      throw new Error(error.message);
+    }
   },
 
-  suspendEmployee: (id: string): void => {
-    store.updateEmployee(id, { status: 'suspended' });
+  suspendEmployee: async (id: string): Promise<void> => {
+    await store.updateEmployee(id, { status: 'suspended' });
   },
 
-  activateEmployee: (id: string): void => {
-    store.updateEmployee(id, { status: 'active' });
+  activateEmployee: async (id: string): Promise<void> => {
+    await store.updateEmployee(id, { status: 'active' });
   },
 
   changePassword: async (employeeId: string, currentPassword: string, newPassword: string): Promise<{ success: boolean; reason?: string }> => {
@@ -922,12 +992,15 @@ export const store = {
   /* ============================= Login Logs ============================= */
   getLoginLogs: (): LoginLog[] => _loginLogs,
 
-  addLoginLog: (log: LoginLog): void => {
+  addLoginLog: async (log: LoginLog): Promise<void> => {
     _loginLogs.unshift(log);
     const row = loginLogToSnake(log);
-    db.from('login_logs').insert(row).then(({ error }) => {
-      if (error) console.error('[store] addLoginLog error:', error.message);
-    });
+    const { error } = await db.from('login_logs').insert(row);
+    if (error) {
+      console.error('[store] addLoginLog error:', error.message);
+      _loginLogs = _loginLogs.filter(l => l.id !== log.id);
+      throw new Error(error.message);
+    }
   },
 
   /* ============================= Drafts ============================= */
@@ -935,26 +1008,41 @@ export const store = {
     return _drafts[key];
   },
 
-  saveDraft: (key: string, data: unknown): void => {
+  saveDraft: async (key: string, data: unknown): Promise<void> => {
+    const oldValue = _drafts[key];
     _drafts[key] = data;
     // Upsert draft by key
-    db.from('drafts').select('id').eq('key', key).limit(1).then(({ data: rows }) => {
-      if (rows && rows.length > 0) {
-        db.from('drafts').update({ data, updated_at: new Date().toISOString() }).eq('key', key).then(({ error }) => {
-          if (error) console.error('[store] saveDraft update error:', error.message);
-        });
-      } else {
-        db.from('drafts').insert({ key, data, updated_at: new Date().toISOString() }).then(({ error }) => {
-          if (error) console.error('[store] saveDraft insert error:', error.message);
-        });
+    const { data: rows, error: selectError } = await db.from('drafts').select('id').eq('key', key).limit(1);
+    if (selectError) {
+      console.error('[store] saveDraft select error:', selectError.message);
+      if (oldValue !== undefined) _drafts[key] = oldValue; else delete _drafts[key];
+      throw new Error(selectError.message);
+    }
+    if (rows && rows.length > 0) {
+      const { error } = await db.from('drafts').update({ data, updated_at: new Date().toISOString() }).eq('key', key);
+      if (error) {
+        console.error('[store] saveDraft update error:', error.message);
+        if (oldValue !== undefined) _drafts[key] = oldValue; else delete _drafts[key];
+        throw new Error(error.message);
       }
-    });
+    } else {
+      const { error } = await db.from('drafts').insert({ key, data, updated_at: new Date().toISOString() });
+      if (error) {
+        console.error('[store] saveDraft insert error:', error.message);
+        if (oldValue !== undefined) _drafts[key] = oldValue; else delete _drafts[key];
+        throw new Error(error.message);
+      }
+    }
   },
 
-  clearDraft: (key: string): void => {
+  clearDraft: async (key: string): Promise<void> => {
+    const oldValue = _drafts[key];
     delete _drafts[key];
-    db.from('drafts').delete().eq('key', key).then(({ error }) => {
-      if (error) console.error('[store] clearDraft error:', error.message);
-    });
+    const { error } = await db.from('drafts').delete().eq('key', key);
+    if (error) {
+      console.error('[store] clearDraft error:', error.message);
+      _drafts[key] = oldValue;
+      throw new Error(error.message);
+    }
   },
 };

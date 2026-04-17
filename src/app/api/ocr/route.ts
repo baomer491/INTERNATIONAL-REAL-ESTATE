@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { callGemini, parseJSONResponse } from '@/lib/gemini-client';
 
 const EXTRACTION_PROMPT = `أنت خبير في استخراج بيانات العقارات من مستندات العقارات العمانية.
 
@@ -41,16 +42,28 @@ const EXTRACTION_PROMPT = `أنت خبير في استخراج بيانات ال
 - إذا أُرفقت صورتان، استخرج البيانات من كلاهما معاً (صك الملكية للمعلومات القانونية والكروكي للمساحة والتفاصيل الهندسية)
 - إذا كانت هناك قيم مختلفة بين الصورتين، فضّل القيمة الأكثر وضوحاً واكتمالاً`;
 
-function extractMimeType(base64: string): string {
-  if (base64.startsWith('/9j/')) return 'image/jpeg';
-  if (base64.startsWith('iVBOR')) return 'image/png';
-  if (base64.startsWith('R0lGOD')) return 'image/gif';
-  if (base64.startsWith('JVBOR')) return 'image/webp';
-  return 'image/jpeg';
-}
+const MAX_PAYLOAD_SIZE = 10 * 1024 * 1024; // 10MB
 
 export async function POST(request: NextRequest) {
   try {
+    // Auth check: verify session cookie
+    const sessionToken = request.cookies.get('ireo_session')?.value;
+    if (!sessionToken) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // Payload size limit
+    const contentLength = request.headers.get('content-length');
+    if (contentLength && parseInt(contentLength) > MAX_PAYLOAD_SIZE) {
+      return NextResponse.json(
+        { success: false, error: 'Payload too large. Maximum size is 10MB.' },
+        { status: 413 }
+      );
+    }
+
     const body = await request.json();
     const { images } = body;
 
@@ -61,73 +74,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json(
-        { success: false, error: 'Gemini API key not configured on server' },
-        { status: 500 }
-      );
-    }
-
-    const imageParts = images.map((img: string) => {
-      const base64Data = img.startsWith('data:')
-        ? img.split(',')[1]
-        : img;
-
-      if (!base64Data) return null;
-
-      const mimeType = img.startsWith('data:')
-        ? img.match(/data:([^;]+);/)?.[1] || extractMimeType(base64Data)
-        : extractMimeType(base64Data);
-
-      return {
-        inlineData: {
-          mimeType,
-          data: base64Data,
-        },
-      };
-    }).filter(Boolean);
-
-    if (imageParts.length === 0) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid image data' },
-        { status: 400 }
-      );
-    }
-
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-
-    const apiResponse = await fetch(apiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              ...imageParts,
-              {
-                text: EXTRACTION_PROMPT,
-              },
-            ],
-          },
-        ],
-        generationConfig: {
-          temperature: 0.1,
-          maxOutputTokens: 2048,
-          responseMimeType: 'application/json',
-        },
-      }),
+    const data = await callGemini({
+      images,
+      prompt: EXTRACTION_PROMPT,
+      model: 'gemini-2.5-flash',
+      maxOutputTokens: 2048,
     });
-
-    const data = await apiResponse.json();
-
-    if (!apiResponse.ok) {
-      const errorMsg = data?.error?.message || `Gemini API error: ${apiResponse.status}`;
-      return NextResponse.json(
-        { success: false, error: errorMsg },
-        { status: 200 }
-      );
-    }
 
     const content = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
@@ -139,15 +91,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    let structured = null;
-    try {
-      structured = JSON.parse(content);
-    } catch {
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        try { structured = JSON.parse(jsonMatch[0]); } catch { /* ignore */ }
-      }
-    }
+    const structured = parseJSONResponse(content);
 
     return NextResponse.json({
       success: true,

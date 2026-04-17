@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchOmanRealProperties } from '@/lib/market-comps';
+import { callGemini } from '@/lib/gemini-client';
 import type { MarketComp, MarketCompsResult } from '@/types';
 
 const VALUATION_PROMPT = `أنت خبير تقييم عقاري معتمد في سلطنة عمان.
@@ -60,9 +61,6 @@ async function callGeminiAnalysis(params: {
   usage: string;
   properties: MarketComp[];
 }): Promise<{ comparables: MarketComp[]; analysis: MarketCompsResult['analysis'] } | null> {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return null;
-
   const { wilayat, propertyType, area, usage, properties } = params;
 
   const compsData = properties
@@ -78,26 +76,12 @@ async function callGeminiAnalysis(params: {
     .replace('{totalResults}', String(properties.length))
     .replace('{compsData}', compsData);
 
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
   try {
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.1,
-          maxOutputTokens: 4096,
-          responseMimeType: 'application/json',
-        },
-      }),
-      signal: AbortSignal.timeout(30000),
+    const data = await callGemini({
+      prompt,
+      maxOutputTokens: 4096,
     });
 
-    if (!response.ok) return null;
-
-    const data = await response.json();
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!text) return null;
 
@@ -165,6 +149,15 @@ function localAnalysis(params: {
 
 export async function POST(request: NextRequest) {
   try {
+    // Auth check: verify session cookie
+    const sessionToken = request.cookies.get('ireo_session')?.value;
+    if (!sessionToken) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const { wilayat, propertyType, area, usage } = body;
 

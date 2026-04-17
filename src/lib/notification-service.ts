@@ -2,6 +2,7 @@
 
 import { db } from './supabase';
 import type { EmployeeRole } from '@/types';
+import { RealtimeChannel } from '@supabase/supabase-js';
 
 /* ===== Notification Sound ===== */
 
@@ -103,7 +104,7 @@ export function showBrowserNotification(title: string, options?: NotificationOpt
   }
 }
 
-/* ===== Realtime Polling Service ===== */
+/* ===== Realtime Service (Supabase Realtime + Polling fallback) ===== */
 
 export interface NotificationCallbacks {
   onNewPendingApproval?: (report: { id: string; reportNumber: string; appraiserName: string; beneficiaryName: string }) => void;
@@ -118,6 +119,8 @@ let lastPollTimestamp = new Date().toISOString();
 let callbacks: NotificationCallbacks = {};
 let currentUserRole: EmployeeRole | null = null;
 let currentUserId: string | null = null;
+let realtimeChannel: RealtimeChannel | null = null;
+let realtimeActive = false;
 
 export function startNotificationPolling(
   userRole: EmployeeRole,
@@ -136,10 +139,114 @@ export function startNotificationPolling(
   // Initial count fetch
   fetchInitialCounts();
 
-  // Poll every 5 seconds for changes
-  pollingIntervalId = setInterval(pollForChanges, 5000);
+  // Try to set up Supabase Realtime subscription
+  setupRealtimeSubscriptions();
 
-  console.log('[notification-service] Started polling for user:', userId, 'role:', userRole);
+  // Poll as fallback — use longer interval when realtime is active
+  const pollInterval = realtimeActive ? 30000 : 5000;
+  pollingIntervalId = setInterval(pollForChanges, pollInterval);
+
+  console.log('[notification-service] Started polling for user:', userId, 'role:', userRole, '(realtime:', realtimeActive, ')');
+}
+
+function setupRealtimeSubscriptions() {
+  try {
+    realtimeChannel = db
+      .channel('notification-service-changes')
+      // Listen for report status changes (INSERT and UPDATE on status column)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'reports', filter: 'status=eq.pending_approval' },
+        (payload) => {
+          console.log('[notification-service] Realtime: new report with pending_approval', payload);
+          handleRealtimeReportChange(payload.new as Record<string, unknown>);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'reports' },
+        (payload) => {
+          const newRec = payload.new as Record<string, unknown>;
+          const oldRec = payload.old as Record<string, unknown>;
+          // Only react if status changed to pending_approval
+          if (newRec.status === 'pending_approval') {
+            console.log('[notification-service] Realtime: report status changed to pending_approval', payload);
+            handleRealtimeReportChange(newRec);
+          }
+        }
+      )
+      // Listen for new notifications
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'notifications' },
+        (payload) => {
+          console.log('[notification-service] Realtime: new notification', payload);
+          const n = payload.new as Record<string, unknown>;
+          if (callbacks.onNewNotification) {
+            callbacks.onNewNotification({
+              id: (n.id as string) || '',
+              title: (n.title as string) || '',
+              message: (n.message as string) || '',
+              type: (n.type as string) || 'system',
+              priority: (n.priority as string) || 'medium',
+            });
+          }
+        }
+      )
+      .subscribe((status: string) => {
+        if (status === 'SUBSCRIBED') {
+          realtimeActive = true;
+          console.log('[notification-service] Realtime subscription active');
+          // Switch to longer polling interval since realtime is working
+          if (pollingIntervalId) {
+            clearInterval(pollingIntervalId);
+            pollingIntervalId = setInterval(pollForChanges, 30000);
+          }
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          realtimeActive = false;
+          console.warn('[notification-service] Realtime subscription failed, falling back to fast polling');
+          // Switch to faster polling
+          if (pollingIntervalId) {
+            clearInterval(pollingIntervalId);
+            pollingIntervalId = setInterval(pollForChanges, 5000);
+          }
+        }
+      });
+  } catch (err) {
+    console.warn('[notification-service] Could not setup realtime subscriptions, using polling only:', err);
+    realtimeActive = false;
+  }
+}
+
+function handleRealtimeReportChange(reportRow: Record<string, unknown>) {
+  // Only notify reviewers/admins about pending approvals
+  if (currentUserRole === 'admin' || currentUserRole === 'reviewer') {
+    const reportNumber = (reportRow.report_number as string) || '';
+    const appraiserName = (reportRow.appraiser_name as string) || '';
+    const beneficiaryName = (reportRow.beneficiary_name as string) || '';
+    const reportId = (reportRow.id as string) || '';
+
+    showBrowserNotification('تقرير جديد بانتظار الاعتماد', {
+      body: `تقرير ${reportNumber} من ${appraiserName} - المستفيد: ${beneficiaryName}`,
+      tag: `approval-${reportId}`,
+      data: { path: '/approvals' },
+    });
+
+    playNotificationSound();
+
+    if (callbacks.onNewPendingApproval) {
+      callbacks.onNewPendingApproval({
+        id: reportId,
+        reportNumber,
+        appraiserName,
+        beneficiaryName,
+      });
+    }
+  }
+
+  if (callbacks.onReportsChanged) {
+    callbacks.onReportsChanged();
+  }
 }
 
 export function stopNotificationPolling() {
@@ -147,7 +254,16 @@ export function stopNotificationPolling() {
     clearInterval(pollingIntervalId);
     pollingIntervalId = null;
   }
-  console.log('[notification-service] Stopped polling');
+  if (realtimeChannel) {
+    try {
+      db.removeChannel(realtimeChannel);
+    } catch (err) {
+      console.warn('[notification-service] Error removing realtime channel:', err);
+    }
+    realtimeChannel = null;
+  }
+  realtimeActive = false;
+  console.log('[notification-service] Stopped polling and realtime');
 }
 
 async function fetchInitialCounts() {
@@ -202,6 +318,9 @@ async function pollForChanges() {
             for (const report of newReports) {
               const r = report as Record<string, unknown>;
 
+              // Skip if realtime already handled this
+              if (realtimeActive) continue;
+
               // Browser push notification
               showBrowserNotification('تقرير جديد بانتظار الاعتماد', {
                 body: `تقرير ${r.report_number || ''} من ${r.appraiser_name || ''} - المستفيد: ${r.beneficiary_name || ''}`,
@@ -224,7 +343,7 @@ async function pollForChanges() {
             }
           } else {
             // Reports count increased but we can't find new ones by timestamp - still notify
-            playNotificationSound();
+            if (!realtimeActive) playNotificationSound();
           }
         }
 
@@ -244,26 +363,29 @@ async function pollForChanges() {
 
     if (!err2 && currentNotifCount !== null) {
       if (currentNotifCount > lastKnownNotificationCount) {
-        // New notifications exist - fetch them
-        const { data: newNotifs } = await db
-          .from('notifications')
-          .select('id, title, message, type, priority, created_at')
-          .eq('is_read', false)
-          .gt('created_at', lastPollTimestamp)
-          .order('created_at', { ascending: false });
+        // Only fetch and notify via polling if realtime didn't handle it
+        if (!realtimeActive) {
+          // New notifications exist - fetch them
+          const { data: newNotifs } = await db
+            .from('notifications')
+            .select('id, title, message, type, priority, created_at')
+            .eq('is_read', false)
+            .gt('created_at', lastPollTimestamp)
+            .order('created_at', { ascending: false });
 
-        if (newNotifs && newNotifs.length > 0) {
-          for (const notif of newNotifs) {
-            const n = notif as Record<string, unknown>;
+          if (newNotifs && newNotifs.length > 0) {
+            for (const notif of newNotifs) {
+              const n = notif as Record<string, unknown>;
 
-            if (callbacks.onNewNotification) {
-              callbacks.onNewNotification({
-                id: n.id as string,
-                title: (n.title as string) || '',
-                message: (n.message as string) || '',
-                type: (n.type as string) || 'system',
-                priority: (n.priority as string) || 'medium',
-              });
+              if (callbacks.onNewNotification) {
+                callbacks.onNewNotification({
+                  id: n.id as string,
+                  title: (n.title as string) || '',
+                  message: (n.message as string) || '',
+                  type: (n.type as string) || 'system',
+                  priority: (n.priority as string) || 'medium',
+                });
+              }
             }
           }
         }

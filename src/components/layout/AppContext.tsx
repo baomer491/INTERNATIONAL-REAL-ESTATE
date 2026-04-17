@@ -12,6 +12,7 @@ import {
   showBrowserNotification,
   playNotificationSound,
 } from '@/lib/notification-service';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 interface AppContextType {
   isLoggedIn: boolean;
@@ -53,6 +54,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [initError, setInitError] = useState<string | null>(null);
 
   // Track previous unread count to detect new notifications
   const prevUnreadRef = useRef(0);
@@ -121,6 +123,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
     }).catch((err) => {
       console.error('Failed to initialize store:', err);
+      setInitError(err instanceof Error ? err.message : 'حدث خطأ أثناء تحميل البيانات');
       setMounted(true);
       setIsLoading(false);
     });
@@ -161,6 +164,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (username: string, password: string) => {
     const result = await store.login(username, password);
     if (result.success) {
+      document.cookie = 'ireo_session=1; path=/; max-age=86400; SameSite=Strict';
       setIsLoggedIn(true);
       const user = store.getCurrentUser();
       setCurrentUser(user || null);
@@ -191,6 +195,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     stopNotificationPolling();
+    document.cookie = 'ireo_session=; path=/; max-age=0';
     await store.logout();
     setIsLoggedIn(false);
     setCurrentUser(null);
@@ -232,6 +237,40 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // Show error state when initialization fails
+  if (initError) {
+    return (
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        height: '100vh', direction: 'rtl', fontFamily: 'Noto Kufi Arabic'
+      }}>
+        <div style={{
+          background: 'var(--color-surface, #fff)',
+          borderRadius: 12, padding: 32, textAlign: 'center',
+          border: '1px solid var(--color-border, #e5e7eb)',
+          maxWidth: 480, width: '100%',
+        }}>
+          <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
+          <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', marginBottom: 8 }}>
+            خطأ في تحميل البيانات
+          </h2>
+          <p style={{ fontSize: 14, color: 'var(--color-text-secondary)', marginBottom: 16 }}>
+            {initError}
+          </p>
+          <button onClick={() => window.location.reload()} style={{
+            padding: '10px 24px', background: 'var(--color-primary)', color: 'white',
+            border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer',
+          }}>
+            إعادة المحاولة
+          </button>
+        </div>
+        <style dangerouslySetInnerHTML={{
+          __html: `@keyframes spin { to { transform: rotate(360deg); } }`
+        }} />
+      </div>
+    );
+  }
+
   return (
     <AppContext.Provider value={{
       isLoggedIn, currentUser, login, logout, hasPermission,
@@ -239,7 +278,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       sidebarOpen, setSidebarOpen, isMobile, searchOpen, setSearchOpen,
       notify, isLoading,
     }}>
-      {children}
+      <ErrorBoundary>
+        {children}
+      </ErrorBoundary>
     </AppContext.Provider>
   );
 }

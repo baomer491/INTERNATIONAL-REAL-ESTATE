@@ -6,8 +6,18 @@ export function toEnglishNums(str: string): string {
   return str.replace(/[٠-٩]/g, (c) => String(c.charCodeAt(0) - 1632));
 }
 
-/* ===== ID Generator (UUID v4 — works in non-secure HTTP contexts) ===== */
+/* ===== ID Generator (UUID v4 — cryptographically secure) ===== */
 export function generateId(_prefix: string = ''): string {
+  // Use crypto.getRandomValues for cryptographically secure UUID generation
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    const arr = new Uint8Array(16);
+    crypto.getRandomValues(arr);
+    arr[6] = (arr[6] & 0x0f) | 0x40; // version 4
+    arr[8] = (arr[8] & 0x3f) | 0x80; // variant 10
+    const hex = Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
+    return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+  }
+  // Fallback (should rarely be needed)
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     const r = Math.random() * 16 | 0;
     const v = c === 'x' ? r : (r & 0x3 | 0x8);

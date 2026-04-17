@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import AddEmployeeModal from '@/components/employees/AddEmployeeModal';
 import { useTheme } from '@/hooks/useTheme';
+import { usePagination } from '@/hooks/usePagination';
+import Pagination from '@/components/Pagination';
 
 const DEPARTMENTS = ['الإدارة العامة', 'قسم التثمين', 'قسم المراجعة', 'قسم إدخال البيانات', 'المبيعات'];
 
@@ -104,6 +106,9 @@ export default function EmployeesPage() {
       return true;
     });
   }, [employees, search, filterRole, filterStatus]);
+
+  const { currentPage, totalPages, startIndex, endIndex, goToPage, hasNext, hasPrev } = usePagination({ totalItems: filtered.length, pageSize: 10 });
+  const paginatedEmployees = filtered.slice(startIndex, endIndex);
 
   const activeCount = employees.filter(e => e.status === 'active').length;
   const suspendedCount = employees.filter(e => e.status === 'suspended').length;
@@ -324,14 +329,14 @@ export default function EmployeesPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.length === 0 ? (
+              {paginatedEmployees.length === 0 ? (
                 <tr><td colSpan={8}>
                   <div style={{ textAlign: 'center', padding: 40, color: 'var(--color-text-muted)' }}>
                     <Users size={40} style={{ marginBottom: 12, opacity: 0.4 }} />
                     <p style={{ fontSize: 15, fontWeight: 600 }}>لا يوجد موظفين</p>
                   </div>
                 </td></tr>
-              ) : filtered.map(emp => {
+              ) : paginatedEmployees.map(emp => {
                 const statusInfo = STATUS_MAP[emp.status];
                 const roleInfo = EMPLOYEE_ROLES.find(r => r.value === emp.role);
                 return (
@@ -409,6 +414,7 @@ export default function EmployeesPage() {
             </tbody>
           </table>
         </div>
+        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} hasNext={hasNext} hasPrev={hasPrev} isDark={dm} />
       </div>
 
       <div className="card" style={{ marginTop: 20 }}>

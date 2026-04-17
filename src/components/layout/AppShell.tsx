@@ -4,6 +4,7 @@ import React from 'react';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 import { useApp } from './AppContext';
+import { ErrorBoundary } from '../ErrorBoundary';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const { sidebarOpen, isMobile } = useApp();
@@ -22,7 +23,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         padding: '24px',
         transition: 'margin-right 0.3s ease',
       }}>
-        {children}
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
       </main>
     </div>
   );

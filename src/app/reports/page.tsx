@@ -11,6 +11,8 @@ import {
   Search, Filter, PlusCircle, Eye, Trash2,
   Printer, FileDown, ChevronLeft, ChevronRight, X, Archive, FileEdit
 } from 'lucide-react';
+import { usePagination } from '@/hooks/usePagination';
+import Pagination from '@/components/Pagination';
 
 export default function ReportsPage() {
   const { showToast, hasPermission, currentUser } = useApp();
@@ -24,10 +26,8 @@ export default function ReportsPage() {
   const [filterStatus, setFilterStatus] = useState('');
   const [filterPropertyType, setFilterPropertyType] = useState('');
   const [showMineOnly, setShowMineOnly] = useState(false);
-  const [page, setPage] = useState(1);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [archiveId, setArchiveId] = useState<string | null>(null);
-  const perPage = 10;
 
   const isAdmin = currentUser?.role === 'admin';
   const isViewer = currentUser?.role === 'viewer';
@@ -72,8 +72,8 @@ export default function ReportsPage() {
     });
   }, [reports, search, filterBank, filterStatus, filterPropertyType, showMineOnly, currentUser?.id]);
 
-  const paginated = filtered.slice((page - 1) * perPage, page * perPage);
-  const totalPages = Math.ceil(filtered.length / perPage);
+  const { currentPage, totalPages, startIndex, endIndex, goToPage, hasNext, hasPrev } = usePagination({ totalItems: filtered.length, pageSize: 10 });
+  const paginated = filtered.slice(startIndex, endIndex);
 
   const handleDelete = (id: string) => {
     store.deleteReport(id);
@@ -112,27 +112,27 @@ export default function ReportsPage() {
           <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
             <Search size={16} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
             <input type="text" placeholder="بحث برقم التقرير أو اسم المستفيد..."
-              value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              value={search} onChange={(e) => { setSearch(e.target.value); goToPage(1); }}
               style={{ width: '100%', padding: '9px 36px 9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', direction: 'rtl' }} />
           </div>
-          <select value={filterBank} onChange={(e) => { setFilterBank(e.target.value); setPage(1); }}
+          <select value={filterBank} onChange={(e) => { setFilterBank(e.target.value); goToPage(1); }}
             style={{ padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', appearance: 'none', minWidth: 140 }}>
             <option value="">كل البنوك</option>
             <option value="__personal__">تثمين شخصي</option>
             {banks.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
           </select>
-          <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
+          <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); goToPage(1); }}
             style={{ padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', appearance: 'none', minWidth: 140 }}>
             <option value="">كل الحالات</option>
             {reportStatuses.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
           </select>
-          <select value={filterPropertyType} onChange={(e) => { setFilterPropertyType(e.target.value); setPage(1); }}
+          <select value={filterPropertyType} onChange={(e) => { setFilterPropertyType(e.target.value); goToPage(1); }}
             style={{ padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', appearance: 'none', minWidth: 140 }}>
             <option value="">كل الأنواع</option>
             {propertyTypes.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
           </select>
           {!isViewer && (
-            <button onClick={() => { setShowMineOnly(!showMineOnly); setPage(1); }}
+            <button onClick={() => { setShowMineOnly(!showMineOnly); goToPage(1); }}
               style={{
                 padding: '8px 16px', borderRadius: 8, border: `1.5px solid ${showMineOnly ? 'var(--color-primary)' : 'var(--color-border)'}`,
                 background: showMineOnly ? 'var(--color-primary)' : 'var(--color-surface)',
@@ -144,7 +144,7 @@ export default function ReportsPage() {
             </button>
           )}
           {(filterBank || filterStatus || filterPropertyType || search) && (
-            <button onClick={() => { setSearch(''); setFilterBank(''); setFilterStatus(''); setFilterPropertyType(''); setShowMineOnly(false); setPage(1); }}
+            <button onClick={() => { setSearch(''); setFilterBank(''); setFilterStatus(''); setFilterPropertyType(''); setShowMineOnly(false); goToPage(1); }}
               className="btn btn-ghost btn-sm">
               <X size={14} /> مسح الفلاتر
             </button>
@@ -219,30 +219,9 @@ export default function ReportsPage() {
         {totalPages > 1 && (
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', borderTop: '1px solid var(--color-border)' }}>
             <span style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
-              عرض {(page - 1) * perPage + 1} - {Math.min(page * perPage, filtered.length)} من {filtered.length}
+              عرض {startIndex + 1} - {Math.min(endIndex, filtered.length)} من {filtered.length}
             </span>
-            <div style={{ display: 'flex', gap: 4 }}>
-              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-                style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface)', cursor: page === 1 ? 'not-allowed' : 'pointer', opacity: page === 1 ? 0.5 : 1 }}>
-                <ChevronRight size={16} />
-              </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                <button key={p} onClick={() => setPage(p)}
-                  style={{
-                    padding: '6px 12px', borderRadius: 6,
-                    border: p === page ? 'none' : '1px solid var(--color-border)',
-                    background: p === page ? 'var(--color-primary)' : 'var(--color-surface)',
-                    color: p === page ? 'white' : 'inherit', cursor: 'pointer',
-                    fontSize: 13, fontWeight: 600,
-                  }}>
-                  {p}
-                </button>
-              ))}
-              <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-                style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface)', cursor: page === totalPages ? 'not-allowed' : 'pointer', opacity: page === totalPages ? 0.5 : 1 }}>
-                <ChevronLeft size={16} />
-              </button>
-            </div>
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} hasNext={hasNext} hasPrev={hasPrev} isDark={dm} />
           </div>
         )}
       </div>

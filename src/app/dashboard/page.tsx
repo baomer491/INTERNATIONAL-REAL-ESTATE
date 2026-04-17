@@ -7,6 +7,7 @@ import { formatCurrency, formatRelative, getStatusInfo } from '@/lib/utils';
 import { useApp } from '@/components/layout/AppContext';
 import { checkPendingNotifications } from '@/lib/notification-checker';
 import { useTheme } from '@/hooks/useTheme';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import {
   FileText, CheckCircle2, Clock, AlertCircle, Coins,
   PlusCircle, TrendingUp, BarChart3,
@@ -289,6 +290,7 @@ export default function DashboardPage() {
   };
 
   return (
+    <ErrorBoundary>
     <div className="animate-fade-in" style={{ direction: 'rtl' }}>
 
       {/* ════════════════════════════════════════════
@@ -849,5 +851,6 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
+    </ErrorBoundary>
   );
 }

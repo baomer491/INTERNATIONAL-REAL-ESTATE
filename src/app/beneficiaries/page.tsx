@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { store } from '@/lib/store';
 import { formatDate } from '@/lib/utils';
 import { useTheme } from '@/hooks/useTheme';
@@ -8,6 +8,8 @@ import { useApp } from '@/components/layout/AppContext';
 import type { Beneficiary, BeneficiaryRelation } from '@/types';
 import { Users, Search, Phone, Mail, MapPin, FileText, Eye, X, PlusCircle, Edit3, Trash2 } from 'lucide-react';
 import { beneficiaryRelations } from '@/data/mock';
+import { usePagination } from '@/hooks/usePagination';
+import Pagination from '@/components/Pagination';
 
 type FormData = {
   fullName: string;
@@ -47,9 +49,12 @@ export default function BeneficiariesPage() {
 
   const banks = store.getBanks();
 
-  const filtered = beneficiaries.filter(b =>
+  const filtered = useMemo(() => beneficiaries.filter(b =>
     b.fullName.includes(search) || b.civilId.includes(search) || b.phone.includes(search)
-  );
+  ), [beneficiaries, search]);
+
+  const { currentPage, totalPages, startIndex, endIndex, goToPage, hasNext, hasPrev } = usePagination({ totalItems: filtered.length, pageSize: 12 });
+  const paginatedFiltered = filtered.slice(startIndex, endIndex);
 
   const handleAdd = () => {
     if (!form.fullName.trim() || !form.civilId.trim() || !form.phone.trim()) {
@@ -250,7 +255,7 @@ export default function BeneficiariesPage() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16 }}>
-        {filtered.map(bn => (
+        {paginatedFiltered.map(bn => (
           <div key={bn.id} className="card" style={{ cursor: 'default' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
               <div
@@ -301,6 +306,8 @@ export default function BeneficiariesPage() {
           </div>
         ))}
       </div>
+
+      <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} hasNext={hasNext} hasPrev={hasPrev} isDark={dm} />
 
       {selected && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>

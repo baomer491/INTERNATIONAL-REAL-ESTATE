@@ -23,7 +23,7 @@ export interface PDFDocument {
     };
 }
 
-const SCALE = 2.0; // High resolution for better OCR quality
+const SCALE = 1.5; // Balanced resolution for OCR quality and performance
 
 /**
  * Convert PDF file to images and extract text
@@ -102,7 +102,7 @@ async function extractTextFromPage(page: pdfjs.PDFPageProxy): Promise<string> {
 export async function extractPageAsImage(
     file: File,
     pageNumber: number,
-    scale: number = 2.0
+    scale: number = 1.5
 ): Promise<string> {
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;

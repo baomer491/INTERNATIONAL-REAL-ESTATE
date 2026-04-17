@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useApp } from '@/components/layout/AppContext';
 import { useTheme } from '@/hooks/useTheme';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Eye, EyeOff, Lock, User } from 'lucide-react';
 
 export default function LoginPage() {
@@ -50,6 +51,7 @@ export default function LoginPage() {
   };
 
   return (
+    <ErrorBoundary>
     <div style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
       background: dm
@@ -178,9 +180,7 @@ export default function LoginPage() {
               ) : 'تسجيل الدخول'}
             </button>
 
-            <p style={{ textAlign: 'center', marginTop: 16, fontSize: 12, color: 'var(--color-text-muted)' }}>
-              للتجربة: اسم المستخدم <strong>admin</strong> وكلمة المرور <strong>admin123</strong>
-            </p>
+
           </form>
         </div>
 
@@ -193,5 +193,6 @@ export default function LoginPage() {
         __html: `@keyframes spin { to { transform: rotate(360deg); } }`
       }} />
     </div>
+    </ErrorBoundary>
   );
 }
