@@ -1,0 +1,3905 @@
+{
+  "total_wilayats": 6,
+  "total_areas": 151,
+  "wilayats": [
+    "مطرح",
+    "مسقط",
+    "قرات",
+    "بشر",
+    "ا¹عامرات",
+    "ا¹سب"
+  ],
+  "summary": {
+    "مطرح": {
+      "total_areas": 12,
+      "residential": {
+        "areas_with_data": 12,
+        "avg_min": "95.11",
+        "avg_max": "162.70",
+        "overall_min": 72.42,
+        "overall_max": 203.82
+      },
+      "residential_commercial": {
+        "areas_with_data": 12,
+        "avg_min": "271.13",
+        "avg_max": "428.10",
+        "overall_min": 145.41,
+        "overall_max": 558.01
+      },
+      "industrial": {
+        "areas_with_data": 12,
+        "avg_min": "141.16",
+        "avg_max": "235.61"
+      },
+      "agricultural": {
+        "areas_with_data": 0,
+        "avg_min": "N/A",
+        "avg_max": "N/A"
+      },
+      "tourism": {
+        "areas_with_data": 0,
+        "avg_min": "N/A",
+        "avg_max": "N/A"
+      }
+    },
+    "مسقط": {
+      "total_areas": 11,
+      "residential": {
+        "areas_with_data": 11,
+        "avg_min": "58.98",
+        "avg_max": "87.27",
+        "overall_min": 20.47,
+        "overall_max": 142.2
+      },
+      "residential_commercial": {
+        "areas_with_data": 11,
+        "avg_min": "109.10",
+        "avg_max": "167.46",
+        "overall_min": 40.93,
+        "overall_max": 284.4
+      },
+      "industrial": {
+        "areas_with_data": 0,
+        "avg_min": "N/A",
+        "avg_max": "N/A"
+      },
+      "agricultural": {
+        "areas_with_data": 7,
+        "avg_min": "10.91",
+        "avg_max": "18.84"
+      },
+      "tourism": {
+        "areas_with_data": 0,
+        "avg_min": "N/A",
+        "avg_max": "N/A"
+      }
+    },
+    "قرات": {
+      "total_areas": 11,
+      "residential": {
+        "areas_with_data": 11,
+        "avg_min": "15.46",
+        "avg_max": "32.93",
+        "overall_min": 5.8,
+        "overall_max": 62.8
+      },
+      "residential_commercial": {
+        "areas_with_data": 11,
+        "avg_min": "36.76",
+        "avg_max": "69.41",
+        "overall_min": 11.6,
+        "overall_max": 125.6
+      },
+      "industrial": {
+        "areas_with_data": 11,
+        "avg_min": "23.19",
+        "avg_max": "49.40"
+      },
+      "agricultural": {
+        "areas_with_data": 11,
+        "avg_min": "4.39",
+        "avg_max": "9.63"
+      },
+      "tourism": {
+        "areas_with_data": 0,
+        "avg_min": "N/A",
+        "avg_max": "N/A"
+      }
+    },
+    "بشر": {
+      "total_areas": 51,
+      "residential": {
+        "areas_with_data": 48,
+        "avg_min": "170.97",
+        "avg_max": "272.21",
+        "overall_min": 32,
+        "overall_max": 596.7
+      },
+      "residential_commercial": {
+        "areas_with_data": 50,
+        "avg_min": "401.27",
+        "avg_max": "561.13",
+        "overall_min": 64,
+        "overall_max": 812.68
+      },
+      "industrial": {
+        "areas_with_data": 46,
+        "avg_min": "129.89",
+        "avg_max": "204.13"
+      },
+      "agricultural": {
+        "areas_with_data": 47,
+        "avg_min": "33.36",
+        "avg_max": "52.71"
+      },
+      "tourism": {
+        "areas_with_data": 0,
+        "avg_min": "N/A",
+        "avg_max": "N/A"
+      }
+    },
+    "ا¹عامرات": {
+      "total_areas": 41,
+      "residential": {
+        "areas_with_data": 38,
+        "avg_min": "25.11",
+        "avg_max": "46.01",
+        "overall_min": 4.17,
+        "overall_max": 90.47
+      },
+      "residential_commercial": {
+        "areas_with_data": 28,
+        "avg_min": "93.24",
+        "avg_max": "175.12",
+        "overall_min": 26.33,
+        "overall_max": 450
+      },
+      "industrial": {
+        "areas_with_data": 3,
+        "avg_min": "50.52",
+        "avg_max": "130.00"
+      },
+      "agricultural": {
+        "areas_with_data": 4,
+        "avg_min": "10.69",
+        "avg_max": "25.75"
+      },
+      "tourism": {
+        "areas_with_data": 0,
+        "avg_min": "N/A",
+        "avg_max": "N/A"
+      }
+    },
+    "ا¹سب": {
+      "total_areas": 25,
+      "residential": {
+        "areas_with_data": 24,
+        "avg_min": "76.51",
+        "avg_max": "127.39",
+        "overall_min": 31.2,
+        "overall_max": 213.79
+      },
+      "residential_commercial": {
+        "areas_with_data": 24,
+        "avg_min": "208.76",
+        "avg_max": "345.97",
+        "overall_min": 93.6,
+        "overall_max": 576.76
+      },
+      "industrial": {
+        "areas_with_data": 24,
+        "avg_min": "77.20",
+        "avg_max": "188.20"
+      },
+      "agricultural": {
+        "areas_with_data": 24,
+        "avg_min": "18.23",
+        "avg_max": "29.36"
+      },
+      "tourism": {
+        "areas_with_data": 0,
+        "avg_min": "N/A",
+        "avg_max": "N/A"
+      }
+    }
+  },
+  "highest_residential": {
+    "name": "شاطي القرم",
+    "wilayat": "بشر",
+    "max": 596.7
+  },
+  "lowest_residential": {
+    "name": "بعي",
+    "wilayat": "ا¹عامرات",
+    "min": 4.17
+  },
+  "highest_res_commercial": {
+    "name": "الخوير 16 /أ",
+    "wilayat": "بشر",
+    "max": 812.68
+  },
+  "highest_avg_wilayat": {
+    "name": "بشر",
+    "avgMax": 272.21
+  },
+  "lowest_avg_wilayat": {
+    "name": "قرات",
+    "avgMin": 15.46
+  },
+  "detailed_data": {
+    "مطرح": {
+      "areas": [
+        {
+          "name": "مطرح",
+          "num": 1,
+          "residential": {
+            "min": 72.42,
+            "max": 203.82
+          },
+          "residential_commercial": {
+            "min": 145.41,
+            "max": 461.02
+          },
+          "industrial": {
+            "min": 108.63,
+            "max": 305.73
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 218.11,
+            "max": null
+          }
+        },
+        {
+          "name": "حي مطرح التجاري 1",
+          "num": 2,
+          "residential": {
+            "min": 94.77,
+            "max": 158.16
+          },
+          "residential_commercial": {
+            "min": 401.29,
+            "max": 546.52
+          },
+          "industrial": {
+            "min": 142.15,
+            "max": 237.24
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 312.29,
+            "max": null
+          }
+        },
+        {
+          "name": "حي مطرح التجاري 2",
+          "num": 3,
+          "residential": {
+            "min": 102,
+            "max": 132
+          },
+          "residential_commercial": {
+            "min": 408,
+            "max": 528
+          },
+          "industrial": {
+            "min": 153,
+            "max": 198
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 301.71,
+            "max": null
+          }
+        },
+        {
+          "name": "فندق شيراتون",
+          "num": 4,
+          "residential": {
+            "min": 112.08,
+            "max": 165.16
+          },
+          "residential_commercial": {
+            "min": 421.87,
+            "max": 558.01
+          },
+          "industrial": {
+            "min": 168.12,
+            "max": 247.74
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 372.01,
+            "max": null
+          }
+        },
+        {
+          "name": "روي",
+          "num": 5,
+          "residential": {
+            "min": 107,
+            "max": 172.95
+          },
+          "residential_commercial": {
+            "min": 321.25,
+            "max": 483.46
+          },
+          "industrial": {
+            "min": 160.5,
+            "max": 259.42
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 276.26,
+            "max": null
+          }
+        },
+        {
+          "name": "الممتاز و بيت الفلج",
+          "num": 6,
+          "residential": {
+            "min": 107.75,
+            "max": 184.31
+          },
+          "residential_commercial": {
+            "min": 269.38,
+            "max": 347.95
+          },
+          "industrial": {
+            "min": 161.63,
+            "max": 264
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 198.83,
+            "max": null
+          }
+        },
+        {
+          "name": "دارسيت الطويان",
+          "num": 7,
+          "residential": {
+            "min": 97,
+            "max": 187
+          },
+          "residential_commercial": {
+            "min": 204.33,
+            "max": 374
+          },
+          "industrial": {
+            "min": 145.5,
+            "max": 224.4
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 213.71,
+            "max": null
+          }
+        },
+        {
+          "name": "الوادي الكبير",
+          "num": 8,
+          "residential": {
+            "min": 97,
+            "max": 172
+          },
+          "residential_commercial": {
+            "min": 217.67,
+            "max": 344
+          },
+          "industrial": {
+            "min": 150.58,
+            "max": 258
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 196.57,
+            "max": null
+          }
+        },
+        {
+          "name": "الولجة",
+          "num": 9,
+          "residential": {
+            "min": 97,
+            "max": 152.48
+          },
+          "residential_commercial": {
+            "min": 204.33,
+            "max": 381.2
+          },
+          "industrial": {
+            "min": 145.5,
+            "max": 228.72
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 217.83,
+            "max": null
+          }
+        },
+        {
+          "name": "الحمرية",
+          "num": 10,
+          "residential": {
+            "min": 102.95,
+            "max": 165
+          },
+          "residential_commercial": {
+            "min": 206.19,
+            "max": 334.53
+          },
+          "industrial": {
+            "min": 154.43,
+            "max": 247.5
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 191.16,
+            "max": null
+          }
+        },
+        {
+          "name": "وادي عدي",
+          "num": 11,
+          "residential": {
+            "min": 77,
+            "max": 109
+          },
+          "residential_commercial": {
+            "min": 231,
+            "max": 327
+          },
+          "industrial": {
+            "min": 92.4,
+            "max": 130.8
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 186.86,
+            "max": null
+          }
+        },
+        {
+          "name": "حلة السد",
+          "num": 12,
+          "residential": {
+            "min": 74.29,
+            "max": 150.49
+          },
+          "residential_commercial": {
+            "min": 222.86,
+            "max": 451.47
+          },
+          "industrial": {
+            "min": 111.43,
+            "max": 225.74
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 257.98,
+            "max": null
+          }
+        }
+      ],
+      "sheets": [
+        "Table 5"
+      ]
+    },
+    "مسقط": {
+      "areas": [
+        {
+          "name": "السيفة",
+          "num": 1,
+          "residential": {
+            "min": 20.47,
+            "max": 40.87
+          },
+          "residential_commercial": {
+            "min": 40.93,
+            "max": 81.73
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": 6.82,
+            "max": 13.62
+          },
+          "tourism": {
+            "min": 45.41,
+            "max": null
+          }
+        },
+        {
+          "name": "يتي + الخيران + حنشفت",
+          "num": 2,
+          "residential": {
+            "min": 22.2,
+            "max": 57.2
+          },
+          "residential_commercial": {
+            "min": 44.4,
+            "max": 114.4
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": 5.55,
+            "max": 14.3
+          },
+          "tourism": {
+            "min": 63.56,
+            "max": null
+          }
+        },
+        {
+          "name": "قنتب",
+          "num": 3,
+          "residential": {
+            "min": 77,
+            "max": 102
+          },
+          "residential_commercial": {
+            "min": 154,
+            "max": 204
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": 15.4,
+            "max": 20.4
+          },
+          "tourism": {
+            "min": 113.33,
+            "max": null
+          }
+        },
+        {
+          "name": "حرامل",
+          "num": 4,
+          "residential": {
+            "min": 72.2,
+            "max": 97.2
+          },
+          "residential_commercial": {
+            "min": 52,
+            "max": 116.64
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 64.8,
+            "max": null
+          }
+        },
+        {
+          "name": "البستان",
+          "num": 5,
+          "residential": {
+            "min": 79.07,
+            "max": 142.2
+          },
+          "residential_commercial": {
+            "min": 158.13,
+            "max": 284.4
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": 19.77,
+            "max": 35.55
+          },
+          "tourism": {
+            "min": 158,
+            "max": null
+          }
+        },
+        {
+          "name": "سداب",
+          "num": 6,
+          "residential": {
+            "min": 77,
+            "max": 102
+          },
+          "residential_commercial": {
+            "min": 154,
+            "max": 204
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": null,
+            "max": null
+          }
+        },
+        {
+          "name": "مسقط",
+          "num": 7,
+          "residential": {
+            "min": 102,
+            "max": 120.73
+          },
+          "residential_commercial": {
+            "min": 198.93,
+            "max": 241.47
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 134.15,
+            "max": null
+          }
+        },
+        {
+          "name": "ريام",
+          "num": 8,
+          "residential": {
+            "min": 72.07,
+            "max": 97.4
+          },
+          "residential_commercial": {
+            "min": 144.13,
+            "max": 194.8
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": 14.41,
+            "max": 19.48
+          },
+          "tourism": {
+            "min": 108.22,
+            "max": null
+          }
+        },
+        {
+          "name": "كلبوه",
+          "num": 9,
+          "residential": {
+            "min": 77,
+            "max": 100.2
+          },
+          "residential_commercial": {
+            "min": 154,
+            "max": 200.4
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": null,
+            "max": null
+          }
+        },
+        {
+          "name": "وادي الحلو",
+          "num": 10,
+          "residential": {
+            "min": 23.4,
+            "max": 42.2
+          },
+          "residential_commercial": {
+            "min": 46.8,
+            "max": 84.4
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": 7.8,
+            "max": 14.07
+          },
+          "tourism": {
+            "min": null,
+            "max": null
+          }
+        },
+        {
+          "name": "ينكت",
+          "num": 11,
+          "residential": {
+            "min": 26.4,
+            "max": 57.93
+          },
+          "residential_commercial": {
+            "min": 52.8,
+            "max": 115.87
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": 6.6,
+            "max": 14.48
+          },
+          "tourism": {
+            "min": null,
+            "max": null
+          }
+        }
+      ],
+      "sheets": [
+        "Table 6"
+      ]
+    },
+    "قرات": {
+      "areas": [
+        {
+          "name": "الشهباري",
+          "num": 1,
+          "residential": {
+            "min": 19.87,
+            "max": 45.93
+          },
+          "residential_commercial": {
+            "min": 79.47,
+            "max": 91.87
+          },
+          "industrial": {
+            "min": 29.8,
+            "max": 68.9
+          },
+          "agricultural": {
+            "min": 4.97,
+            "max": 12.12
+          },
+          "tourism": {
+            "min": 61.24,
+            "max": null
+          }
+        },
+        {
+          "name": "فنس",
+          "num": 2,
+          "residential": {
+            "min": 21.4,
+            "max": 62.8
+          },
+          "residential_commercial": {
+            "min": 42.8,
+            "max": 125.6
+          },
+          "industrial": {
+            "min": 32.1,
+            "max": 94.2
+          },
+          "agricultural": {
+            "min": 5.35,
+            "max": 16.7
+          },
+          "tourism": {
+            "min": 47.08,
+            "max": null
+          }
+        },
+        {
+          "name": "الكريب",
+          "num": 3,
+          "residential": {
+            "min": 19.87,
+            "max": 44
+          },
+          "residential_commercial": {
+            "min": 49.67,
+            "max": 88
+          },
+          "industrial": {
+            "min": 29.8,
+            "max": 66
+          },
+          "agricultural": {
+            "min": 4.97,
+            "max": 11.62
+          },
+          "tourism": {
+            "min": 54.63,
+            "max": null
+          }
+        },
+        {
+          "name": "دغمر",
+          "num": 4,
+          "residential": {
+            "min": 19.87,
+            "max": 32.2
+          },
+          "residential_commercial": {
+            "min": 49.67,
+            "max": 80.5
+          },
+          "industrial": {
+            "min": 29.8,
+            "max": 48.3
+          },
+          "agricultural": {
+            "min": 4.97,
+            "max": 8.55
+          },
+          "tourism": {
+            "min": 54.63,
+            "max": null
+          }
+        },
+        {
+          "name": "ضباب",
+          "num": 5,
+          "residential": {
+            "min": 12.2,
+            "max": 32.29
+          },
+          "residential_commercial": {
+            "min": 24.4,
+            "max": 64.58
+          },
+          "industrial": {
+            "min": 18.3,
+            "max": 48.44
+          },
+          "agricultural": {
+            "min": 3.05,
+            "max": 9.18
+          },
+          "tourism": {
+            "min": 26.84,
+            "max": null
+          }
+        },
+        {
+          "name": "الساحل",
+          "num": 6,
+          "residential": {
+            "min": 12.2,
+            "max": 21
+          },
+          "residential_commercial": {
+            "min": 24.4,
+            "max": 42
+          },
+          "industrial": {
+            "min": 18.3,
+            "max": 31.5
+          },
+          "agricultural": {
+            "min": 3.05,
+            "max": 5.25
+          },
+          "tourism": {
+            "min": 26.84,
+            "max": null
+          }
+        },
+        {
+          "name": "حي الظاهر",
+          "num": 7,
+          "residential": {
+            "min": 25,
+            "max": 40.5
+          },
+          "residential_commercial": {
+            "min": 50,
+            "max": 80.39
+          },
+          "industrial": {
+            "min": 37.5,
+            "max": 60.75
+          },
+          "agricultural": {
+            "min": 8.33,
+            "max": 13.5
+          },
+          "tourism": {
+            "min": 55,
+            "max": null
+          }
+        },
+        {
+          "name": "قريات الساحل",
+          "num": 8,
+          "residential": {
+            "min": 12.52,
+            "max": 29.77
+          },
+          "residential_commercial": {
+            "min": 27.51,
+            "max": 67.09
+          },
+          "industrial": {
+            "min": 18.78,
+            "max": 44.66
+          },
+          "agricultural": {
+            "min": 4.17,
+            "max": 9.92
+          },
+          "tourism": {
+            "min": 30.26,
+            "max": null
+          }
+        },
+        {
+          "name": "الهبوبيه",
+          "num": 9,
+          "residential": {
+            "min": 10.68,
+            "max": 21.27
+          },
+          "residential_commercial": {
+            "min": 21.36,
+            "max": 54.24
+          },
+          "industrial": {
+            "min": 16.02,
+            "max": 31.9
+          },
+          "agricultural": {
+            "min": 5.34,
+            "max": 10.63
+          },
+          "tourism": {
+            "min": 23.49,
+            "max": null
+          }
+        },
+        {
+          "name": "صياء",
+          "num": 10,
+          "residential": {
+            "min": 10.67,
+            "max": 21.27
+          },
+          "residential_commercial": {
+            "min": 23.47,
+            "max": 46.79
+          },
+          "industrial": {
+            "min": 16,
+            "max": 31.9
+          },
+          "agricultural": {
+            "min": 2.67,
+            "max": 5.62
+          },
+          "tourism": {
+            "min": 25.81,
+            "max": null
+          }
+        },
+        {
+          "name": "التجمعات الأخرى",
+          "num": 11,
+          "residential": {
+            "min": 5.8,
+            "max": 11.2
+          },
+          "residential_commercial": {
+            "min": 11.6,
+            "max": 22.4
+          },
+          "industrial": {
+            "min": 8.7,
+            "max": 16.8
+          },
+          "agricultural": {
+            "min": 1.45,
+            "max": 2.8
+          },
+          "tourism": {
+            "min": 12.76,
+            "max": null
+          }
+        }
+      ],
+      "sheets": [
+        "Table 7"
+      ]
+    },
+    "بشر": {
+      "areas": [
+        {
+          "name": "الوطية",
+          "num": 1,
+          "residential": {
+            "min": 159.07,
+            "max": 252
+          },
+          "residential_commercial": {
+            "min": 397.67,
+            "max": 554.4
+          },
+          "industrial": {
+            "min": 174.97,
+            "max": 277.2
+          },
+          "agricultural": {
+            "min": 31.81,
+            "max": 50.4
+          },
+          "tourism": {
+            "min": 369.6,
+            "max": null
+          }
+        },
+        {
+          "name": "القرم 9",
+          "num": 2,
+          "residential": {
+            "min": 226.07,
+            "max": 400.4
+          },
+          "residential_commercial": {
+            "min": 452.13,
+            "max": 600.6
+          },
+          "industrial": {
+            "min": 113.03,
+            "max": 200.2
+          },
+          "agricultural": {
+            "min": 37.68,
+            "max": 66.73
+          },
+          "tourism": {
+            "min": 400.4,
+            "max": null
+          }
+        },
+        {
+          "name": "القرم 20",
+          "num": 3,
+          "residential": {
+            "min": 226.07,
+            "max": 400.4
+          },
+          "residential_commercial": {
+            "min": 452.13,
+            "max": 600.6
+          },
+          "industrial": {
+            "min": 113.03,
+            "max": 200.2
+          },
+          "agricultural": {
+            "min": 37.68,
+            "max": 66.73
+          },
+          "tourism": {
+            "min": 400.4,
+            "max": null
+          }
+        },
+        {
+          "name": "القرم 29",
+          "num": 4,
+          "residential": {
+            "min": 226.07,
+            "max": 400.4
+          },
+          "residential_commercial": {
+            "min": 452.13,
+            "max": 595.27
+          },
+          "industrial": {
+            "min": 113.03,
+            "max": 200.2
+          },
+          "agricultural": {
+            "min": 37.68,
+            "max": 66.73
+          },
+          "tourism": {
+            "min": 396.84,
+            "max": null
+          }
+        },
+        {
+          "name": "القرم 32",
+          "num": 5,
+          "residential": {
+            "min": 226.07,
+            "max": 400.4
+          },
+          "residential_commercial": {
+            "min": 452.13,
+            "max": 600.6
+          },
+          "industrial": {
+            "min": 113.03,
+            "max": 200.2
+          },
+          "agricultural": {
+            "min": 37.68,
+            "max": 66.73
+          },
+          "tourism": {
+            "min": 400.4,
+            "max": null
+          }
+        },
+        {
+          "name": "القرم 16",
+          "num": 6,
+          "residential": {
+            "min": 226.07,
+            "max": 400.4
+          },
+          "residential_commercial": {
+            "min": 452.13,
+            "max": 800.8
+          },
+          "industrial": {
+            "min": 113.03,
+            "max": 200.2
+          },
+          "agricultural": {
+            "min": 37.68,
+            "max": 66.73
+          },
+          "tourism": {
+            "min": 533.87,
+            "max": null
+          }
+        },
+        {
+          "name": "القرم 13",
+          "num": 7,
+          "residential": {
+            "min": 226.07,
+            "max": 400.4
+          },
+          "residential_commercial": {
+            "min": 452.13,
+            "max": 600.6
+          },
+          "industrial": {
+            "min": 113.03,
+            "max": 200.2
+          },
+          "agricultural": {
+            "min": 37.68,
+            "max": 66.73
+          },
+          "tourism": {
+            "min": 400.4,
+            "max": null
+          }
+        },
+        {
+          "name": "القرم 14",
+          "num": 8,
+          "residential": {
+            "min": 226.07,
+            "max": 400.4
+          },
+          "residential_commercial": {
+            "min": 452.13,
+            "max": 600.6
+          },
+          "industrial": {
+            "min": 113.03,
+            "max": 200.2
+          },
+          "agricultural": {
+            "min": 37.68,
+            "max": 66.73
+          },
+          "tourism": {
+            "min": 400.4,
+            "max": null
+          }
+        },
+        {
+          "name": "القرم / لولاي",
+          "num": 9,
+          "residential": {
+            "min": 217,
+            "max": 400.4
+          },
+          "residential_commercial": {
+            "min": 434,
+            "max": 600.6
+          },
+          "industrial": {
+            "min": 108.5,
+            "max": 200.2
+          },
+          "agricultural": {
+            "min": 36.17,
+            "max": 66.73
+          },
+          "tourism": {
+            "min": 400.4,
+            "max": null
+          }
+        },
+        {
+          "name": "رابية القرم",
+          "num": 10,
+          "residential": {
+            "min": 254.91,
+            "max": 397.89
+          },
+          "residential_commercial": {
+            "min": 382.37,
+            "max": 596.84
+          },
+          "industrial": {
+            "min": 127.46,
+            "max": 198.95
+          },
+          "agricultural": {
+            "min": 42.49,
+            "max": 66.32
+          },
+          "tourism": {
+            "min": 397.89,
+            "max": null
+          }
+        },
+        {
+          "name": "مدينة السلطان قابوس",
+          "num": 11,
+          "residential": {
+            "min": 269.9,
+            "max": 399.51
+          },
+          "residential_commercial": {
+            "min": 539.8,
+            "max": 596.9
+          },
+          "industrial": {
+            "min": 134.95,
+            "max": 200.7
+          },
+          "agricultural": {
+            "min": 44.98,
+            "max": 66.9
+          },
+          "tourism": {
+            "min": 397.93,
+            "max": null
+          }
+        },
+        {
+          "name": "الصاروج",
+          "num": 12,
+          "residential": {
+            "min": 302,
+            "max": 501.4
+          },
+          "residential_commercial": {
+            "min": 604,
+            "max": 752.1
+          },
+          "industrial": {
+            "min": 151,
+            "max": 250.7
+          },
+          "agricultural": {
+            "min": 50.33,
+            "max": 83.57
+          },
+          "tourism": {
+            "min": 501.4,
+            "max": null
+          }
+        },
+        {
+          "name": "شاطي القرم",
+          "num": 13,
+          "residential": {
+            "min": 397.8,
+            "max": 596.7
+          },
+          "residential_commercial": {
+            "min": 517.14,
+            "max": 775.71
+          },
+          "industrial": {
+            "min": 132.6,
+            "max": 198.9
+          },
+          "agricultural": {
+            "min": 66.3,
+            "max": 99.45
+          },
+          "tourism": {
+            "min": 517.14,
+            "max": null
+          }
+        },
+        {
+          "name": "الخط الاول من البحر",
+          "num": 14,
+          "residential": {
+            "min": 158.4,
+            "max": 248.2
+          },
+          "residential_commercial": {
+            "min": 475.8,
+            "max": 749.28
+          },
+          "industrial": {
+            "min": 132,
+            "max": 206.83
+          },
+          "agricultural": {
+            "min": 31.68,
+            "max": 49.64
+          },
+          "tourism": {
+            "min": 499.52,
+            "max": null
+          }
+        },
+        {
+          "name": "17الخوير 1/71،",
+          "num": 15,
+          "residential": {
+            "min": 158.4,
+            "max": 248.2
+          },
+          "residential_commercial": {
+            "min": 475.8,
+            "max": 749.28
+          },
+          "industrial": {
+            "min": 132,
+            "max": 206.83
+          },
+          "agricultural": {
+            "min": 31.68,
+            "max": 49.64
+          },
+          "tourism": {
+            "min": 499.52,
+            "max": null
+          }
+        },
+        {
+          "name": "الخوير 17/2",
+          "num": 16,
+          "residential": {
+            "min": 158.4,
+            "max": 248.2
+          },
+          "residential_commercial": {
+            "min": 475.8,
+            "max": 749.28
+          },
+          "industrial": {
+            "min": 132,
+            "max": 206.83
+          },
+          "agricultural": {
+            "min": 31.68,
+            "max": 49.64
+          },
+          "tourism": {
+            "min": 499.52,
+            "max": null
+          }
+        },
+        {
+          "name": "الخوير 17/3",
+          "num": 17,
+          "residential": {
+            "min": 158.4,
+            "max": 248.2
+          },
+          "residential_commercial": {
+            "min": 475.8,
+            "max": 749.28
+          },
+          "industrial": {
+            "min": 132,
+            "max": 206.83
+          },
+          "agricultural": {
+            "min": 31.68,
+            "max": 49.64
+          },
+          "tourism": {
+            "min": 499.52,
+            "max": null
+          }
+        },
+        {
+          "name": "الخوير 16 /أ",
+          "num": 18,
+          "residential": {
+            "min": 166.4,
+            "max": 270
+          },
+          "residential_commercial": {
+            "min": 503.73,
+            "max": 812.68
+          },
+          "industrial": {
+            "min": 138.67,
+            "max": 225
+          },
+          "agricultural": {
+            "min": 33.28,
+            "max": 54
+          },
+          "tourism": {
+            "min": 541.79,
+            "max": null
+          }
+        },
+        {
+          "name": "الخوير 25",
+          "num": 19,
+          "residential": {
+            "min": 182,
+            "max": 301.4
+          },
+          "residential_commercial": {
+            "min": 455,
+            "max": 753.5
+          },
+          "industrial": {
+            "min": 151.67,
+            "max": 251.17
+          },
+          "agricultural": {
+            "min": 36.4,
+            "max": 60.28
+          },
+          "tourism": {
+            "min": 502.33,
+            "max": null
+          }
+        },
+        {
+          "name": "الخوير 28",
+          "num": 20,
+          "residential": {
+            "min": 182,
+            "max": 301.4
+          },
+          "residential_commercial": {
+            "min": 455,
+            "max": 753.5
+          },
+          "industrial": {
+            "min": 151.67,
+            "max": 251.17
+          },
+          "agricultural": {
+            "min": 36.4,
+            "max": 60.28
+          },
+          "tourism": {
+            "min": 502.33,
+            "max": null
+          }
+        },
+        {
+          "name": "الخوير 33",
+          "num": 21,
+          "residential": {
+            "min": 182,
+            "max": 301.4
+          },
+          "residential_commercial": {
+            "min": 455,
+            "max": 753.5
+          },
+          "industrial": {
+            "min": 151.67,
+            "max": 251.17
+          },
+          "agricultural": {
+            "min": 36.4,
+            "max": 60.28
+          },
+          "tourism": {
+            "min": 502.33,
+            "max": null
+          }
+        },
+        {
+          "name": "الخوير 33/1",
+          "num": 22,
+          "residential": {
+            "min": 182,
+            "max": 301.4
+          },
+          "residential_commercial": {
+            "min": 455,
+            "max": 753.5
+          },
+          "industrial": {
+            "min": 151.67,
+            "max": 251.17
+          },
+          "agricultural": {
+            "min": 36.4,
+            "max": 60.28
+          },
+          "tourism": {
+            "min": 502.33,
+            "max": null
+          }
+        },
+        {
+          "name": "الخوير 39",
+          "num": 23,
+          "residential": {
+            "min": 182,
+            "max": 256.07
+          },
+          "residential_commercial": {
+            "min": 455,
+            "max": 640.17
+          },
+          "industrial": {
+            "min": 151.67,
+            "max": 213.39
+          },
+          "agricultural": {
+            "min": 36.4,
+            "max": 51.21
+          },
+          "tourism": {
+            "min": 426.78,
+            "max": null
+          }
+        },
+        {
+          "name": "الخوير 42",
+          "num": 24,
+          "residential": {
+            "min": 182,
+            "max": 307
+          },
+          "residential_commercial": {
+            "min": 455,
+            "max": 777.5
+          },
+          "industrial": {
+            "min": 151.67,
+            "max": 255.83
+          },
+          "agricultural": {
+            "min": 36.4,
+            "max": 61.4
+          },
+          "tourism": {
+            "min": 518.33,
+            "max": null
+          }
+        },
+        {
+          "name": "الغبرة الشمالية",
+          "num": 25,
+          "residential": {
+            "min": 172.4,
+            "max": 252.33
+          },
+          "residential_commercial": {
+            "min": 427.74,
+            "max": 559.86
+          },
+          "industrial": {
+            "min": 143.67,
+            "max": 210.28
+          },
+          "agricultural": {
+            "min": 34.48,
+            "max": 50.47
+          },
+          "tourism": {
+            "min": 373.24,
+            "max": null
+          }
+        },
+        {
+          "name": "الغبرة الجنوبية",
+          "num": 26,
+          "residential": {
+            "min": 167,
+            "max": 227
+          },
+          "residential_commercial": {
+            "min": 416.07,
+            "max": 512.19
+          },
+          "industrial": {
+            "min": 139.17,
+            "max": 189.17
+          },
+          "agricultural": {
+            "min": 33.4,
+            "max": 45.4
+          },
+          "tourism": {
+            "min": 341.46,
+            "max": null
+          }
+        },
+        {
+          "name": "العذيبة + 18 نوفمبر",
+          "num": 27,
+          "residential": {
+            "min": 202,
+            "max": 302
+          },
+          "residential_commercial": {
+            "min": 505,
+            "max": 664.4
+          },
+          "industrial": {
+            "min": 168.33,
+            "max": 251.67
+          },
+          "agricultural": {
+            "min": 40.4,
+            "max": 60.4
+          },
+          "tourism": {
+            "min": 442.93,
+            "max": null
+          }
+        },
+        {
+          "name": "بوشر 35",
+          "num": 28,
+          "residential": {
+            "min": 117.35,
+            "max": 234.71
+          },
+          "residential_commercial": {
+            "min": 352.06,
+            "max": 516.36
+          },
+          "industrial": {
+            "min": 97.79,
+            "max": 195.59
+          },
+          "agricultural": {
+            "min": 23.47,
+            "max": 46.94
+          },
+          "tourism": {
+            "min": 344.24,
+            "max": null
+          }
+        },
+        {
+          "name": "بوشر 36",
+          "num": 29,
+          "residential": {
+            "min": 148.49,
+            "max": 222.73
+          },
+          "residential_commercial": {
+            "min": 445.46,
+            "max": 490
+          },
+          "industrial": {
+            "min": 123.74,
+            "max": 185.61
+          },
+          "agricultural": {
+            "min": 29.7,
+            "max": 44.55
+          },
+          "tourism": {
+            "min": 326.67,
+            "max": null
+          }
+        },
+        {
+          "name": "بوشر 37",
+          "num": 30,
+          "residential": {
+            "min": 148.49,
+            "max": 222.73
+          },
+          "residential_commercial": {
+            "min": 445.46,
+            "max": 490
+          },
+          "industrial": {
+            "min": 123.74,
+            "max": 185.61
+          },
+          "agricultural": {
+            "min": 29.7,
+            "max": 44.55
+          },
+          "tourism": {
+            "min": 326.67,
+            "max": null
+          }
+        },
+        {
+          "name": "بوشر 40 + منطقة الفتح",
+          "num": 31,
+          "residential": {
+            "min": 148.07,
+            "max": 222.1
+          },
+          "residential_commercial": {
+            "min": 444.21,
+            "max": 488.63
+          },
+          "industrial": {
+            "min": 123.39,
+            "max": 185.09
+          },
+          "agricultural": {
+            "min": 29.61,
+            "max": 44.42
+          },
+          "tourism": {
+            "min": 325.75,
+            "max": null
+          }
+        },
+        {
+          "name": "بوشر 43",
+          "num": 32,
+          "residential": {
+            "min": 136.93,
+            "max": 205.4
+          },
+          "residential_commercial": {
+            "min": 410.8,
+            "max": 451.88
+          },
+          "industrial": {
+            "min": 114.11,
+            "max": 171.17
+          },
+          "agricultural": {
+            "min": 27.39,
+            "max": 41.08
+          },
+          "tourism": {
+            "min": 301.25,
+            "max": null
+          }
+        },
+        {
+          "name": "مرتفعات بوشر CCC",
+          "num": 33,
+          "residential": {
+            "min": 147.42,
+            "max": 221.13
+          },
+          "residential_commercial": {
+            "min": 442.26,
+            "max": 486.48
+          },
+          "industrial": {
+            "min": 122.85,
+            "max": 184.27
+          },
+          "agricultural": {
+            "min": 29.48,
+            "max": 44.23
+          },
+          "tourism": {
+            "min": 324.32,
+            "max": null
+          }
+        },
+        {
+          "name": "مرتفعات بوشر",
+          "num": 34,
+          "residential": {
+            "min": 161.91,
+            "max": 233.56
+          },
+          "residential_commercial": {
+            "min": 485.73,
+            "max": 513.84
+          },
+          "industrial": {
+            "min": 134.93,
+            "max": 194.64
+          },
+          "agricultural": {
+            "min": 32.38,
+            "max": 46.71
+          },
+          "tourism": {
+            "min": 342.56,
+            "max": null
+          }
+        },
+        {
+          "name": "بوشر المرحلة الاولى",
+          "num": 35,
+          "residential": {
+            "min": 148.49,
+            "max": 222.73
+          },
+          "residential_commercial": {
+            "min": 445.46,
+            "max": 490
+          },
+          "industrial": {
+            "min": 123.74,
+            "max": 185.61
+          },
+          "agricultural": {
+            "min": 29.7,
+            "max": 44.55
+          },
+          "tourism": {
+            "min": 326.67,
+            "max": null
+          }
+        },
+        {
+          "name": "بوشر مرحلة 2/3",
+          "num": 36,
+          "residential": {
+            "min": 138,
+            "max": 207
+          },
+          "residential_commercial": {
+            "min": 414,
+            "max": 455.4
+          },
+          "industrial": {
+            "min": 115,
+            "max": 172.5
+          },
+          "agricultural": {
+            "min": 27.6,
+            "max": 41.4
+          },
+          "tourism": {
+            "min": 303.6,
+            "max": null
+          }
+        },
+        {
+          "name": "بوشر 4 (المنى)",
+          "num": 37,
+          "residential": {
+            "min": 185.29,
+            "max": 223.3
+          },
+          "residential_commercial": {
+            "min": 407.64,
+            "max": 491.25
+          },
+          "industrial": {
+            "min": 154.41,
+            "max": 186.08
+          },
+          "agricultural": {
+            "min": 37.06,
+            "max": 44.66
+          },
+          "tourism": {
+            "min": 327.5,
+            "max": null
+          }
+        },
+        {
+          "name": "بوشر مرحلة 6",
+          "num": 38,
+          "residential": {
+            "min": 126.43,
+            "max": 177
+          },
+          "residential_commercial": {
+            "min": 379.29,
+            "max": 389.4
+          },
+          "industrial": {
+            "min": 105.36,
+            "max": 147.5
+          },
+          "agricultural": {
+            "min": 25.29,
+            "max": 35.4
+          },
+          "tourism": {
+            "min": 259.6,
+            "max": null
+          }
+        },
+        {
+          "name": "غلا الاولى",
+          "num": 39,
+          "residential": {
+            "min": null,
+            "max": null
+          },
+          "residential_commercial": {
+            "min": 486.23,
+            "max": 810.92
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 540.61,
+            "max": null
+          }
+        },
+        {
+          "name": "غلا الرابعة",
+          "num": 40,
+          "residential": {
+            "min": null,
+            "max": null
+          },
+          "residential_commercial": {
+            "min": 329.08,
+            "max": 533.25
+          },
+          "industrial": {
+            "min": 242.74,
+            "max": 355.04
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 355.5,
+            "max": null
+          }
+        },
+        {
+          "name": "غلا بقية المراحل",
+          "num": 41,
+          "residential": {
+            "min": null,
+            "max": null
+          },
+          "residential_commercial": {
+            "min": null,
+            "max": null
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": null,
+            "max": null
+          }
+        },
+        {
+          "name": "قرية غلا",
+          "num": 42,
+          "residential": {
+            "min": 57,
+            "max": 114
+          },
+          "residential_commercial": {
+            "min": 228,
+            "max": 456
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": 23.4,
+            "max": null
+          },
+          "tourism": {
+            "min": null,
+            "max": null
+          }
+        },
+        {
+          "name": "الانصب",
+          "num": 43,
+          "residential": {
+            "min": 152,
+            "max": 261.4
+          },
+          "residential_commercial": {
+            "min": 273.6,
+            "max": 470.52
+          },
+          "industrial": {
+            "min": 126.67,
+            "max": 217.83
+          },
+          "agricultural": {
+            "min": 30.4,
+            "max": 52.28
+          },
+          "tourism": {
+            "min": 313.68,
+            "max": null
+          }
+        },
+        {
+          "name": "صنب",
+          "num": 44,
+          "residential": {
+            "min": 72,
+            "max": 102
+          },
+          "residential_commercial": {
+            "min": 144,
+            "max": 204
+          },
+          "industrial": {
+            "min": 108,
+            "max": 153
+          },
+          "agricultural": {
+            "min": 18,
+            "max": 25.5
+          },
+          "tourism": {
+            "min": 136,
+            "max": null
+          }
+        },
+        {
+          "name": "لجفار",
+          "num": 45,
+          "residential": {
+            "min": 82,
+            "max": 107
+          },
+          "residential_commercial": {
+            "min": 164,
+            "max": 214
+          },
+          "industrial": {
+            "min": 123,
+            "max": 160.5
+          },
+          "agricultural": {
+            "min": 20.5,
+            "max": 26.75
+          },
+          "tourism": {
+            "min": 142.67,
+            "max": null
+          }
+        },
+        {
+          "name": "الحمام",
+          "num": 46,
+          "residential": {
+            "min": 72,
+            "max": 102
+          },
+          "residential_commercial": {
+            "min": 144,
+            "max": 204
+          },
+          "industrial": {
+            "min": 108,
+            "max": 153
+          },
+          "agricultural": {
+            "min": 18,
+            "max": 25.5
+          },
+          "tourism": {
+            "min": 136,
+            "max": null
+          }
+        },
+        {
+          "name": "فلج الشام",
+          "num": 47,
+          "residential": {
+            "min": 82,
+            "max": 132
+          },
+          "residential_commercial": {
+            "min": 164,
+            "max": 264
+          },
+          "industrial": {
+            "min": 123,
+            "max": 198
+          },
+          "agricultural": {
+            "min": 20.5,
+            "max": 33
+          },
+          "tourism": {
+            "min": 176,
+            "max": null
+          }
+        },
+        {
+          "name": "العوابي",
+          "num": 48,
+          "residential": {
+            "min": 72,
+            "max": 107
+          },
+          "residential_commercial": {
+            "min": 144,
+            "max": 214
+          },
+          "industrial": {
+            "min": 108,
+            "max": 160.5
+          },
+          "agricultural": {
+            "min": 18,
+            "max": 26.75
+          },
+          "tourism": {
+            "min": 142.667,
+            "max": null
+          }
+        },
+        {
+          "name": "المسفاة",
+          "num": 49,
+          "residential": {
+            "min": 32,
+            "max": 62
+          },
+          "residential_commercial": {
+            "min": 64,
+            "max": 124
+          },
+          "industrial": {
+            "min": 48,
+            "max": 93
+          },
+          "agricultural": {
+            "min": 8,
+            "max": 15.5
+          },
+          "tourism": {
+            "min": 82.67,
+            "max": null
+          }
+        },
+        {
+          "name": "العرفان",
+          "num": 50,
+          "residential": {
+            "min": 252,
+            "max": 302
+          },
+          "residential_commercial": {
+            "min": 504,
+            "max": 604
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": 63,
+            "max": 75.5
+          },
+          "tourism": {
+            "min": 402.67,
+            "max": null
+          }
+        },
+        {
+          "name": "حي البيضاء",
+          "num": 51,
+          "residential": {
+            "min": 110.28,
+            "max": 220.56
+          },
+          "residential_commercial": {
+            "min": 220.56,
+            "max": 441.13
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": 27.57,
+            "max": 55.14
+          },
+          "tourism": {
+            "min": 294.08,
+            "max": null
+          }
+        }
+      ],
+      "sheets": [
+        "Table 8",
+        "Table 9",
+        "Table 10",
+        "Table 11",
+        "Table 12"
+      ]
+    },
+    "ا¹عامرات": {
+      "areas": [
+        {
+          "name": "مرتفعات العامرات المرحلة1-2",
+          "num": 1,
+          "residential": {
+            "min": 52.3,
+            "max": 81.69
+          },
+          "residential_commercial": {
+            "min": 132.95,
+            "max": 314.59
+          },
+          "industrial": {
+            "min": 50.52,
+            "max": 130
+          },
+          "agricultural": {
+            "min": 16.34,
+            "max": 26.59
+          },
+          "tourism": {
+            "min": 199.43,
+            "max": null
+          }
+        },
+        {
+          "name": "مرتفعات العامرات المرحلة 3-4",
+          "num": 2,
+          "residential": {
+            "min": 33.91,
+            "max": 63.96
+          },
+          "residential_commercial": {
+            "min": 107.7,
+            "max": 192.5
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 161.55,
+            "max": null
+          }
+        },
+        {
+          "name": "مرتفعات العامرات المرحلة 8",
+          "num": 3,
+          "residential": {
+            "min": 32.53,
+            "max": 61.2
+          },
+          "residential_commercial": {
+            "min": 103.57,
+            "max": 184.24
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 155.35,
+            "max": null
+          }
+        },
+        {
+          "name": "مرتفعات العامرات المرحلة 5، 6، 7",
+          "num": 4,
+          "residential": {
+            "min": 40.33,
+            "max": 58.38
+          },
+          "residential_commercial": {
+            "min": 103.24,
+            "max": 148.05
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 154.86,
+            "max": null
+          }
+        },
+        {
+          "name": "مرتفعات العامرات المرحلة 8/1",
+          "num": 5,
+          "residential": {
+            "min": 39.17,
+            "max": 56.97
+          },
+          "residential_commercial": {
+            "min": 97.92,
+            "max": 142.42
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 146.88,
+            "max": null
+          }
+        },
+        {
+          "name": "مرتفعات العامرات المرحلة 9",
+          "num": 6,
+          "residential": {
+            "min": 22.48,
+            "max": 37.62
+          },
+          "residential_commercial": {
+            "min": 94.05,
+            "max": 134.67
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 141.07,
+            "max": null
+          }
+        },
+        {
+          "name": "العامرات خلف مركز الجمله",
+          "num": 7,
+          "residential": {
+            "min": 57.02,
+            "max": 81.94
+          },
+          "residential_commercial": {
+            "min": 233.32,
+            "max": 342.92
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": null,
+            "max": null
+          }
+        },
+        {
+          "name": "مدينة النهضة م/ 1و2و3 و 4",
+          "num": 8,
+          "residential": {
+            "min": 54.99,
+            "max": 83.37
+          },
+          "residential_commercial": {
+            "min": 152.44,
+            "max": 208.42
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 138.95,
+            "max": null
+          }
+        },
+        {
+          "name": "5/4 العامرات م 1/5 ، 3/5 ،2/5،",
+          "num": 9,
+          "residential": {
+            "min": 53.26,
+            "max": 90.47
+          },
+          "residential_commercial": {
+            "min": 135,
+            "max": 195.83
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 178.03,
+            "max": null
+          }
+        },
+        {
+          "name": "مدينة النهضة  المرحلة 6",
+          "num": 10,
+          "residential": {
+            "min": 27.67,
+            "max": 51
+          },
+          "residential_commercial": {
+            "min": 158.13,
+            "max": 225
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": 10.2,
+            "max": 31.63
+          },
+          "tourism": {
+            "min": 140,
+            "max": null
+          }
+        },
+        {
+          "name": "مدينة النهضة  المرحلة   6/1",
+          "num": 11,
+          "residential": {
+            "min": 27.67,
+            "max": 51
+          },
+          "residential_commercial": {
+            "min": 112.23,
+            "max": 170.83
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 113.89,
+            "max": null
+          }
+        },
+        {
+          "name": "مدينة النهضة  المرحلة 7  و 7/2  و 7/1",
+          "num": 12,
+          "residential": {
+            "min": 14.43,
+            "max": 48.46
+          },
+          "residential_commercial": {
+            "min": 59.97,
+            "max": 126.02
+          },
+          "industrial": {
+            "min": 50.52,
+            "max": 130
+          },
+          "agricultural": {
+            "min": 10.2,
+            "max": 31.63
+          },
+          "tourism": {
+            "min": 65.97,
+            "max": null
+          }
+        },
+        {
+          "name": "مدينة النهضة  المرحلة 10",
+          "num": 13,
+          "residential": {
+            "min": 21.5,
+            "max": 40.85
+          },
+          "residential_commercial": {
+            "min": 66.62,
+            "max": 122.14
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 81.43,
+            "max": null
+          }
+        },
+        {
+          "name": "مدينة النهضة  المرحلة11/1 و 11/2",
+          "num": 14,
+          "residential": {
+            "min": 21.46,
+            "max": 39.87
+          },
+          "residential_commercial": {
+            "min": 54,
+            "max": 99.51
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 70,
+            "max": null
+          }
+        },
+        {
+          "name": "مدينة النهضة  المرحلة 12",
+          "num": 15,
+          "residential": {
+            "min": 24.39,
+            "max": 31.03
+          },
+          "residential_commercial": {
+            "min": 51.56,
+            "max": 114.86
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 56.72,
+            "max": null
+          }
+        },
+        {
+          "name": "مدينة النهضة  المرحلة 13",
+          "num": 16,
+          "residential": {
+            "min": 10.73,
+            "max": 30.41
+          },
+          "residential_commercial": {
+            "min": 55.99,
+            "max": 130
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 86.67,
+            "max": null
+          }
+        },
+        {
+          "name": "مدينة النهضة  المرحلة 14 و 14/1",
+          "num": 17,
+          "residential": {
+            "min": 10.73,
+            "max": 30.41
+          },
+          "residential_commercial": {
+            "min": 50,
+            "max": 125
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 83.33,
+            "max": null
+          }
+        },
+        {
+          "name": "مدينة النهضة  المرحلة 15",
+          "num": 18,
+          "residential": {
+            "min": 22.02,
+            "max": 48.46
+          },
+          "residential_commercial": {
+            "min": 84.9,
+            "max": 129.67
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 86.45,
+            "max": null
+          }
+        },
+        {
+          "name": "مدينة النهضة  المرحلة 16",
+          "num": 19,
+          "residential": {
+            "min": 9.76,
+            "max": 20.29
+          },
+          "residential_commercial": {
+            "min": 40.72,
+            "max": 110
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 60,
+            "max": null
+          }
+        },
+        {
+          "name": "مدينة النهضة  المرحلة 17",
+          "num": 20,
+          "residential": {
+            "min": 8.42,
+            "max": 20.29
+          },
+          "residential_commercial": {
+            "min": 35.18,
+            "max": 110
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 60,
+            "max": null
+          }
+        },
+        {
+          "name": "مدينة النهضة  المرحلة 18",
+          "num": 21,
+          "residential": {
+            "min": 7.76,
+            "max": 20.29
+          },
+          "residential_commercial": {
+            "min": 32.1,
+            "max": 110
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": 60,
+            "max": null
+          }
+        },
+        {
+          "name": "المحج الأمتداد الاول",
+          "num": 22,
+          "residential": {
+            "min": 41.4,
+            "max": 59.31
+          },
+          "residential_commercial": {
+            "min": 124.2,
+            "max": 177.93
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": null,
+            "max": null
+          }
+        },
+        {
+          "name": "المحج المرحلة 1،2",
+          "num": 23,
+          "residential": {
+            "min": 52.82,
+            "max": 89.77
+          },
+          "residential_commercial": {
+            "min": 207,
+            "max": 450
+          },
+          "industrial": {
+            "min": 50.52,
+            "max": 130
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": null,
+            "max": null
+          }
+        },
+        {
+          "name": "المحج المرحلة 4،5",
+          "num": 24,
+          "residential": {
+            "min": 67.51,
+            "max": 86.28
+          },
+          "residential_commercial": {
+            "min": 193.67,
+            "max": 416.07
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": null,
+            "max": null
+          }
+        },
+        {
+          "name": "الحاجر م /1",
+          "num": 25,
+          "residential": {
+            "min": 10.74,
+            "max": 30.12
+          },
+          "residential_commercial": {
+            "min": 32.21,
+            "max": 110
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": null,
+            "max": null
+          }
+        },
+        {
+          "name": "الحاجر باقي المراحل",
+          "num": 26,
+          "residential": {
+            "min": 10.2,
+            "max": 25.05
+          },
+          "residential_commercial": {
+            "min": 21.2,
+            "max": null
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": 6.04,
+            "max": 13.17
+          },
+          "tourism": {
+            "min": null,
+            "max": null
+          }
+        },
+        {
+          "name": "الحشية",
+          "num": 27,
+          "residential": {
+            "min": 4.83,
+            "max": 24.17
+          },
+          "residential_commercial": {
+            "min": 26.33,
+            "max": 52.67
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": null,
+            "max": null
+          }
+        },
+        {
+          "name": "العلاية",
+          "num": 28,
+          "residential": {
+            "min": 13.97,
+            "max": 40
+          },
+          "residential_commercial": {
+            "min": 30.67,
+            "max": 120
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": null,
+            "max": null
+          }
+        },
+        {
+          "name": "العتكية الاولى",
+          "num": 29,
+          "residential": {
+            "min": 14.58,
+            "max": 35.94
+          },
+          "residential_commercial": {
+            "min": 34.93,
+            "max": 140
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": null,
+            "max": null
+          }
+        },
+        {
+          "name": "العتكية  بقية المراحل",
+          "num": 30,
+          "residential": {
+            "min": 11.25,
+            "max": 26.42
+          },
+          "residential_commercial": {
+            "min": 21.23,
+            "max": null
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": null,
+            "max": null
+          }
+        },
+        {
+          "name": "جحلوت الجديدة",
+          "num": 31,
+          "residential": {
+            "min": 5,
+            "max": 25
+          },
+          "residential_commercial": {
+            "min": 22,
+            "max": null
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": null,
+            "max": null
+          }
+        },
+        {
+          "name": "البجرية",
+          "num": 32,
+          "residential": {
+            "min": 40,
+            "max": 80
+          },
+          "residential_commercial": {
+            "min": 42,
+            "max": null
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": null,
+            "max": null
+          }
+        },
+        {
+          "name": "سمكت",
+          "num": 33,
+          "residential": {
+            "min": 5,
+            "max": 25
+          },
+          "residential_commercial": {
+            "min": 22,
+            "max": null
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": null,
+            "max": null
+          }
+        },
+        {
+          "name": "عدن والمنظريه",
+          "num": 34,
+          "residential": {
+            "min": 15,
+            "max": 35
+          },
+          "residential_commercial": {
+            "min": 25,
+            "max": null
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": null,
+            "max": null
+          }
+        },
+        {
+          "name": "الامتداد الاول",
+          "num": 35,
+          "residential": {
+            "min": null,
+            "max": null
+          },
+          "residential_commercial": {
+            "min": null,
+            "max": null
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": null,
+            "max": null
+          }
+        },
+        {
+          "name": "تونس حيم",
+          "num": 36,
+          "residential": {
+            "min": 10,
+            "max": 30
+          },
+          "residential_commercial": {
+            "min": null,
+            "max": null
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": null,
+            "max": null
+          }
+        },
+        {
+          "name": "الجفينة",
+          "num": 37,
+          "residential": {
+            "min": 20,
+            "max": 30
+          },
+          "residential_commercial": {
+            "min": 40,
+            "max": null
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": null,
+            "max": null
+          }
+        },
+        {
+          "name": "البيرين",
+          "num": 38,
+          "residential": {
+            "min": 35,
+            "max": 50
+          },
+          "residential_commercial": {
+            "min": 75,
+            "max": null
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": null,
+            "max": null
+          }
+        },
+        {
+          "name": "السرين",
+          "num": 39,
+          "residential": {
+            "min": 4.71,
+            "max": null
+          },
+          "residential_commercial": {
+            "min": null,
+            "max": null
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": null,
+            "max": null
+          }
+        },
+        {
+          "name": "بعي",
+          "num": 40,
+          "residential": {
+            "min": 4.17,
+            "max": 8.33
+          },
+          "residential_commercial": {
+            "min": null,
+            "max": null
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": null,
+            "max": null
+          }
+        },
+        {
+          "name": "بقية المربعات الاخرى",
+          "num": 41,
+          "residential": {
+            "min": null,
+            "max": null
+          },
+          "residential_commercial": {
+            "min": null,
+            "max": null
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": null,
+            "max": null
+          }
+        }
+      ],
+      "sheets": [
+        "Table 13",
+        "Table 14",
+        "Table 15",
+        "Table 16"
+      ]
+    },
+    "ا¹سب": {
+      "areas": [
+        {
+          "name": "الموالح الجنوبية",
+          "num": 1,
+          "residential": {
+            "min": 108.78,
+            "max": 200.41
+          },
+          "residential_commercial": {
+            "min": 375,
+            "max": 576.76
+          },
+          "industrial": {
+            "min": 120,
+            "max": 264.81
+          },
+          "agricultural": {
+            "min": 28.67,
+            "max": 35.31
+          },
+          "tourism": {
+            "min": 384.51,
+            "max": null
+          }
+        },
+        {
+          "name": "الموالح الشمالية",
+          "num": 2,
+          "residential": {
+            "min": 109.53,
+            "max": 200.82
+          },
+          "residential_commercial": {
+            "min": 273.83,
+            "max": 450.49
+          },
+          "industrial": {
+            "min": 118.6,
+            "max": 285.16
+          },
+          "agricultural": {
+            "min": 25.38,
+            "max": 38.02
+          },
+          "tourism": {
+            "min": 300.32,
+            "max": null
+          }
+        },
+        {
+          "name": "الحيل الجنوبية",
+          "num": 3,
+          "residential": {
+            "min": 104.88,
+            "max": 213.79
+          },
+          "residential_commercial": {
+            "min": 283.81,
+            "max": 501.97
+          },
+          "industrial": {
+            "min": 123.09,
+            "max": 245.44
+          },
+          "agricultural": {
+            "min": 26.31,
+            "max": 32.73
+          },
+          "tourism": {
+            "min": 334.65,
+            "max": null
+          }
+        },
+        {
+          "name": "الحيل الشمالية",
+          "num": 4,
+          "residential": {
+            "min": 111.36,
+            "max": 199.51
+          },
+          "residential_commercial": {
+            "min": 293.73,
+            "max": 537.26
+          },
+          "industrial": {
+            "min": 120.21,
+            "max": 280.77
+          },
+          "agricultural": {
+            "min": 25.71,
+            "max": 37.44
+          },
+          "tourism": {
+            "min": 358.18,
+            "max": null
+          }
+        },
+        {
+          "name": "الخوض",
+          "num": 5,
+          "residential": {
+            "min": 123.22,
+            "max": 155.44
+          },
+          "residential_commercial": {
+            "min": 319.16,
+            "max": 533.3
+          },
+          "industrial": {
+            "min": 96.86,
+            "max": 214.07
+          },
+          "agricultural": {
+            "min": 20.85,
+            "max": 28.54
+          },
+          "tourism": {
+            "min": 355.53,
+            "max": null
+          }
+        },
+        {
+          "name": "قرية الخوض ( البلاد)",
+          "num": 6,
+          "residential": {
+            "min": 62,
+            "max": 77
+          },
+          "residential_commercial": {
+            "min": 155,
+            "max": 192.5
+          },
+          "industrial": {
+            "min": 49.6,
+            "max": 115.5
+          },
+          "agricultural": {
+            "min": 24.8,
+            "max": 38.5
+          },
+          "tourism": {
+            "min": null,
+            "max": null
+          }
+        },
+        {
+          "name": "الخوض الخامسة",
+          "num": 7,
+          "residential": {
+            "min": 82,
+            "max": 154.78
+          },
+          "residential_commercial": {
+            "min": 210.86,
+            "max": 378.23
+          },
+          "industrial": {
+            "min": 65.6,
+            "max": 232.17
+          },
+          "agricultural": {
+            "min": 21.5,
+            "max": 38.69
+          },
+          "tourism": {
+            "min": 252.15,
+            "max": null
+          }
+        },
+        {
+          "name": "الخوض السادسة",
+          "num": 8,
+          "residential": {
+            "min": 103.18,
+            "max": 154.78
+          },
+          "residential_commercial": {
+            "min": 256.37,
+            "max": 434.15
+          },
+          "industrial": {
+            "min": 82.55,
+            "max": 232.17
+          },
+          "agricultural": {
+            "min": 21.5,
+            "max": 38.69
+          },
+          "tourism": {
+            "min": 289.43,
+            "max": null
+          }
+        },
+        {
+          "name": "الخوض السابعة",
+          "num": 9,
+          "residential": {
+            "min": 114.67,
+            "max": 172
+          },
+          "residential_commercial": {
+            "min": 286.7,
+            "max": 423.72
+          },
+          "industrial": {
+            "min": 91.73,
+            "max": 258
+          },
+          "agricultural": {
+            "min": 23.89,
+            "max": 43
+          },
+          "tourism": {
+            "min": 282.48,
+            "max": null
+          }
+        },
+        {
+          "name": "NE15 الخوض",
+          "num": 10,
+          "residential": {
+            "min": 82,
+            "max": 154.78
+          },
+          "residential_commercial": {
+            "min": 210.86,
+            "max": 378.23
+          },
+          "industrial": {
+            "min": 65.6,
+            "max": 232.17
+          },
+          "agricultural": {
+            "min": 21.5,
+            "max": 38.69
+          },
+          "tourism": {
+            "min": 252.15,
+            "max": null
+          }
+        },
+        {
+          "name": "SW14 الخوض",
+          "num": 11,
+          "residential": {
+            "min": 82,
+            "max": 154.78
+          },
+          "residential_commercial": {
+            "min": 210.86,
+            "max": 378.23
+          },
+          "industrial": {
+            "min": 65.6,
+            "max": 232.17
+          },
+          "agricultural": {
+            "min": 21.5,
+            "max": 38.69
+          },
+          "tourism": {
+            "min": 252.15,
+            "max": null
+          }
+        },
+        {
+          "name": "السيب",
+          "num": 12,
+          "residential": {
+            "min": null,
+            "max": null
+          },
+          "residential_commercial": {
+            "min": null,
+            "max": null
+          },
+          "industrial": {
+            "min": null,
+            "max": null
+          },
+          "agricultural": {
+            "min": null,
+            "max": null
+          },
+          "tourism": {
+            "min": null,
+            "max": null
+          }
+        },
+        {
+          "name": "الخريس",
+          "num": 13,
+          "residential": {
+            "min": 105.9,
+            "max": 168.69
+          },
+          "residential_commercial": {
+            "min": 262.42,
+            "max": 445.6
+          },
+          "industrial": {
+            "min": 96.16,
+            "max": 252.08
+          },
+          "agricultural": {
+            "min": 30.05,
+            "max": 33.61
+          },
+          "tourism": {
+            "min": 297.07,
+            "max": null
+          }
+        },
+        {
+          "name": "وادي اللوامي",
+          "num": 14,
+          "residential": {
+            "min": 78.67,
+            "max": 149.19
+          },
+          "residential_commercial": {
+            "min": 197.88,
+            "max": 358.36
+          },
+          "industrial": {
+            "min": 62.93,
+            "max": 223.78
+          },
+          "agricultural": {
+            "min": 20.72,
+            "max": 37.3
+          },
+          "tourism": {
+            "min": 238.91,
+            "max": null
+          }
+        },
+        {
+          "name": "سور الحديد",
+          "num": 15,
+          "residential": {
+            "min": 62,
+            "max": 92
+          },
+          "residential_commercial": {
+            "min": 155,
+            "max": 230
+          },
+          "industrial": {
+            "min": 49.6,
+            "max": 138
+          },
+          "agricultural": {
+            "min": 12.78,
+            "max": 23
+          },
+          "tourism": {
+            "min": 153.33,
+            "max": null
+          }
+        },
+        {
+          "name": "المعبيلة الشمالية",
+          "num": 16,
+          "residential": {
+            "min": 52,
+            "max": 77
+          },
+          "residential_commercial": {
+            "min": 156,
+            "max": 231
+          },
+          "industrial": {
+            "min": 41.6,
+            "max": 115.5
+          },
+          "agricultural": {
+            "min": 10.69,
+            "max": 19.25
+          },
+          "tourism": {
+            "min": 154,
+            "max": null
+          }
+        },
+        {
+          "name": "المعبيلة الجنوبية المربعات 1 - 12",
+          "num": 17,
+          "residential": {
+            "min": 61.23,
+            "max": 93.59
+          },
+          "residential_commercial": {
+            "min": 183.68,
+            "max": 280.78
+          },
+          "industrial": {
+            "min": 48.98,
+            "max": 140.39
+          },
+          "agricultural": {
+            "min": 13,
+            "max": 23.4
+          },
+          "tourism": {
+            "min": 187.18,
+            "max": null
+          }
+        },
+        {
+          "name": "المعبيلة الجنوبية\r\n1/5 + 2/5",
+          "num": 18,
+          "residential": {
+            "min": 61.23,
+            "max": 93.59
+          },
+          "residential_commercial": {
+            "min": 183.68,
+            "max": 280.78
+          },
+          "industrial": {
+            "min": 48.98,
+            "max": 140.39
+          },
+          "agricultural": {
+            "min": 13,
+            "max": 23.4
+          },
+          "tourism": {
+            "min": 187.18,
+            "max": null
+          }
+        },
+        {
+          "name": "المعبيلة الجنوبية م/7",
+          "num": 19,
+          "residential": {
+            "min": 61.23,
+            "max": 99.65
+          },
+          "residential_commercial": {
+            "min": 183.68,
+            "max": 298.94
+          },
+          "industrial": {
+            "min": 48.98,
+            "max": 149.47
+          },
+          "agricultural": {
+            "min": 13.84,
+            "max": 24.91
+          },
+          "tourism": {
+            "min": 199.29,
+            "max": null
+          }
+        },
+        {
+          "name": "المعبيلة الجنوبية م/8",
+          "num": 20,
+          "residential": {
+            "min": 62,
+            "max": 92
+          },
+          "residential_commercial": {
+            "min": 186,
+            "max": 276
+          },
+          "industrial": {
+            "min": 49.6,
+            "max": 138
+          },
+          "agricultural": {
+            "min": 12.78,
+            "max": 23
+          },
+          "tourism": {
+            "min": 184,
+            "max": null
+          }
+        },
+        {
+          "name": "المعبيلة الصناعية",
+          "num": 21,
+          "residential": {
+            "min": 62,
+            "max": 92
+          },
+          "residential_commercial": {
+            "min": 186.47,
+            "max": 332.72
+          },
+          "industrial": {
+            "min": 187,
+            "max": 232.34
+          },
+          "agricultural": {
+            "min": 12.78,
+            "max": 23
+          },
+          "tourism": {
+            "min": 221.81,
+            "max": null
+          }
+        },
+        {
+          "name": "حلبان ( السيب)",
+          "num": 22,
+          "residential": {
+            "min": 32,
+            "max": 52
+          },
+          "residential_commercial": {
+            "min": 96,
+            "max": 156
+          },
+          "industrial": {
+            "min": 48,
+            "max": 78
+          },
+          "agricultural": {
+            "min": 7.22,
+            "max": 13
+          },
+          "tourism": {
+            "min": 104,
+            "max": null
+          }
+        },
+        {
+          "name": "الجفنين",
+          "num": 23,
+          "residential": {
+            "min": 33.46,
+            "max": 69.69
+          },
+          "residential_commercial": {
+            "min": 100.37,
+            "max": 209.06
+          },
+          "industrial": {
+            "min": 50.18,
+            "max": 104.75
+          },
+          "agricultural": {
+            "min": 9.68,
+            "max": 17.42
+          },
+          "tourism": {
+            "min": 139.37,
+            "max": null
+          }
+        },
+        {
+          "name": "الرسيل",
+          "num": 24,
+          "residential": {
+            "min": 31.2,
+            "max": 67
+          },
+          "residential_commercial": {
+            "min": 93.6,
+            "max": 201
+          },
+          "industrial": {
+            "min": 46.8,
+            "max": 102.55
+          },
+          "agricultural": {
+            "min": 9.31,
+            "max": 16.75
+          },
+          "tourism": {
+            "min": 134,
+            "max": null
+          }
+        },
+        {
+          "name": "المنومة",
+          "num": 25,
+          "residential": {
+            "min": 49.78,
+            "max": 72.75
+          },
+          "residential_commercial": {
+            "min": 149.34,
+            "max": 218.24
+          },
+          "industrial": {
+            "min": 74.67,
+            "max": 109.12
+          },
+          "agricultural": {
+            "min": 10.1,
+            "max": 18.19
+          },
+          "tourism": {
+            "min": 145.49,
+            "max": null
+          }
+        }
+      ],
+      "sheets": [
+        "Table 17",
+        "Table 18"
+      ]
+    }
+  }
+}

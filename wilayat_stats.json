@@ -1,0 +1,1892 @@
+{
+  "مطرح": {
+    "areaCount": 11,
+    "residential": {
+      "avgMin": "94.39",
+      "avgMax": "162.49",
+      "minOfMin": "72.42",
+      "maxOfMax": "203.82",
+      "count": 11
+    },
+    "commercial": {
+      "avgMin": "277.04",
+      "avgMax": "436.60",
+      "count": 11
+    },
+    "industrial": {
+      "avgMin": "139.95",
+      "avgMax": "234.53",
+      "count": 11
+    },
+    "agricultural": {
+      "avgMin": "N/A",
+      "avgMax": "N/A",
+      "count": 0
+    },
+    "tourism": {
+      "avgMin": "250.20",
+      "avgMax": "0.00",
+      "count": 11
+    }
+  },
+  "مسقط": {
+    "areaCount": 11,
+    "residential": {
+      "avgMin": "58.98",
+      "avgMax": "87.27",
+      "minOfMin": "20.47",
+      "maxOfMax": "142.20",
+      "count": 11
+    },
+    "commercial": {
+      "avgMin": "109.10",
+      "avgMax": "167.46",
+      "count": 11
+    },
+    "industrial": {
+      "avgMin": "N/A",
+      "avgMax": "N/A",
+      "count": 0
+    },
+    "agricultural": {
+      "avgMin": "10.91",
+      "avgMax": "18.84",
+      "count": 7
+    },
+    "tourism": {
+      "avgMin": "98.21",
+      "avgMax": "0.00",
+      "count": 7
+    }
+  },
+  "قريات": {
+    "areaCount": 11,
+    "residential": {
+      "avgMin": "15.46",
+      "avgMax": "32.93",
+      "minOfMin": "5.80",
+      "maxOfMax": "62.80",
+      "count": 11
+    },
+    "commercial": {
+      "avgMin": "36.76",
+      "avgMax": "69.41",
+      "count": 11
+    },
+    "industrial": {
+      "avgMin": "23.19",
+      "avgMax": "49.40",
+      "count": 11
+    },
+    "agricultural": {
+      "avgMin": "4.39",
+      "avgMax": "9.63",
+      "count": 11
+    },
+    "tourism": {
+      "avgMin": "38.05",
+      "avgMax": "0.00",
+      "count": 11
+    }
+  },
+  "ب شر": {
+    "areaCount": 50,
+    "residential": {
+      "avgMin": "173.40",
+      "avgMax": "275.57",
+      "minOfMin": "32.00",
+      "maxOfMax": "596.70",
+      "count": 47
+    },
+    "commercial": {
+      "avgMin": "404.81",
+      "avgMax": "563.28",
+      "count": 49
+    },
+    "industrial": {
+      "avgMin": "129.89",
+      "avgMax": "204.13",
+      "count": 46
+    },
+    "agricultural": {
+      "avgMin": "33.36",
+      "avgMax": "52.71",
+      "count": 47
+    },
+    "tourism": {
+      "avgMin": "375.52",
+      "avgMax": "0.00",
+      "count": 49
+    }
+  },
+  "ا¹عامرات": {
+    "areaCount": 40,
+    "residential": {
+      "avgMin": "24.18",
+      "avgMax": "43.90",
+      "minOfMin": "4.17",
+      "maxOfMax": "90.47",
+      "count": 38
+    },
+    "commercial": {
+      "avgMin": "81.06",
+      "avgMax": "140.10",
+      "count": 35
+    },
+    "industrial": {
+      "avgMin": "50.52",
+      "avgMax": "130.00",
+      "count": 3
+    },
+    "agricultural": {
+      "avgMin": "10.69",
+      "avgMax": "25.75",
+      "count": 4
+    },
+    "tourism": {
+      "avgMin": "112.03",
+      "avgMax": "0.00",
+      "count": 20
+    }
+  },
+  "ا¹سيب": {
+    "areaCount": 24,
+    "residential": {
+      "avgMin": "77.14",
+      "avgMax": "129.58",
+      "minOfMin": "31.20",
+      "maxOfMax": "213.79",
+      "count": 23
+    },
+    "commercial": {
+      "avgMin": "211.10",
+      "avgMax": "352.64",
+      "count": 23
+    },
+    "industrial": {
+      "avgMin": "78.41",
+      "avgMax": "191.36",
+      "count": 23
+    },
+    "agricultural": {
+      "avgMin": "17.95",
+      "avgMax": "28.96",
+      "count": 23
+    },
+    "tourism": {
+      "avgMin": "235.09",
+      "avgMax": "0.00",
+      "count": 23
+    }
+  },
+  "صحار": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "33.53",
+      "avgMax": "57.13",
+      "minOfMin": "33.53",
+      "maxOfMax": "57.13",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "100.60",
+      "avgMax": "232.09",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "40.24",
+      "avgMax": "68.56",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "8.38",
+      "avgMax": "28.57",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "100.27",
+      "avgMax": "303.87",
+      "count": 1
+    }
+  },
+  "": {
+    "areaCount": 112,
+    "residential": {
+      "avgMin": "9.58",
+      "avgMax": "13.86",
+      "minOfMin": "1.48",
+      "maxOfMax": "45.45",
+      "count": 112
+    },
+    "commercial": {
+      "avgMin": "16.23",
+      "avgMax": "30.67",
+      "count": 112
+    },
+    "industrial": {
+      "avgMin": "11.43",
+      "avgMax": "20.79",
+      "count": 112
+    },
+    "agricultural": {
+      "avgMin": "1.49",
+      "avgMax": "2.87",
+      "count": 112
+    },
+    "tourism": {
+      "avgMin": "24.41",
+      "avgMax": "0.00",
+      "count": 105
+    }
+  },
+  "صحم": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "27.53",
+      "avgMax": "37.13",
+      "minOfMin": "27.53",
+      "maxOfMax": "37.13",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "55.07",
+      "avgMax": "120.80",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "28.85",
+      "avgMax": "55.70",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "9.18",
+      "avgMax": "12.38",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "57.00",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "الخابورة": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "23.80",
+      "avgMax": "30.53",
+      "minOfMin": "23.80",
+      "maxOfMax": "30.53",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "47.60",
+      "avgMax": "121.08",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "26.18",
+      "avgMax": "45.80",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "5.95",
+      "avgMax": "7.63",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "71.40",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "لوى": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "25.07",
+      "avgMax": "33.33",
+      "minOfMin": "25.07",
+      "maxOfMax": "33.33",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "50.13",
+      "avgMax": "100.63",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "27.57",
+      "avgMax": "50.60",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "5.42",
+      "avgMax": "8.33",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "75.20",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "شناص": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "19.80",
+      "avgMax": "29.27",
+      "minOfMin": "19.80",
+      "maxOfMax": "29.27",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "39.33",
+      "avgMax": "87.80",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "26.46",
+      "avgMax": "43.90",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "4.95",
+      "avgMax": "7.32",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "58.53",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "السويق": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "21.13",
+      "avgMax": "34.60",
+      "minOfMin": "21.13",
+      "maxOfMax": "34.60",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "47.38",
+      "avgMax": "120.57",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "31.70",
+      "avgMax": "52.38",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "5.28",
+      "avgMax": "8.65",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "80.38",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "بركاء": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "33.53",
+      "avgMax": "44.33",
+      "minOfMin": "33.53",
+      "maxOfMax": "44.33",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "85.53",
+      "avgMax": "181.48",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "51.28",
+      "avgMax": "77.70",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "11.18",
+      "avgMax": "20.13",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "56.89",
+      "avgMax": "200.00",
+      "count": 1
+    }
+  },
+  "نخل": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "27.53",
+      "avgMax": "42.62",
+      "minOfMin": "27.53",
+      "maxOfMax": "42.62",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "55.07",
+      "avgMax": "103.48",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "33.04",
+      "avgMax": "73.05",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "6.88",
+      "avgMax": "10.66",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "51.74",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "وادي المعاول": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "23.80",
+      "avgMax": "31.93",
+      "minOfMin": "23.80",
+      "maxOfMax": "31.93",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "42.84",
+      "avgMax": "70.25",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "35.70",
+      "avgMax": "60.04",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "5.95",
+      "avgMax": "7.98",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "46.84",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "العوابي": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "24.87",
+      "avgMax": "30.87",
+      "minOfMin": "24.87",
+      "maxOfMax": "30.87",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "49.73",
+      "avgMax": "70.40",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "29.84",
+      "avgMax": "59.68",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "6.22",
+      "avgMax": "7.72",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "46.93",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "الرستاق": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "21.13",
+      "avgMax": "44.19",
+      "minOfMin": "21.13",
+      "maxOfMax": "44.19",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "42.27",
+      "avgMax": "180.59",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "31.70",
+      "avgMax": "49.49",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "5.28",
+      "avgMax": "11.05",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "63.40",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "المصنعة": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "21.13",
+      "avgMax": "40.31",
+      "minOfMin": "21.13",
+      "maxOfMax": "40.31",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "42.27",
+      "avgMax": "120.93",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "31.70",
+      "avgMax": "60.46",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "5.28",
+      "avgMax": "10.08",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "80.62",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "إبراء": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "18.27",
+      "avgMax": "31.27",
+      "minOfMin": "18.27",
+      "maxOfMax": "31.27",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "36.53",
+      "avgMax": "62.53",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "27.40",
+      "avgMax": "46.90",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "2.28",
+      "avgMax": "3.91",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "56.28",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "ا¹قابل": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "11.73",
+      "avgMax": "17.47",
+      "minOfMin": "11.73",
+      "maxOfMax": "17.47",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "23.93",
+      "avgMax": "36.30",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "17.67",
+      "avgMax": "27.40",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "2.87",
+      "avgMax": "4.68",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "47.19",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "بدية": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "13.53",
+      "avgMax": "19.19",
+      "minOfMin": "13.53",
+      "maxOfMax": "19.19",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "27.06",
+      "avgMax": "57.58",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "20.43",
+      "avgMax": "29.22",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "3.38",
+      "avgMax": "4.80",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "38.39",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "دماء  ا¹طائيين": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "12.60",
+      "avgMax": "22.56",
+      "minOfMin": "12.60",
+      "maxOfMax": "22.56",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "25.20",
+      "avgMax": "56.40",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "18.90",
+      "avgMax": "33.84",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "2.52",
+      "avgMax": "4.51",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "37.60",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "ا¹مضيبي": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "19.33",
+      "avgMax": "28.80",
+      "minOfMin": "19.33",
+      "maxOfMax": "28.80",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "38.67",
+      "avgMax": "58.33",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "29.00",
+      "avgMax": "43.20",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "3.87",
+      "avgMax": "5.76",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "38.89",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "سنا": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "19.33",
+      "avgMax": "34.07",
+      "minOfMin": "19.33",
+      "maxOfMax": "34.07",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "38.67",
+      "avgMax": "68.13",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "29.00",
+      "avgMax": "51.10",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "3.87",
+      "avgMax": "6.81",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "45.42",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "ادم بني  ا¹د": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "14.73",
+      "avgMax": "22.14",
+      "minOfMin": "14.73",
+      "maxOfMax": "22.14",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "29.47",
+      "avgMax": "44.27",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "22.10",
+      "avgMax": "33.20",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "2.95",
+      "avgMax": "4.43",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "29.51",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "ص ر": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "38.80",
+      "avgMax": "70.16",
+      "minOfMin": "38.80",
+      "maxOfMax": "70.16",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "75.98",
+      "avgMax": "156.90",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "31.04",
+      "avgMax": "56.13",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "4.84",
+      "avgMax": "8.99",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "104.60",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "ا¹كامل  ا¹ اتي": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "17.94",
+      "avgMax": "32.59",
+      "minOfMin": "17.94",
+      "maxOfMax": "32.59",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "35.88",
+      "avgMax": "65.18",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "26.91",
+      "avgMax": "48.89",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "4.49",
+      "avgMax": "8.15",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "43.46",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "جعلان بني ب  حسن": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "19.40",
+      "avgMax": "32.59",
+      "minOfMin": "19.40",
+      "maxOfMax": "32.59",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "35.88",
+      "avgMax": "65.18",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "26.91",
+      "avgMax": "48.89",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "4.49",
+      "avgMax": "8.15",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "43.46",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "جعلان بني ب  ع¹ي": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "14.14",
+      "avgMax": "34.59",
+      "minOfMin": "14.14",
+      "maxOfMax": "34.59",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "25.64",
+      "avgMax": "63.18",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "21.21",
+      "avgMax": "51.89",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "3.54",
+      "avgMax": "8.65",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "42.12",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "مصيرة": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "19.40",
+      "avgMax": "34.62",
+      "minOfMin": "19.40",
+      "maxOfMax": "34.62",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "40.27",
+      "avgMax": "72.67",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "29.10",
+      "avgMax": "51.93",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "1.67",
+      "avgMax": "3.33",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "40.37",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "بدبد": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "42.79",
+      "avgMax": "60.45",
+      "minOfMin": "42.79",
+      "maxOfMax": "60.45",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "90.13",
+      "avgMax": "165.45",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "63.33",
+      "avgMax": "90.19",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "10.70",
+      "avgMax": "22.85",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "110.30",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "نزوى": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "33.38",
+      "avgMax": "70.33",
+      "minOfMin": "33.38",
+      "maxOfMax": "70.33",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "66.77",
+      "avgMax": "211.00",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "43.40",
+      "avgMax": "100.15",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "8.35",
+      "avgMax": "17.58",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "105.50",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "إزكي": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "20.50",
+      "avgMax": "45.00",
+      "minOfMin": "20.50",
+      "maxOfMax": "45.00",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "41.00",
+      "avgMax": "81.25",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "30.75",
+      "avgMax": "67.50",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "5.13",
+      "avgMax": "11.25",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "54.17",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "أدم": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "18.86",
+      "avgMax": "34.82",
+      "minOfMin": "18.86",
+      "maxOfMax": "34.82",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "37.71",
+      "avgMax": "52.91",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "28.29",
+      "avgMax": "39.68",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "3.77",
+      "avgMax": "8.70",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "37.79",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "بهلاء": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "23.20",
+      "avgMax": "42.50",
+      "minOfMin": "23.20",
+      "maxOfMax": "42.50",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "46.40",
+      "avgMax": "85.00",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "34.80",
+      "avgMax": "55.25",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "4.40",
+      "avgMax": "10.63",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "56.67",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "منح": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "14.80",
+      "avgMax": "32.80",
+      "minOfMin": "14.80",
+      "maxOfMax": "32.80",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "29.60",
+      "avgMax": "65.60",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "22.20",
+      "avgMax": "33.30",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "3.70",
+      "avgMax": "8.20",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "43.73",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "الحمراء": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "23.73",
+      "avgMax": "44.45",
+      "minOfMin": "23.73",
+      "maxOfMax": "44.45",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "47.47",
+      "avgMax": "88.91",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "35.60",
+      "avgMax": "45.38",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "5.93",
+      "avgMax": "10.19",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "44.45",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "عبرم": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "20.06",
+      "avgMax": "24.07",
+      "minOfMin": "20.06",
+      "maxOfMax": "24.07",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "50.06",
+      "avgMax": "100.12",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "27.92",
+      "avgMax": "41.87",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "2.51",
+      "avgMax": "3.02",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "66.74",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "ضنك": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "7.39",
+      "avgMax": "14.79",
+      "minOfMin": "7.39",
+      "maxOfMax": "14.79",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "23.94",
+      "avgMax": "52.00",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "14.92",
+      "avgMax": "26.85",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "1.85",
+      "avgMax": "3.70",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "34.66",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "ينقل": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "9.81",
+      "avgMax": "19.62",
+      "minOfMin": "9.81",
+      "maxOfMax": "19.62",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "26.79",
+      "avgMax": "54.21",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "19.62",
+      "avgMax": "35.32",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "2.45",
+      "avgMax": "4.91",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "36.14",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "محوت": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "5.93",
+      "avgMax": "17.14",
+      "minOfMin": "5.93",
+      "maxOfMax": "17.14",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "25.71",
+      "avgMax": "51.43",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "21.43",
+      "avgMax": "0.00",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "1.98",
+      "avgMax": "5.71",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "34.29",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "الدقم": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "33.24",
+      "avgMax": "54.98",
+      "minOfMin": "33.24",
+      "maxOfMax": "54.98",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "58.13",
+      "avgMax": "132.99",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "28.27",
+      "avgMax": "65.66",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "5.54",
+      "avgMax": "0.00",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "110.82",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "هيماء": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "5.93",
+      "avgMax": "17.14",
+      "minOfMin": "5.93",
+      "maxOfMax": "17.14",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "34.29",
+      "avgMax": "0.00",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "8.89",
+      "avgMax": "25.71",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "1.98",
+      "avgMax": "0.00",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "41.14",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "الجازر": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "5.93",
+      "avgMax": "0.00",
+      "minOfMin": "5.93",
+      "maxOfMax": "0.00",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "23.71",
+      "avgMax": "0.00",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "17.79",
+      "avgMax": "0.00",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "1.98",
+      "avgMax": "0.00",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "35.57",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "ا¹بريمي": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "15.30",
+      "avgMax": "30.15",
+      "minOfMin": "15.30",
+      "maxOfMax": "30.15",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "51.62",
+      "avgMax": "92.34",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "24.04",
+      "avgMax": "46.28",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "3.69",
+      "avgMax": "7.42",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "61.56",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "محضة": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "8.67",
+      "avgMax": "11.75",
+      "minOfMin": "8.67",
+      "maxOfMax": "11.75",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "29.21",
+      "avgMax": "41.38",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "13.17",
+      "avgMax": "17.63",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "2.14",
+      "avgMax": "5.87",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "50.48",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "ا¹سنينة": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "11.50",
+      "avgMax": "14.80",
+      "minOfMin": "11.50",
+      "maxOfMax": "14.80",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "23.90",
+      "avgMax": "45.05",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "17.25",
+      "avgMax": "22.20",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "2.80",
+      "avgMax": "4.32",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "54.05",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "صب": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "29.44",
+      "avgMax": "43.00",
+      "minOfMin": "29.44",
+      "maxOfMax": "43.00",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "41.22",
+      "avgMax": "80.13",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "35.33",
+      "avgMax": "42.40",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "2.47",
+      "avgMax": "4.93",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "82.44",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "ب اء": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "30.00",
+      "avgMax": "35.00",
+      "minOfMin": "30.00",
+      "maxOfMax": "35.00",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "38.67",
+      "avgMax": "70.73",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "36.00",
+      "avgMax": "42.00",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "2.47",
+      "avgMax": "4.93",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "65.73",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "دبا": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "30.00",
+      "avgMax": "35.00",
+      "minOfMin": "30.00",
+      "maxOfMax": "35.00",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "38.67",
+      "avgMax": "69.80",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "36.00",
+      "avgMax": "42.00",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "2.47",
+      "avgMax": "4.93",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "65.73",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "مدحا": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "30.00",
+      "avgMax": "35.00",
+      "minOfMin": "30.00",
+      "maxOfMax": "35.00",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "38.67",
+      "avgMax": "69.75",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "36.00",
+      "avgMax": "42.00",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "2.47",
+      "avgMax": "4.93",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "65.73",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "¹يما": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "30.00",
+      "avgMax": "32.89",
+      "minOfMin": "30.00",
+      "maxOfMax": "32.89",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "38.67",
+      "avgMax": "65.78",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "45.00",
+      "avgMax": "49.33",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "2.47",
+      "avgMax": "4.93",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "65.73",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "صلالة": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "129.39",
+      "avgMax": "0.00",
+      "minOfMin": "129.39",
+      "maxOfMax": "0.00",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "172.45",
+      "avgMax": "383.54",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "77.93",
+      "avgMax": "138.68",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "11.15",
+      "avgMax": "28.31",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "258.67",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "طاقة": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "50.33",
+      "avgMax": "0.00",
+      "minOfMin": "50.33",
+      "maxOfMax": "0.00",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "44.71",
+      "avgMax": "103.47",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "16.77",
+      "avgMax": "25.15",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "3.04",
+      "avgMax": "6.29",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "53.66",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "مرباط": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "44.30",
+      "avgMax": "0.00",
+      "minOfMin": "44.30",
+      "maxOfMax": "0.00",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "37.30",
+      "avgMax": "79.74",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "27.88",
+      "avgMax": "50.76",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "4.24",
+      "avgMax": "8.86",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "44.76",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "ثمريت": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "10.94",
+      "avgMax": "0.00",
+      "minOfMin": "10.94",
+      "maxOfMax": "0.00",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "12.11",
+      "avgMax": "31.18",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "8.03",
+      "avgMax": "14.91",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "1.41",
+      "avgMax": "2.74",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "34.30",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "سدح": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "8.17",
+      "avgMax": "0.00",
+      "minOfMin": "8.17",
+      "maxOfMax": "0.00",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "13.98",
+      "avgMax": "24.50",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "10.49",
+      "avgMax": "12.25",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "1.75",
+      "avgMax": "2.04",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "29.40",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "ر ي ت": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "10.94",
+      "avgMax": "0.00",
+      "minOfMin": "10.94",
+      "maxOfMax": "0.00",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "12.11",
+      "avgMax": "31.18",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "8.03",
+      "avgMax": "14.91",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "1.41",
+      "avgMax": "2.74",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "18.17",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "ض¹ك ت": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "10.94",
+      "avgMax": "0.00",
+      "minOfMin": "10.94",
+      "maxOfMax": "0.00",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "12.11",
+      "avgMax": "0.00",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "8.03",
+      "avgMax": "14.91",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "1.41",
+      "avgMax": "0.00",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "24.23",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "مقشن": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "9.72",
+      "avgMax": "0.00",
+      "minOfMin": "9.72",
+      "maxOfMax": "0.00",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "11.58",
+      "avgMax": "0.00",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "8.03",
+      "avgMax": "0.00",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "1.41",
+      "avgMax": "0.00",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "17.37",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "ا¹مزي نة": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "13.42",
+      "avgMax": "0.00",
+      "minOfMin": "13.42",
+      "maxOfMax": "0.00",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "18.01",
+      "avgMax": "0.00",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "6.30",
+      "avgMax": "11.40",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "1.86",
+      "avgMax": "0.00",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "27.01",
+      "avgMax": "0.00",
+      "count": 1
+    }
+  },
+  "ش¹يم   جزر ا¹حلانيات": {
+    "areaCount": 1,
+    "residential": {
+      "avgMin": "10.83",
+      "avgMax": "0.00",
+      "minOfMin": "10.83",
+      "maxOfMax": "0.00",
+      "count": 1
+    },
+    "commercial": {
+      "avgMin": "11.78",
+      "avgMax": "0.00",
+      "count": 1
+    },
+    "industrial": {
+      "avgMin": "8.83",
+      "avgMax": "0.00",
+      "count": 1
+    },
+    "agricultural": {
+      "avgMin": "1.47",
+      "avgMax": "0.00",
+      "count": 1
+    },
+    "tourism": {
+      "avgMin": "N/A",
+      "avgMax": "N/A",
+      "count": 0
+    }
+  }
+}
