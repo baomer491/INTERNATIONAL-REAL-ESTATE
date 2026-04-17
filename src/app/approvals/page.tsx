@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { store } from '@/lib/store';
 import { formatDate, formatCurrency, getStatusInfo } from '@/lib/utils';
@@ -9,7 +9,7 @@ import { useTheme } from '@/hooks/useTheme';
 import type { ReportStatus } from '@/types';
 import {
   CheckCircle2, XCircle, RotateCcw, Eye, FileText,
-  Clock, AlertCircle, MessageSquare, Undo2
+  Clock, AlertCircle, MessageSquare, Undo2, RefreshCw, Bell
 } from 'lucide-react';
 
 export default function ApprovalsPage() {
@@ -21,15 +21,41 @@ export default function ApprovalsPage() {
   const [notes, setNotes] = useState('');
   const [filter, setFilter] = useState('');
   const [showMineOnly, setShowMineOnly] = useState(false);
+  const [pendingPulse, setPendingPulse] = useState(false);
 
   const isAdmin = currentUser?.role === 'admin';
   const isReviewer = currentUser?.role === 'reviewer';
 
-  React.useEffect(() => {
+  // Auto-refresh: listen for real-time updates
+  const refreshReports = useCallback(() => {
+    setReports(store.getReports());
+    setPendingPulse(true);
+    setTimeout(() => setPendingPulse(false), 3000);
+  }, []);
+
+  useEffect(() => {
     if (!isAdmin && !isReviewer) {
       setShowMineOnly(true);
     }
   }, [isAdmin, isReviewer]);
+
+  useEffect(() => {
+    // Listen for custom events from notification-service
+    const handleReportsUpdated = () => {
+      refreshReports();
+    };
+    window.addEventListener('reports-updated', handleReportsUpdated);
+
+    // Also poll every 10 seconds to catch any changes
+    const interval = setInterval(() => {
+      setReports(store.getReports());
+    }, 10000);
+
+    return () => {
+      window.removeEventListener('reports-updated', handleReportsUpdated);
+      clearInterval(interval);
+    };
+  }, [refreshReports]);
 
   const approvalReports = reports.filter(r =>
     ['pending_approval', 'approved', 'rejected', 'needs_revision'].includes(r.status) &&
@@ -111,12 +137,41 @@ export default function ApprovalsPage() {
     showToast('تم إعادة التقرير لقائمة الانتظار', 'info');
   };
 
+  const pendingCount = approvalReports.filter(r => r.status === 'pending_approval').length;
+
   return (
     <div className="animate-fade-in">
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 800, margin: '0 0 4px' }}>الاعتمادات</h1>
-        <p style={{ fontSize: 14, color: 'var(--color-text-muted)', margin: 0 }}>مراجعة واعتماد التقارير</p>
+      <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <h1 style={{ fontSize: 24, fontWeight: 800, margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 8 }}>
+            الاعتمادات
+            {pendingCount > 0 && (
+              <span style={{
+                background: pendingPulse ? '#ef4444' : 'var(--color-primary)',
+                color: 'white', fontSize: 13, fontWeight: 700,
+                padding: '2px 10px', borderRadius: 12,
+                animation: pendingPulse ? 'pulse 1s ease-in-out 3' : 'none',
+              }}>
+                {pendingCount} بانتظار
+              </span>
+            )}
+          </h1>
+          <p style={{ fontSize: 14, color: 'var(--color-text-muted)', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+            مراجعة واعتماد التقارير
+            <Bell size={14} style={{ color: pendingPulse ? '#ef4444' : 'var(--color-text-muted)' }} />
+          </p>
+        </div>
+        <button onClick={refreshReports} className="btn btn-ghost btn-sm" title="تحديث">
+          <RefreshCw size={16} style={{ animation: pendingPulse ? 'spin 0.5s linear' : 'none' }} />
+        </button>
       </div>
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.7; transform: scale(1.1); }
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}} />
 
       {/* Filter tabs */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>

@@ -110,7 +110,11 @@ export default function TasksPage() {
   const handleAdd = () => {
     if (!form.title.trim()) return;
     store.addTask({
-      id: `t-${Date.now()}`, title: form.title, description: form.description,
+      id: 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+          const r = Math.random() * 16 | 0;
+          const v = c === 'x' ? r : (r & 0x3 | 0x8);
+          return v.toString(16);
+        }), title: form.title, description: form.description,
       priority: form.priority, status: 'pending',
       dueDate: form.dueDate || new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
       createdAt: new Date().toISOString(), assignedName: form.assignedName,

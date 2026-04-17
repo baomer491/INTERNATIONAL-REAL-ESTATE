@@ -1,10 +1,17 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import type { Notification, Employee } from '@/types';
 import { store, initializeStore } from '@/lib/store';
 import { checkAndAutoArchive } from '@/lib/auto-archiver';
 import { useTheme } from '@/hooks/useTheme';
+import {
+  startNotificationPolling,
+  stopNotificationPolling,
+  requestNotificationPermission,
+  showBrowserNotification,
+  playNotificationSound,
+} from '@/lib/notification-service';
 
 interface AppContextType {
   isLoggedIn: boolean;
@@ -47,6 +54,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Track previous unread count to detect new notifications
+  const prevUnreadRef = useRef(0);
+
   useEffect(() => {
     const mq = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`);
     const handleResize = (e: MediaQueryListEvent | MediaQueryList) => {
@@ -69,8 +79,34 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (loggedIn) {
         const user = store.getCurrentUser();
         setCurrentUser(user || null);
+
+        // Start notification polling for logged-in users
+        if (user) {
+          startNotificationPolling(user.role, user.id, {
+            onNewPendingApproval: (report) => {
+              // Show in-app toast
+              setToast({
+                message: `تقرير جديد بانتظار الاعتماد: ${report.reportNumber}`,
+                type: 'info',
+              });
+              setTimeout(() => setToast(null), 5000);
+            },
+            onNewNotification: () => {
+              // Refresh notification count
+              setUnreadNotifications(store.unreadCount());
+            },
+            onReportsChanged: () => {
+              // Dispatch custom event so other components can refresh
+              window.dispatchEvent(new CustomEvent('reports-updated'));
+            },
+          });
+
+          // Request browser notification permission
+          requestNotificationPermission();
+        }
       }
       setUnreadNotifications(store.unreadCount());
+      prevUnreadRef.current = store.unreadCount();
       setMounted(true);
       setIsLoading(false);
 
@@ -89,7 +125,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false);
     });
 
-    return () => mq.removeEventListener('change', handleResize);
+    return () => {
+      mq.removeEventListener('change', handleResize);
+      stopNotificationPolling();
+    };
   }, []);
 
   const refreshNotifications = useCallback(() => {
@@ -98,7 +137,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const notify = useCallback((notification: Omit<Notification, 'id' | 'createdAt' | 'isRead'>) => {
     store.addNotification(notification);
-    setUnreadNotifications(store.unreadCount());
+    const newUnread = store.unreadCount();
+    setUnreadNotifications(newUnread);
+
+    // Play sound for high priority notifications
+    if (notification.priority === 'high') {
+      playNotificationSound();
+    }
+
+    // Show browser push notification for approval-related notifications
+    if (notification.type === 'approval') {
+      showBrowserNotification(notification.title, {
+        body: notification.message,
+        tag: `notif-${Date.now()}`,
+        data: { path: '/approvals' },
+      });
+    }
+
+    // Dispatch event for real-time updates
+    window.dispatchEvent(new CustomEvent('reports-updated'));
   }, []);
 
   const login = useCallback(async (username: string, password: string) => {
@@ -107,14 +164,40 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setIsLoggedIn(true);
       const user = store.getCurrentUser();
       setCurrentUser(user || null);
+
+      // Start notification polling after login
+      if (user) {
+        startNotificationPolling(user.role, user.id, {
+          onNewPendingApproval: (report) => {
+            setToast({
+              message: `تقرير جديد بانتظار الاعتماد: ${report.reportNumber}`,
+              type: 'info',
+            });
+            setTimeout(() => setToast(null), 5000);
+          },
+          onNewNotification: () => {
+            setUnreadNotifications(store.unreadCount());
+          },
+          onReportsChanged: () => {
+            window.dispatchEvent(new CustomEvent('reports-updated'));
+          },
+        });
+
+        requestNotificationPermission();
+      }
     }
     return result;
   }, []);
 
   const logout = useCallback(async () => {
+    stopNotificationPolling();
     await store.logout();
     setIsLoggedIn(false);
     setCurrentUser(null);
+    // Redirect to home (login page) and clear any nested route
+    if (typeof window !== 'undefined') {
+      window.location.href = '/';
+    }
   }, []);
 
   const hasPermission = useCallback((permissionId: string) => {

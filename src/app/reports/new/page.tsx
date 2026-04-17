@@ -558,6 +558,24 @@ function CreateReportWizardInner() {
     if (editId) {
       const existing = store.getReport(editId);
       if (existing) {
+        // Ensure beneficiary exists in DB
+        const existingBeneficiary = store.getBeneficiary(report.beneficiaryId);
+        if (!existingBeneficiary) {
+          store.addBeneficiary({
+            id: report.beneficiaryId,
+            fullName: report.beneficiaryName,
+            civilId: report.beneficiaryCivilId,
+            phone: report.beneficiaryPhone,
+            email: report.beneficiaryEmail || '',
+            address: report.beneficiaryAddress,
+            relation: report.beneficiaryRelation,
+            workplace: report.beneficiaryWorkplace || '',
+            notes: '',
+            reportsCount: 1,
+            lastReportDate: new Date().toISOString(),
+            banksIds: report.bankId ? [report.bankId] : [],
+          });
+        }
         store.updateReport(editId, {
           ...report, id: existing.id, createdAt: existing.createdAt, reportNumber: existing.reportNumber,
           status: 'pending_approval',
@@ -570,6 +588,25 @@ function CreateReportWizardInner() {
         router.push('/reports');
         return;
       }
+    }
+
+    // Ensure beneficiary exists in DB before creating the report (FK constraint)
+    const existingBen = store.getBeneficiary(report.beneficiaryId);
+    if (!existingBen) {
+      store.addBeneficiary({
+        id: report.beneficiaryId,
+        fullName: report.beneficiaryName,
+        civilId: report.beneficiaryCivilId,
+        phone: report.beneficiaryPhone,
+        email: report.beneficiaryEmail || '',
+        address: report.beneficiaryAddress,
+        relation: report.beneficiaryRelation,
+        workplace: report.beneficiaryWorkplace || '',
+        notes: '',
+        reportsCount: 1,
+        lastReportDate: new Date().toISOString(),
+        banksIds: report.bankId ? [report.bankId] : [],
+      });
     }
 
     store.addReport(report);

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { store } from '@/lib/store';
 import { formatDateShort, formatCurrency, getStatusInfo, getPropertyTypeLabel } from '@/lib/utils';
@@ -32,11 +32,28 @@ export default function ReportsPage() {
   const isAdmin = currentUser?.role === 'admin';
   const isViewer = currentUser?.role === 'viewer';
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isAdmin && !isViewer) {
       setShowMineOnly(true);
     }
   }, [isAdmin, isViewer]);
+
+  // Auto-refresh: listen for real-time updates from notification-service
+  useEffect(() => {
+    const handleReportsUpdated = () => {
+      setReports(store.getReports());
+    };
+    window.addEventListener('reports-updated', handleReportsUpdated);
+
+    const interval = setInterval(() => {
+      setReports(store.getReports());
+    }, 15000);
+
+    return () => {
+      window.removeEventListener('reports-updated', handleReportsUpdated);
+      clearInterval(interval);
+    };
+  }, []);
 
   const refreshReports = () => {
     setReports(store.getReports());

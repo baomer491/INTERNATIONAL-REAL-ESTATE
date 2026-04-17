@@ -52,3 +52,4 @@ market-data-full.json
 sheet_data.json
 wilayat_stats.json
 *.rar
+.env.local
