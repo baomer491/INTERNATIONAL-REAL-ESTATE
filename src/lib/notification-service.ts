@@ -121,6 +121,9 @@ let currentUserRole: EmployeeRole | null = null;
 let currentUserId: string | null = null;
 let realtimeChannel: RealtimeChannel | null = null;
 let realtimeActive = false;
+let retryCount = 0;
+const MAX_RETRIES = 3;
+const RETRY_BASE_DELAY = 2000; // 2s, 4s, 6s
 
 export function startNotificationPolling(
   userRole: EmployeeRole,
@@ -168,10 +171,22 @@ function setupRealtimeSubscriptions() {
         (payload) => {
           const newRec = payload.new as Record<string, unknown>;
           const oldRec = payload.old as Record<string, unknown>;
-          // Only react if status changed to pending_approval
-          if (newRec.status === 'pending_approval') {
-            console.log('[notification-service] Realtime: report status changed to pending_approval', payload);
-            handleRealtimeReportChange(newRec);
+          const newStatus = newRec.status as string;
+          const oldStatus = oldRec.status as string;
+
+          // React to any status change (approved, rejected, pending_approval, etc.)
+          if (newStatus !== oldStatus) {
+            console.log('[notification-service] Realtime: report status changed', oldStatus, '->', newStatus);
+
+            // Send browser notification to reviewers/admins about new pending approvals
+            if (newStatus === 'pending_approval' && (currentUserRole === 'admin' || currentUserRole === 'reviewer')) {
+              handleRealtimeReportChange(newRec);
+            } else {
+              // For other status changes (approved, rejected, etc.), just notify reports changed
+              if (callbacks.onReportsChanged) {
+                callbacks.onReportsChanged();
+              }
+            }
           }
         }
       )
@@ -196,6 +211,7 @@ function setupRealtimeSubscriptions() {
       .subscribe((status: string) => {
         if (status === 'SUBSCRIBED') {
           realtimeActive = true;
+          retryCount = 0; // Reset on success
           console.log('[notification-service] Realtime subscription active');
           // Switch to longer polling interval since realtime is working
           if (pollingIntervalId) {
@@ -204,11 +220,25 @@ function setupRealtimeSubscriptions() {
           }
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           realtimeActive = false;
-          console.warn('[notification-service] Realtime subscription failed, falling back to fast polling');
-          // Switch to faster polling
-          if (pollingIntervalId) {
-            clearInterval(pollingIntervalId);
-            pollingIntervalId = setInterval(pollForChanges, 5000);
+          console.warn('[notification-service] Realtime subscription failed, attempt', retryCount + 1, 'of', MAX_RETRIES);
+          
+          if (retryCount < MAX_RETRIES) {
+            const delay = RETRY_BASE_DELAY * (retryCount + 1);
+            retryCount++;
+            console.log('[notification-service] Retrying realtime connection in', delay, 'ms');
+            setTimeout(() => {
+              // Only retry if we haven't been stopped
+              if (pollingIntervalId && currentUserRole) {
+                setupRealtimeSubscriptions();
+              }
+            }, delay);
+          } else {
+            console.warn('[notification-service] Max retries reached, falling back to fast polling');
+            // Switch to faster polling
+            if (pollingIntervalId) {
+              clearInterval(pollingIntervalId);
+              pollingIntervalId = setInterval(pollForChanges, 5000);
+            }
           }
         }
       });
@@ -263,6 +293,7 @@ export function stopNotificationPolling() {
     realtimeChannel = null;
   }
   realtimeActive = false;
+  retryCount = 0;
   console.log('[notification-service] Stopped polling and realtime');
 }
 
@@ -303,51 +334,54 @@ async function pollForChanges() {
       .eq('status', 'pending_approval');
 
     if (!err1 && currentPending !== null) {
-      if (currentPending > lastKnownPendingCount) {
-        // New reports arrived! Notify reviewers/admins
-        if (currentUserRole === 'admin' || currentUserRole === 'reviewer') {
-          // Fetch the new report details
-          const { data: newReports } = await db
-            .from('reports')
-            .select('id, report_number, appraiser_name, beneficiary_name, created_at')
-            .eq('status', 'pending_approval')
-            .gt('created_at', lastPollTimestamp)
-            .order('created_at', { ascending: false });
+      if (currentPending !== lastKnownPendingCount) {
+        // Pending count changed (increased OR decreased) — notify accordingly
+        if (currentPending > lastKnownPendingCount) {
+          // New reports arrived — only notify reviewers/admins about new pending approvals
+          if (currentUserRole === 'admin' || currentUserRole === 'reviewer') {
+            // Fetch the new report details
+            const { data: newReports } = await db
+              .from('reports')
+              .select('id, report_number, appraiser_name, beneficiary_name, created_at')
+              .eq('status', 'pending_approval')
+              .gt('created_at', lastPollTimestamp)
+              .order('created_at', { ascending: false });
 
-          if (newReports && newReports.length > 0) {
-            for (const report of newReports) {
-              const r = report as Record<string, unknown>;
+            if (newReports && newReports.length > 0) {
+              for (const report of newReports) {
+                const r = report as Record<string, unknown>;
 
-              // Skip if realtime already handled this
-              if (realtimeActive) continue;
+                // Skip if realtime already handled this
+                if (realtimeActive) continue;
 
-              // Browser push notification
-              showBrowserNotification('تقرير جديد بانتظار الاعتماد', {
-                body: `تقرير ${r.report_number || ''} من ${r.appraiser_name || ''} - المستفيد: ${r.beneficiary_name || ''}`,
-                tag: `approval-${r.id}`,
-                data: { path: '/approvals' },
-              });
-
-              // Play sound
-              playNotificationSound();
-
-              // Callback
-              if (callbacks.onNewPendingApproval) {
-                callbacks.onNewPendingApproval({
-                  id: r.id as string,
-                  reportNumber: (r.report_number as string) || '',
-                  appraiserName: (r.appraiser_name as string) || '',
-                  beneficiaryName: (r.beneficiary_name as string) || '',
+                // Browser push notification
+                showBrowserNotification('تقرير جديد بانتظار الاعتماد', {
+                  body: `تقرير ${r.report_number || ''} من ${r.appraiser_name || ''} - المستفيد: ${r.beneficiary_name || ''}`,
+                  tag: `approval-${r.id}`,
+                  data: { path: '/approvals' },
                 });
+
+                // Play sound
+                playNotificationSound();
+
+                // Callback
+                if (callbacks.onNewPendingApproval) {
+                  callbacks.onNewPendingApproval({
+                    id: r.id as string,
+                    reportNumber: (r.report_number as string) || '',
+                    appraiserName: (r.appraiser_name as string) || '',
+                    beneficiaryName: (r.beneficiary_name as string) || '',
+                  });
+                }
               }
+            } else {
+              // Reports count increased but we can't find new ones by timestamp - still notify
+              if (!realtimeActive) playNotificationSound();
             }
-          } else {
-            // Reports count increased but we can't find new ones by timestamp - still notify
-            if (!realtimeActive) playNotificationSound();
           }
         }
 
-        // Notify all about reports change
+        // Any change in pending count means reports were updated — notify all users
         if (callbacks.onReportsChanged) {
           callbacks.onReportsChanged();
         }

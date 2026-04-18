@@ -251,3 +251,11 @@ CREATE TRIGGER trg_beneficiaries_updated BEFORE UPDATE ON beneficiaries FOR EACH
 CREATE TRIGGER trg_reports_updated BEFORE UPDATE ON reports FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 CREATE TRIGGER trg_app_settings_updated BEFORE UPDATE ON app_settings FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 CREATE TRIGGER trg_drafts_updated BEFORE UPDATE ON drafts FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+-- =============================================
+-- REALTIME: Enable live updates for reports & notifications
+-- =============================================
+-- These must be added to the supabase_realtime publication so that
+-- Supabase Realtime can broadcast INSERT/UPDATE/DELETE events to clients.
+ALTER PUBLICATION supabase_realtime ADD TABLE public.reports;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;

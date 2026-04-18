@@ -605,6 +605,27 @@ export const store = {
     return _reports.find((r) => r.id === id);
   },
 
+  /**
+   * Refresh reports from Supabase into the in-memory cache.
+   * Called when polling/realtime detects changes made by another user/session.
+   */
+  refreshReportsFromDB: async (): Promise<void> => {
+    try {
+      const { data, error } = await db
+        .from('reports')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (!error && data) {
+        _reports = data.map((r: Record<string, unknown>) => mapReportRow(r));
+        console.log('[store] refreshReportsFromDB: refreshed', _reports.length, 'reports');
+      } else if (error) {
+        console.error('[store] refreshReportsFromDB error:', error.message);
+      }
+    } catch (err) {
+      console.error('[store] refreshReportsFromDB exception:', err);
+    }
+  },
+
   addReport: async (report: Report): Promise<void> => {
     _reports.unshift(report);
     const row = reportToSnake(report);

@@ -20,7 +20,7 @@ export const beneficiarySchema = z.object({
   phone: z.string().optional(),
   email: z.string().email('بريد إلكتروني غير صالح').optional().or(z.literal('')),
   address: z.string().optional(),
-  relation: z.enum(['owner', 'buyer', 'seller', 'heir', 'agent', 'other']),
+  relation: z.enum(['owner', 'buyer', 'bank_client', 'legal_representative', 'other']),
   workplace: z.string().optional(),
   notes: z.string().optional(),
 });
@@ -31,7 +31,7 @@ export const employeeSchema = z.object({
   password: z.string().min(6, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل'),
   email: z.string().email('بريد إلكتروني غير صالح').optional().or(z.literal('')),
   phone: z.string().optional(),
-  role: z.enum(['admin', 'manager', 'appraiser', 'viewer']),
+  role: z.enum(['admin', 'appraiser', 'reviewer', 'data_entry', 'viewer']),
   department: z.string().optional(),
 });
 

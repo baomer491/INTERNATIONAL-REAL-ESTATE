@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { AppProvider, useApp } from '@/components/layout/AppContext';
+import { useApp } from '@/components/layout/AppContext';
 import AppShell from '@/components/layout/AppShell';
 
 function AppRouter({ children }: { children: React.ReactNode }) {
@@ -11,9 +11,5 @@ function AppRouter({ children }: { children: React.ReactNode }) {
 }
 
 export default function PageLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <AppProvider>
-      <AppRouter>{children}</AppRouter>
-    </AppProvider>
-  );
+  return <AppRouter>{children}</AppRouter>;
 }

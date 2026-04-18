@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { FileText, Sparkles, Loader2, AlertCircle, RotateCcw, CreditCard, Camera, Upload } from 'lucide-react';
+import { FileText, Sparkles, Loader2, AlertCircle, RotateCcw, CreditCard, Camera, Upload, ScanText, MapPinned } from 'lucide-react';
 import WizardStepLayout from '../WizardStepLayout';
 import FileUploadZone from '../FileUploadZone';
 import type { OCRExtractionResult, OCRStep } from '@/lib/ocr';
@@ -23,9 +23,16 @@ interface DocumentsStepProps {
   ocrStep: OCRStep;
   extractedData: Record<string, string>;
   dataFields: Record<string, string>;
+  // Individual extraction state
+  ownershipExtracting: boolean;
+  sketchExtracting: boolean;
+  ownershipExtracted: boolean;
+  sketchExtracted: boolean;
   onFileUpload: (field: string, file: File) => void;
   onFileRemove: (field: string) => void;
   onRunOCR: () => void;
+  onExtractOwnership: () => void;
+  onExtractSketch: () => void;
   onPreview: (url: string, type: string, name: string, label: string) => void;
   onUpdateExtracted: (field: string, value: string) => void;
 }
@@ -45,14 +52,22 @@ export default function DocumentsStep({
   ocrStep,
   extractedData,
   dataFields,
+  ownershipExtracting,
+  sketchExtracting,
+  ownershipExtracted,
+  sketchExtracted,
   onFileUpload,
   onFileRemove,
   onRunOCR,
+  onExtractOwnership,
+  onExtractSketch,
   onPreview,
   onUpdateExtracted,
 }: DocumentsStepProps) {
   const { isDark } = useTheme();
   const dm = isDark;
+
+  const anyIndividualExtracting = ownershipExtracting || sketchExtracting;
 
   return (
     <WizardStepLayout
@@ -65,28 +80,101 @@ export default function DocumentsStep({
       }
     >
       <div className="wizard-form-grid-2" style={{ marginBottom: 20 }}>
-        <FileUploadZone
-          field="ownershipFile"
-          label="صك الملكية (Mulkiya)"
-          accept=".pdf,.jpg,.jpeg,.png"
-          preview={ownershipPreview}
-          file={ownershipFile}
-          icon={<Upload size={22} color="var(--color-primary)" />}
-          onUpload={onFileUpload}
-          onRemove={onFileRemove}
-          onPreview={onPreview}
-        />
-        <FileUploadZone
-          field="mapFile"
-          label="الكروكي (Krookie)"
-          accept=".pdf,.jpg,.jpeg,.png"
-          preview={mapPreview}
-          file={mapFile}
-          icon={<Upload size={22} color="var(--color-primary)" />}
-          onUpload={onFileUpload}
-          onRemove={onFileRemove}
-          onPreview={onPreview}
-        />
+        <div>
+          <FileUploadZone
+            field="ownershipFile"
+            label="صك الملكية (Mulkiya)"
+            accept=".pdf,.jpg,.jpeg,.png"
+            preview={ownershipPreview}
+            file={ownershipFile}
+            icon={<Upload size={22} color="var(--color-primary)" />}
+            onUpload={onFileUpload}
+            onRemove={onFileRemove}
+            onPreview={onPreview}
+          />
+          {/* Individual ownership extraction button */}
+          {ownershipFile && (
+            <button
+              onClick={onExtractOwnership}
+              disabled={ownershipExtracting || extracting || anyIndividualExtracting}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                width: '100%',
+                marginTop: 8,
+                padding: '8px 12px',
+                borderRadius: 8,
+                fontSize: 12,
+                fontWeight: 600,
+                border: `1px solid ${ownershipExtracted ? (dm ? 'rgba(34,197,94,0.4)' : '#86efac') : 'var(--color-primary)'}`,
+                background: ownershipExtracted
+                  ? (dm ? 'rgba(34,197,94,0.1)' : '#f0fdf4')
+                  : 'transparent',
+                color: ownershipExtracted ? '#22c55e' : 'var(--color-primary)',
+                cursor: (ownershipExtracting || extracting || anyIndividualExtracting) ? 'not-allowed' : 'pointer',
+                opacity: (ownershipExtracting || extracting || anyIndividualExtracting) ? 0.6 : 1,
+                transition: 'all 0.2s',
+              }}
+            >
+              {ownershipExtracting ? (
+                <Loader2 size={14} style={{ animation: 'spin 0.8s linear infinite' }} />
+              ) : (
+                <ScanText size={14} />
+              )}
+              {ownershipExtracting ? 'جاري استخراج الملكية...' : ownershipExtracted ? 'تم استخراج الملكية' : 'استخراج بيانات الملكية'}
+            </button>
+          )}
+        </div>
+
+        <div>
+          <FileUploadZone
+            field="mapFile"
+            label="الكروكي (Krookie)"
+            accept=".pdf,.jpg,.jpeg,.png"
+            preview={mapPreview}
+            file={mapFile}
+            icon={<Upload size={22} color="var(--color-primary)" />}
+            onUpload={onFileUpload}
+            onRemove={onFileRemove}
+            onPreview={onPreview}
+          />
+          {/* Individual sketch extraction button */}
+          {mapFile && (
+            <button
+              onClick={onExtractSketch}
+              disabled={sketchExtracting || extracting || anyIndividualExtracting}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                width: '100%',
+                marginTop: 8,
+                padding: '8px 12px',
+                borderRadius: 8,
+                fontSize: 12,
+                fontWeight: 600,
+                border: `1px solid ${sketchExtracted ? (dm ? 'rgba(34,197,94,0.4)' : '#86efac') : 'var(--color-primary)'}`,
+                background: sketchExtracted
+                  ? (dm ? 'rgba(34,197,94,0.1)' : '#f0fdf4')
+                  : 'transparent',
+                color: sketchExtracted ? '#22c55e' : 'var(--color-primary)',
+                cursor: (sketchExtracting || extracting || anyIndividualExtracting) ? 'not-allowed' : 'pointer',
+                opacity: (sketchExtracting || extracting || anyIndividualExtracting) ? 0.6 : 1,
+                transition: 'all 0.2s',
+              }}
+            >
+              {sketchExtracting ? (
+                <Loader2 size={14} style={{ animation: 'spin 0.8s linear infinite' }} />
+              ) : (
+                <MapPinned size={14} />
+              )}
+              {sketchExtracting ? 'جاري استخراج الكروكي...' : sketchExtracted ? 'تم استخراج الكروكي' : 'استخراج بيانات الكروكي'}
+            </button>
+          )}
+        </div>
       </div>
 
       {isLand && (
@@ -116,18 +204,23 @@ export default function DocumentsStep({
         </div>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
         <button
           onClick={onRunOCR}
-          disabled={extracting || !ownershipFile}
+          disabled={extracting || !ownershipFile || anyIndividualExtracting}
           className={extracting ? 'btn btn-primary' : 'btn btn-outline'}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, opacity: !ownershipFile ? 0.5 : 1 }}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, opacity: (!ownershipFile || anyIndividualExtracting) ? 0.5 : 1 }}
         >
           {extracting ? <Loader2 size={16} style={{ animation: 'spin 0.8s linear infinite' }} /> : <Sparkles size={16} />}
-          {extracting ? getStepLabel(ocrStep) : `استخراج البيانات تلقائياً${mapFile ? ' (صك + كروكي)' : ''}`}
+          {extracting ? getStepLabel(ocrStep) : `استخراج الكل${mapFile ? ' (صك + كروكي)' : ''}`}
         </button>
         {!ownershipFile && (
           <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>يرجى رفع صك الملكية أولاً</span>
+        )}
+        {(ownershipFile || mapFile) && (
+          <span style={{ fontSize: 11, color: dm ? 'var(--color-text-secondary)' : '#94a3b8' }}>
+            أو استخدم الأزرار الفردية فوق كل مستند
+          </span>
         )}
       </div>
 
@@ -160,7 +253,7 @@ export default function DocumentsStep({
                 {getStepLabel(ocrStep)}
               </p>
               <p style={{ fontSize: 11, color: dm ? 'var(--color-text-secondary)' : '#64748b', margin: '2px 0 0' }}>
-                جاري تحليل المستندات واستخراج بيانات العقار
+                جاري تحسين الصور وتحليل المستندات واستخراج بيانات العقار
               </p>
             </div>
           </div>

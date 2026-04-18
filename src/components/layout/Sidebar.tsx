@@ -22,7 +22,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const { logout, unreadNotifications, sidebarOpen, setSidebarOpen, isMobile, hasPermission } = useApp();
 
-  const allNavItems: NavItem[] = [
+  const allNavItems: NavItem[] = useMemo(() => [
     { href: '/dashboard', label: 'لوحة التحكم', icon: <LayoutDashboard size={20} /> },
     { href: '/reports/new', label: 'إنشاء تقرير جديد', icon: <PlusCircle size={20} />, permission: 'reports_create' },
     { href: '/reports', label: 'التقارير', icon: <FileText size={20} />, permission: 'reports_view' },
@@ -36,7 +36,7 @@ export default function Sidebar() {
     { href: '/employees', label: 'الموظفين', icon: <UserCog size={20} />, permission: 'employees_view' },
     { href: '/employees/analytics', label: 'تحليل الأداء', icon: <BarChart3 size={20} />, permission: 'employees_view' },
     { href: '/market-prices', label: 'أسعار السوق', icon: <TrendingUp size={20} /> },
-  ];
+  ], [unreadNotifications]);
 
   const navItems = useMemo(() => {
     return allNavItems.filter(item => {

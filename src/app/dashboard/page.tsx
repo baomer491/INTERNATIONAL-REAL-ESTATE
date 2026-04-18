@@ -32,6 +32,9 @@ const GOLD_DARK = '#a8883f';
 const NAVY = '#1e3a5f';
 const NAVY_LIGHT = '#2d5a8e';
 
+/* ─── RotateCcw alias (uses lucide-react import) ─── */
+const RotateCcwIcon = RotateCcw;
+
 /* ─── Status → Icon Map ─── */
 const statusIconMap: Record<string, React.ReactNode> = {
   draft: <FileEdit size={15} />,
@@ -107,16 +110,6 @@ function notifIcon(type: string) {
   return <Bell size={15} />;
 }
 
-/* ─── Small RotateCcw Icon ─── */
-function RotateCcwIcon({ size = 24 }: { size?: number }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-      <path d="M3 3v5h5" />
-    </svg>
-  );
-}
-
 /* ─── Section Header Component ─── */
 function SectionHeader({ icon, iconBg, title, subtitle, action }: {
   icon: React.ReactNode;
@@ -155,7 +148,6 @@ export default function DashboardPage() {
 
   const allReports = store.getReports();
   const tasks = store.getTasks();
-  const pendingTasks = tasks.filter(t => t.status !== 'completed');
 
   useEffect(() => { checkPendingNotifications(); }, []);
 
@@ -164,24 +156,31 @@ export default function DashboardPage() {
   const isDataEntry = currentUser?.role === 'data_entry';
   const isViewer = currentUser?.role === 'viewer';
 
-  const myReports = allReports.filter(r => r.appraiserId === currentUser?.id);
-  const displayReports = isAdmin || isViewer ? allReports : myReports;
-  const recentReports = displayReports.slice(0, 6);
+  /* ─── Memoized report computations ─── */
+  const myReports = useMemo(() => allReports.filter(r => r.appraiserId === currentUser?.id), [allReports, currentUser?.id]);
+  const displayReports = useMemo(() => (isAdmin || isViewer ? allReports : myReports), [isAdmin, isViewer, allReports, myReports]);
+  const recentReports = useMemo(() => displayReports.slice(0, 6), [displayReports]);
 
-  const statusCounts = reportStatuses.map(s => ({
-    ...s,
-    count: displayReports.filter(r => r.status === s.value).length,
-  }));
+  const statusCounts = useMemo(() =>
+    reportStatuses.map(s => ({
+      ...s,
+      count: displayReports.filter(r => r.status === s.value).length,
+    })),
+    [displayReports]
+  );
   const totalReports = displayReports.length;
-  const totalFees = displayReports.reduce((sum, r) => sum + (r.fees || 0), 0);
-  const totalValue = displayReports.reduce((sum, r) => sum + (r.valuation?.totalMarketValue || 0), 0);
+  const totalFees = useMemo(() => displayReports.reduce((sum, r) => sum + (r.fees || 0), 0), [displayReports]);
+  const totalValue = useMemo(() => displayReports.reduce((sum, r) => sum + (r.valuation?.totalMarketValue || 0), 0), [displayReports]);
 
-  const myCompleted = myReports.filter(r => r.status === 'approved').length;
-  const myInProgress = myReports.filter(r => ['in_progress', 'pending_approval'].includes(r.status)).length;
-  const myPendingApproval = myReports.filter(r => r.status === 'pending_approval').length;
-  const pendingReviewAll = allReports.filter(r => r.status === 'pending_approval').length;
+  const myCompleted = useMemo(() => myReports.filter(r => r.status === 'approved').length, [myReports]);
+  const myInProgress = useMemo(() => myReports.filter(r => ['in_progress', 'pending_approval'].includes(r.status)).length, [myReports]);
+  const myPendingApproval = useMemo(() => myReports.filter(r => r.status === 'pending_approval').length, [myReports]);
+  const pendingReviewAll = useMemo(() => allReports.filter(r => r.status === 'pending_approval').length, [allReports]);
 
-  const colorMap = getColorMap(dm);
+  /* ─── Memoized task computations ─── */
+  const pendingTasks = useMemo(() => tasks.filter(t => t.status !== 'completed'), [tasks]);
+
+  const colorMap = useMemo(() => getColorMap(dm), [dm]);
 
   /* ─── Monthly Chart Data ─── */
   const monthlyData = useMemo(() => {
@@ -544,7 +543,7 @@ export default function DashboardPage() {
               subtitle="عدد التقارير والأتعاب"
             />
             <div style={{ height: 280 }}>
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <BarChart data={monthlyData} style={{ direction: 'ltr' }}>
                   <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
                   <XAxis dataKey="month" tick={{ fontSize: 12, fill: axisFill }} axisLine={false} tickLine={false} />
@@ -578,7 +577,7 @@ export default function DashboardPage() {
           {pieData.length > 0 ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20 }}>
               <div style={{ width: 140, height: 140, flexShrink: 0 }}>
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                   <PieChart>
                     <Pie
                       data={pieData}

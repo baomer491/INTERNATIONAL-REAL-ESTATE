@@ -22,6 +22,7 @@ export default function ApprovalsPage() {
   const [filter, setFilter] = useState('');
   const [showMineOnly, setShowMineOnly] = useState(false);
   const [pendingPulse, setPendingPulse] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
 
   const isAdmin = currentUser?.role === 'admin';
   const isReviewer = currentUser?.role === 'reviewer';
@@ -68,50 +69,58 @@ export default function ApprovalsPage() {
 
   const selected = selectedId ? reports.find(r => r.id === selectedId) : null;
 
-  const handleAction = (status: ReportStatus) => {
+  const handleAction = async (status: ReportStatus) => {
     if (!selected) return;
-    store.updateReport(selected.id, {
-      status,
-      approval: {
-        ...selected.approval,
-        status: status === 'approved' ? 'approved' : status === 'rejected' ? 'rejected' : 'needs_revision',
-        reviewedAt: new Date().toISOString(),
-        reviewedBy: currentUser?.fullName || store.getSettings().userName,
-        notes,
+    setActionLoading(true);
+    try {
+      await store.updateReport(selected.id, {
+        status,
+        approval: {
+          ...selected.approval,
+          status: status === 'approved' ? 'approved' : status === 'rejected' ? 'rejected' : 'needs_revision',
+          reviewedAt: new Date().toISOString(),
+          reviewedBy: currentUser?.fullName || store.getSettings().userName,
+          notes,
+        }
+      });
+      setReports(store.getReports());
+      setSelectedId(null);
+      setNotes('');
+      if (status === 'approved') {
+        notify({
+          type: 'approval',
+          title: `تم اعتماد التقرير: ${selected.reportNumber}`,
+          message: `تم اعتماد تقرير ${selected.reportNumber} بنجاح من قبل ${currentUser?.fullName || 'المراجع'}`,
+          priority: 'medium',
+          relatedReportId: selected.id,
+        });
+      } else if (status === 'rejected') {
+        notify({
+          type: 'approval',
+          title: `تم رفض التقرير: ${selected.reportNumber}`,
+          message: `تم رفض تقرير ${selected.reportNumber} من قبل ${currentUser?.fullName || 'المراجع'}${notes ? ` - ${notes}` : ''}`,
+          priority: 'high',
+          relatedReportId: selected.id,
+        });
+      } else {
+        notify({
+          type: 'approval',
+          title: `تقرير يحتاج مراجعة: ${selected.reportNumber}`,
+          message: `تم إرجاع تقرير ${selected.reportNumber} للمراجعة من قبل ${currentUser?.fullName || 'المراجع'}${notes ? ` - ${notes}` : ''}`,
+          priority: 'high',
+          relatedReportId: selected.id,
+        });
       }
-    });
-    setReports(store.getReports());
-    setSelectedId(null);
-    setNotes('');
-    if (status === 'approved') {
-      notify({
-        type: 'approval',
-        title: `تم اعتماد التقرير: ${selected.reportNumber}`,
-        message: `تم اعتماد تقرير ${selected.reportNumber} بنجاح من قبل ${currentUser?.fullName || 'المراجع'}`,
-        priority: 'medium',
-        relatedReportId: selected.id,
-      });
-    } else if (status === 'rejected') {
-      notify({
-        type: 'approval',
-        title: `تم رفض التقرير: ${selected.reportNumber}`,
-        message: `تم رفض تقرير ${selected.reportNumber} من قبل ${currentUser?.fullName || 'المراجع'}${notes ? ` - ${notes}` : ''}`,
-        priority: 'high',
-        relatedReportId: selected.id,
-      });
-    } else {
-      notify({
-        type: 'approval',
-        title: `تقرير يحتاج مراجعة: ${selected.reportNumber}`,
-        message: `تم إرجاع تقرير ${selected.reportNumber} للمراجعة من قبل ${currentUser?.fullName || 'المراجع'}${notes ? ` - ${notes}` : ''}`,
-        priority: 'high',
-        relatedReportId: selected.id,
-      });
+      showToast(
+        status === 'approved' ? 'تم اعتماد التقرير' : status === 'rejected' ? 'تم رفض التقرير' : 'تم إرجاع التقرير للمراجعة',
+        'success'
+      );
+    } catch (err) {
+      console.error('Failed to process approval action:', err);
+      showToast('حدث خطأ أثناء معالجة الطلب. يرجى المحاولة مرة أخرى.', 'error');
+    } finally {
+      setActionLoading(false);
     }
-    showToast(
-      status === 'approved' ? 'تم اعتماد التقرير' : status === 'rejected' ? 'تم رفض التقرير' : 'تم إرجاع التقرير للمراجعة',
-      'success'
-    );
   };
 
   const handleResetToPending = (reportId: string) => {
@@ -281,15 +290,15 @@ export default function ApprovalsPage() {
                 placeholder="أضف ملاحظاتك هنا..." />
             </div>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              <button onClick={() => setSelectedId(null)} className="btn btn-ghost">إلغاء</button>
-              <button onClick={() => handleAction('needs_revision')} className="btn btn-outline" style={{ color: '#f59e0b', borderColor: '#f59e0b' }}>
+              <button onClick={() => setSelectedId(null)} className="btn btn-ghost" disabled={actionLoading}>إلغاء</button>
+              <button onClick={() => handleAction('needs_revision')} className="btn btn-outline" style={{ color: '#f59e0b', borderColor: '#f59e0b' }} disabled={actionLoading}>
                 <RotateCcw size={16} /> إعادة للمراجعة
               </button>
-              <button onClick={() => handleAction('rejected')} className="btn btn-danger">
+              <button onClick={() => handleAction('rejected')} className="btn btn-danger" disabled={actionLoading}>
                 <XCircle size={16} /> رفض
               </button>
-              <button onClick={() => handleAction('approved')} className="btn btn-success">
-                <CheckCircle2 size={16} /> اعتماد
+              <button onClick={() => handleAction('approved')} className="btn btn-success" disabled={actionLoading}>
+                {actionLoading ? <RefreshCw size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle2 size={16} />} اعتماد
               </button>
             </div>
           </div>

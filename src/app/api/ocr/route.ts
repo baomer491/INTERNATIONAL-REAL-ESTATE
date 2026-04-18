@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { callGemini, parseJSONResponse } from '@/lib/gemini-client';
+import { preprocessImages } from '@/lib/image-preprocessor';
+import { cleanNumber, cleanTextField } from '@/lib/data-postprocessor';
 
 const EXTRACTION_PROMPT = `أنت خبير في استخراج بيانات العقارات من مستندات العقارات العمانية.
 
@@ -65,7 +67,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { images } = body;
+    const { images, skipPreprocess = false } = body;
 
     if (!images || !Array.isArray(images) || images.length === 0) {
       return NextResponse.json(
@@ -74,8 +76,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Step 1: Preprocess images with Sharp for better OCR accuracy
+    let processedImages: string[];
+    if (skipPreprocess) {
+      processedImages = images;
+    } else {
+      console.log('[ocr] Preprocessing', images.length, 'images with Sharp...');
+      processedImages = await preprocessImages(images, {
+        enhanceContrast: true,
+        sharpen: true,
+        grayscale: true,
+        maxDimension: 2048,
+        quality: 90,
+      });
+    }
+
+    // Step 2: Call Gemini
     const data = await callGemini({
-      images,
+      images: processedImages,
       prompt: EXTRACTION_PROMPT,
       model: 'gemini-2.5-flash',
       maxOutputTokens: 2048,
@@ -91,7 +109,31 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const structured = parseJSONResponse(content);
+    const raw = parseJSONResponse(content);
+
+    // Step 3: Post-process extracted data with Regex cleanup
+    let structured = raw;
+    if (raw && typeof raw === 'object') {
+      structured = {
+        ...raw,
+        // Clean numeric fields
+        plotNumber: cleanNumber(raw.plotNumber || ''),
+        area: cleanNumber(raw.area || ''),
+        blockNumber: cleanNumber(raw.blockNumber || ''),
+        frontage: cleanNumber(raw.frontage || ''),
+        floors: cleanNumber(raw.floors || ''),
+        buildingAge: cleanNumber(raw.buildingAge || ''),
+        // Clean text fields
+        owner: cleanTextField(raw.owner || ''),
+        governorate: cleanTextField(raw.governorate || ''),
+        wilayat: cleanTextField(raw.wilayat || ''),
+        village: cleanTextField(raw.village || ''),
+        street: cleanTextField(raw.street || ''),
+        drawingNumber: cleanTextField(raw.drawingNumber || ''),
+        usageType: cleanTextField(raw.usageType || ''),
+        areaUnit: cleanTextField(raw.areaUnit || 'متر مربع'),
+      };
+    }
 
     return NextResponse.json({
       success: true,

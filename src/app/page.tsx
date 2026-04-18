@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { AppProvider, useApp } from '@/components/layout/AppContext';
+import { useApp } from '@/components/layout/AppContext';
 import LoginPage from './login/LoginPage';
 
 function RootRedirect() {
@@ -37,9 +37,5 @@ function RootRedirect() {
 }
 
 export default function RootPage() {
-  return (
-    <AppProvider>
-      <RootRedirect />
-    </AppProvider>
-  );
+  return <RootRedirect />;
 }

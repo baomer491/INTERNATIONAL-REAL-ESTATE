@@ -310,6 +310,12 @@ function CreateReportWizardInner() {
   const [fullscreenPreview, setFullscreenPreview] = useState<{ url: string; type: string; name: string; label: string } | null>(null);
   const [previewZoom, setPreviewZoom] = useState(1);
 
+  // Individual extraction state
+  const [ownershipExtracting, setOwnershipExtracting] = useState(false);
+  const [sketchExtracting, setSketchExtracting] = useState(false);
+  const [ownershipExtracted, setOwnershipExtracted] = useState(false);
+  const [sketchExtracted, setSketchExtracted] = useState(false);
+
   const { extracting, ocrResult, ocrStep, runExtraction } = useOCR(showToast);
   const { previews, createPreview, removePreview } = useFileUpload();
 
@@ -705,9 +711,15 @@ function CreateReportWizardInner() {
             ocrStep={ocrStep}
             extractedData={data.extractedData as any}
             dataFields={data as any}
+            ownershipExtracting={ownershipExtracting}
+            sketchExtracting={sketchExtracting}
+            ownershipExtracted={ownershipExtracted}
+            sketchExtracted={sketchExtracted}
             onFileUpload={handleFileUpload}
             onFileRemove={handleFileRemove}
             onRunOCR={handleOCRExtraction}
+            onExtractOwnership={() => {}}
+            onExtractSketch={() => {}}
             onPreview={handlePreviewFile}
             onUpdateExtracted={updateExtracted}
           />

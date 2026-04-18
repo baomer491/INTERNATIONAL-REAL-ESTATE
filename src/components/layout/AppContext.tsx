@@ -58,6 +58,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Track previous unread count to detect new notifications
   const prevUnreadRef = useRef(0);
+  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pollingStartedRef = useRef(false);
 
   useEffect(() => {
     const mq = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`);
@@ -76,14 +78,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     // Initialize store from Supabase, then set auth state
     initializeStore().then(() => {
-      const loggedIn = store.isLoggedIn();
+      let loggedIn = store.isLoggedIn();
+
+      // Sync with cookie: if localStorage says logged in but cookie is missing,
+      // the session expired — clear localStorage to prevent redirect loop
+      const hasCookie = document.cookie.includes('ireo_session=1');
+      if (loggedIn && !hasCookie) {
+        store.logout();
+        loggedIn = false;
+      }
+
       setIsLoggedIn(loggedIn);
       if (loggedIn) {
         const user = store.getCurrentUser();
         setCurrentUser(user || null);
 
         // Start notification polling for logged-in users
-        if (user) {
+        if (user && !pollingStartedRef.current) {
+          pollingStartedRef.current = true;
           startNotificationPolling(user.role, user.id, {
             onNewPendingApproval: (report) => {
               // Show in-app toast
@@ -98,8 +110,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               setUnreadNotifications(store.unreadCount());
             },
             onReportsChanged: () => {
-              // Dispatch custom event so other components can refresh
-              window.dispatchEvent(new CustomEvent('reports-updated'));
+              // Re-fetch reports from Supabase, then notify UI components
+              store.refreshReportsFromDB().then(() => {
+                window.dispatchEvent(new CustomEvent('reports-updated'));
+              });
             },
           });
 
@@ -113,13 +127,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false);
 
       if (loggedIn) {
-        const archivedCount = checkAndAutoArchive();
-        if (archivedCount > 0) {
-          setTimeout(() => {
-            setToast({ message: `تمت أرشفة ${archivedCount} تقرير تلقائياً (معتمدة منذ أكثر من 7 أيام)`, type: 'info' });
-            setTimeout(() => setToast(null), 5000);
-          }, 500);
-        }
+        checkAndAutoArchive().then((archivedCount) => {
+          if (archivedCount > 0) {
+            setTimeout(() => {
+              setToast({ message: `تمت أرشفة ${archivedCount} تقرير تلقائياً (معتمدة منذ أكثر من 7 أيام)`, type: 'info' });
+              setTimeout(() => setToast(null), 5000);
+            }, 500);
+          }
+        });
       }
     }).catch((err) => {
       console.error('Failed to initialize store:', err);
@@ -130,6 +145,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       mq.removeEventListener('change', handleResize);
+      pollingStartedRef.current = false;
       stopNotificationPolling();
     };
   }, []);
@@ -138,8 +154,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setUnreadNotifications(store.unreadCount());
   }, []);
 
-  const notify = useCallback((notification: Omit<Notification, 'id' | 'createdAt' | 'isRead'>) => {
-    store.addNotification(notification);
+  const notify = useCallback(async (notification: Omit<Notification, 'id' | 'createdAt' | 'isRead'>) => {
+    try {
+      await store.addNotification(notification);
+    } catch (err) {
+      console.error('[AppContext] notify: addNotification failed:', err);
+    }
     const newUnread = store.unreadCount();
     setUnreadNotifications(newUnread);
 
@@ -171,6 +191,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
       // Start notification polling after login
       if (user) {
+        pollingStartedRef.current = true;
         startNotificationPolling(user.role, user.id, {
           onNewPendingApproval: (report) => {
             setToast({
@@ -183,7 +204,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             setUnreadNotifications(store.unreadCount());
           },
           onReportsChanged: () => {
-            window.dispatchEvent(new CustomEvent('reports-updated'));
+            store.refreshReportsFromDB().then(() => {
+              window.dispatchEvent(new CustomEvent('reports-updated'));
+            });
           },
         });
 
@@ -212,8 +235,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [currentUser]);
 
   const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info') => {
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
     setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
+    toastTimeoutRef.current = setTimeout(() => {
+      setToast(null);
+      toastTimeoutRef.current = null;
+    }, 3000);
   }, []);
 
   if (!mounted || isLoading) {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { store } from '@/lib/store';
@@ -41,6 +41,30 @@ export default function ReportDetailPage() {
   const dm = isDark;
   const report = store.getReport(params.id as string);
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const closeDropdown = useCallback(() => setStatusDropdownOpen(false), []);
+
+  useEffect(() => {
+    if (!statusDropdownOpen) return;
+
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        closeDropdown();
+      }
+    }
+
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === 'Escape') closeDropdown();
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [statusDropdownOpen, closeDropdown]);
 
   if (!report) {
     return (
@@ -72,43 +96,77 @@ export default function ReportDetailPage() {
   const canRestore = isAdmin;
   const canEdit = isAdmin || isAppraiser || isDataEntry;
 
-  const handleStatusChange = (newStatus: ReportStatus) => {
-    store.updateReport(report.id, { status: newStatus });
-    showToast('تم تحديث حالة التقرير', 'success');
-    router.refresh();
+  const handleStatusChange = async (newStatus: ReportStatus) => {
+    try {
+      const updateData: Record<string, unknown> = { status: newStatus };
+      if (newStatus === 'pending_approval') {
+        updateData.approval = {
+          ...report.approval,
+          status: 'pending',
+          submittedAt: new Date().toISOString(),
+          reviewedBy: '',
+        };
+      }
+      await store.updateReport(report.id, updateData);
+      showToast('تم تحديث حالة التقرير', 'success');
+      router.refresh();
+    } catch (err) {
+      console.error('Failed to update report status:', err);
+      showToast('حدث خطأ أثناء تحديث حالة التقرير', 'error');
+    }
   };
 
-  const handleResubmit = () => {
-    store.updateReport(report.id, {
-      status: 'pending_approval',
-      approval: {
-        ...report.approval,
-        status: 'pending',
-        submittedAt: new Date().toISOString(),
-        reviewedBy: '',
-      },
-    });
-    showToast('تم إعادة إرسال التقرير للاعتماد', 'success');
-    router.push('/reports');
+  const handleResubmit = async () => {
+    try {
+      await store.updateReport(report.id, {
+        status: 'pending_approval',
+        approval: {
+          ...report.approval,
+          status: 'pending',
+          submittedAt: new Date().toISOString(),
+          reviewedBy: '',
+        },
+      });
+      showToast('تم إعادة إرسال التقرير للاعتماد', 'success');
+      router.push('/reports');
+    } catch (err) {
+      console.error('Failed to resubmit report:', err);
+      showToast('حدث خطأ أثناء إعادة إرسال التقرير', 'error');
+    }
   };
 
-  const handleArchive = () => {
-    store.updateReport(report.id, { status: 'archived' });
-    showToast('تم أرشفة التقرير', 'success');
-    router.refresh();
+  const handleArchive = async () => {
+    try {
+      await store.updateReport(report.id, { status: 'archived' });
+      showToast('تم أرشفة التقرير', 'success');
+      router.refresh();
+    } catch (err) {
+      console.error('Failed to archive report:', err);
+      showToast('حدث خطأ أثناء أرشفة التقرير', 'error');
+    }
   };
 
-  const handleRestore = () => {
-    store.updateReport(report.id, { status: 'approved' });
-    showToast('تم استرجاع التقرير من الأرشيف', 'success');
-    router.refresh();
+  const handleRestore = async () => {
+    try {
+      await store.updateReport(report.id, { status: 'approved' });
+      showToast('تم استرجاع التقرير من الأرشيف', 'success');
+      router.refresh();
+    } catch (err) {
+      console.error('Failed to restore report:', err);
+      showToast('حدث خطأ أثناء استرجاع التقرير', 'error');
+    }
   };
 
-  const handleAdminStatusChange = (newStatus: ReportStatus) => {
-    store.updateReport(report.id, { status: newStatus });
-    setStatusDropdownOpen(false);
-    showToast('تم تحديث حالة التقرير', 'success');
-    router.refresh();
+  const handleAdminStatusChange = async (newStatus: ReportStatus) => {
+    try {
+      await store.updateReport(report.id, { status: newStatus });
+      setStatusDropdownOpen(false);
+      showToast('تم تحديث حالة التقرير', 'success');
+      router.refresh();
+    } catch (err) {
+      console.error('Failed to update report status:', err);
+      showToast('حدث خطأ أثناء تحديث حالة التقرير', 'error');
+    }
   };
 
   const needsRevision = report.status === 'rejected' || report.status === 'needs_revision';
@@ -216,7 +274,7 @@ export default function ReportDetailPage() {
           <button onClick={() => exportReportToDocx(report, store.getSettings())} className="btn btn-ghost btn-sm"><Printer size={16} /> تصدير تقرير</button>
           {workflowButtons}
           {isAdmin && (
-            <div style={{ position: 'relative' }}>
+            <div ref={dropdownRef} style={{ position: 'relative' }}>
               <button
                 onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
                 className="btn btn-ghost btn-sm"

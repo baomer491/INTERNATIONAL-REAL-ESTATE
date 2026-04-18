@@ -3,7 +3,7 @@ import { store } from './store';
 const ARCHIVE_KEY = 'ireo_last_auto_archive';
 const ARCHIVE_INTERVAL_DAYS = 7;
 
-export function checkAndAutoArchive(): number {
+export async function checkAndAutoArchive(): Promise<number> {
   if (typeof window === 'undefined') return 0;
 
   try {
@@ -23,14 +23,18 @@ export function checkAndAutoArchive(): number {
 
       const updatedMs = new Date(report.updatedAt).getTime();
       if (now - updatedMs >= sevenDaysMs) {
-        store.updateReport(report.id, { status: 'archived' });
-        archivedCount++;
-        archivedReportNumbers.push(report.reportNumber);
+        try {
+          await store.updateReport(report.id, { status: 'archived' });
+          archivedCount++;
+          archivedReportNumbers.push(report.reportNumber);
+        } catch (err) {
+          console.error('[auto-archiver] Failed to archive report', report.reportNumber, err);
+        }
       }
     }
 
     if (archivedCount > 0) {
-      store.addNotification({
+      await store.addNotification({
         type: 'system',
         title: `تمت أرشفة ${archivedCount} تقرير تلقائياً`,
         message: `تمت أرشفة التقارير: ${archivedReportNumbers.join('، ')} (معتمدة منذ أكثر من ${ARCHIVE_INTERVAL_DAYS} أيام)`,
