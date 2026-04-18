@@ -150,7 +150,7 @@ export default function LoginPage() {
       }} />
 
       {/* Login Card */}
-      <div style={{ width: '100%', maxWidth: 440, position: 'relative', zIndex: 1 }}>
+      <div style={{ width: '100%', maxWidth: 560, position: 'relative', zIndex: 1 }}>
         {/* Glass card effect */}
         <div style={{
           background: dm
@@ -170,7 +170,7 @@ export default function LoginPage() {
             background: dm
               ? 'linear-gradient(135deg, #0f2337, #1e3a5f, #1a4a7a)'
               : 'linear-gradient(135deg, #0f2337, #1e3a5f, #2d5a8e)',
-            padding: '44px 32px 36px', textAlign: 'center',
+            padding: '52px 40px 44px', textAlign: 'center',
             position: 'relative', overflow: 'hidden',
           }}>
             {/* Decorative circles in header */}
@@ -187,14 +187,14 @@ export default function LoginPage() {
               src="/IRE-logopdf-trans.png"
               alt="مكتب العقارات الدولية"
               style={{
-                width: 160, height: 'auto',
+                width: 190, height: 'auto',
                 margin: '0 auto 16px', display: 'block',
                 filter: 'brightness(0) invert(1)',
                 position: 'relative', zIndex: 1,
               }}
             />
             <h1 style={{
-              color: 'white', fontSize: 22, fontWeight: 800,
+              color: 'white', fontSize: 26, fontWeight: 800,
               margin: 0, position: 'relative', zIndex: 1,
               textShadow: '0 2px 8px rgba(0,0,0,0.2)',
             }}>
@@ -208,10 +208,10 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} style={{ padding: '32px' }}>
+          <form onSubmit={handleSubmit} style={{ padding: '36px 40px' }}>
             <h2 style={{
-              fontSize: 18, fontWeight: 700, color: 'var(--color-text)',
-              margin: '0 0 24px', textAlign: 'center',
+              fontSize: 20, fontWeight: 700, color: 'var(--color-text)',
+              margin: '0 0 28px', textAlign: 'center',
             }}>
               تسجيل الدخول
             </h2>
@@ -230,7 +230,7 @@ export default function LoginPage() {
 
             <div style={{ marginBottom: 16 }}>
               <label style={{
-                display: 'block', fontSize: 14, fontWeight: 600,
+                display: 'block', fontSize: 15, fontWeight: 600,
                 color: 'var(--color-text)', marginBottom: 6,
               }}>
                 اسم المستخدم
@@ -267,7 +267,7 @@ export default function LoginPage() {
 
             <div style={{ marginBottom: 24 }}>
               <label style={{
-                display: 'block', fontSize: 14, fontWeight: 600,
+                display: 'block', fontSize: 15, fontWeight: 600,
                 color: 'var(--color-text)', marginBottom: 6,
               }}>
                 كلمة المرور
