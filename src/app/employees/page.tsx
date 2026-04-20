@@ -3,6 +3,8 @@
 import React, { useState, useMemo } from 'react';
 import { store } from '@/lib/store';
 import { useApp } from '@/components/layout/AppContext';
+import { useRealtime } from '@/hooks/useRealtime';
+import { broadcastChange } from '@/lib/realtime-engine';
 import type { Employee, EmployeeRole, EmployeeStatus, LoginLog, Permission } from '@/types';
 import { EMPLOYEE_ROLES, PERMISSIONS, ROLE_DEFAULT_PERMISSIONS } from '@/types';
 import {
@@ -54,7 +56,7 @@ export default function EmployeesPage() {
   const { showToast, hasPermission } = useApp();
   const { isDark } = useTheme();
   const dm = isDark;
-  const [employees, setEmployees] = useState(store.getEmployees());
+  const { data: employees, refresh: refreshEmployees } = useRealtime('employees', () => store.getEmployees());
   const [search, setSearch] = useState('');
   const [filterRole, setFilterRole] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
@@ -161,7 +163,7 @@ export default function EmployeesPage() {
       notes: data.notes,
     };
     await store.addEmployee(emp);
-    setEmployees(store.getEmployees());
+    broadcastChange('employees');
   };
 
   const handleEdit = () => {
@@ -175,7 +177,7 @@ export default function EmployeesPage() {
       updateData.password = form.password;
     }
     store.updateEmployee(selectedEmployee.id, updateData);
-    setEmployees(store.getEmployees());
+    broadcastChange('employees');
     setShowEdit(false);
     setSelectedEmployee(null);
     showToast('تم تحديث بيانات الموظف', 'success');
@@ -200,7 +202,7 @@ export default function EmployeesPage() {
   const handleSavePermissions = () => {
     if (!selectedEmployee) return;
     store.updateEmployee(selectedEmployee.id, { permissions: form.permissions });
-    setEmployees(store.getEmployees());
+    broadcastChange('employees');
     setShowPermissions(false);
     setSelectedEmployee(null);
     showToast('تم تحديث الصلاحيات', 'success');
@@ -208,7 +210,7 @@ export default function EmployeesPage() {
 
   const handleDelete = (id: string) => {
     store.deleteEmployee(id);
-    setEmployees(store.getEmployees());
+    broadcastChange('employees');
     setDeleteConfirm(null);
     showToast('تم حذف الموظف', 'success');
   };
@@ -221,7 +223,7 @@ export default function EmployeesPage() {
       store.activateEmployee(emp.id);
       showToast('تم تفعيل الموظف', 'success');
     }
-    setEmployees(store.getEmployees());
+    broadcastChange('employees');
   };
 
   const permCategories = useMemo(() => {
@@ -237,8 +239,8 @@ export default function EmployeesPage() {
   const selectedLogs = selectedEmployee ? logs.filter(l => l.employeeId === selectedEmployee.id) : [];
 
   const Modal = ({ title, onClose, onSave, children, wide }: { title: string; onClose: () => void; onSave: () => void; children: React.ReactNode; wide?: boolean }) => (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 20 }}>
-      <div style={{ background: dm ? 'var(--color-surface)' : 'white', borderRadius: 16, padding: 32, maxWidth: wide ? 680 : 500, width: '100%', maxHeight: '85vh', overflowY: 'auto', animation: 'slideInUp 0.3s', border: dm ? '1px solid var(--color-border)' : 'none' }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 16 }}>
+      <div style={{ background: dm ? 'var(--color-surface)' : 'white', borderRadius: 16, padding: 24, maxWidth: wide ? 680 : 500, width: '100%', maxHeight: '85vh', overflowY: 'auto', animation: 'slideInUp 0.3s', border: dm ? '1px solid var(--color-border)' : 'none' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>{title}</h3>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--color-text-muted)' }}><X size={24} /></button>
@@ -287,19 +289,19 @@ export default function EmployeesPage() {
 
       <div className="card" style={{ marginBottom: 20, padding: '14px 18px' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
-          <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
+          <div style={{ position: 'relative', flex: '1 1 180px', minWidth: 0 }}>
             <Search size={16} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: dm ? 'var(--color-text-muted)' : '#94a3b8' }} />
             <input type="text" placeholder="بحث بالاسم أو اسم المستخدم أو البريد..."
               value={search} onChange={(e) => setSearch(e.target.value)}
               style={{ width: '100%', padding: '9px 36px 9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', direction: 'rtl' }} />
           </div>
           <select value={filterRole} onChange={(e) => setFilterRole(e.target.value)}
-            style={{ padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', appearance: 'none', minWidth: 150 }}>
+            style={{ padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', appearance: 'none', minWidth: 120 }}>
             <option value="">كل الأدوار</option>
             {EMPLOYEE_ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
           </select>
           <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
-            style={{ padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', appearance: 'none', minWidth: 130 }}>
+            style={{ padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', appearance: 'none', minWidth: 110 }}>
             <option value="">كل الحالات</option>
             <option value="active">نشط</option>
             <option value="suspended">موقوف</option>

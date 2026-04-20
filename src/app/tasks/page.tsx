@@ -5,7 +5,9 @@ import Link from 'next/link';
 import { store } from '@/lib/store';
 import { formatRelative } from '@/lib/utils';
 import { useApp } from '@/components/layout/AppContext';
-import type { Task, TaskStatus, TaskPriority } from '@/types';
+import { useRealtime } from '@/hooks/useRealtime';
+import { broadcastChange } from '@/lib/realtime-engine';
+import type { Task, TaskStatus, TaskPriority, TaskCategory, TaskRecurrence } from '@/types';
 import {
   ListTodo, CheckCircle2, Clock, AlertTriangle, PlusCircle, X, Eye,
   Search, Trash2, Edit3, Bell, Calendar, Filter,
@@ -51,8 +53,11 @@ function getTimeRemaining(dueDate: string): { text: string; color: string; days:
    TASKS PAGE
    ═══════════════════════════════════════════════════ */
 export default function TasksPage() {
-  const { showToast, currentUser, hasPermission } = useApp();
-  const [tasks, setTasks] = useState(store.getTasks());
+  const { showToast, currentUser, hasPermission, isMobile } = useApp();
+  const isAdmin = currentUser?.role === 'admin';
+  const canManageTasks = hasPermission('tasks_manage');
+
+  const { data: tasks, refresh: refreshTasks } = useRealtime('tasks', () => store.getTasks());
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
   const [filterPriority, setFilterPriority] = useState('');
@@ -62,10 +67,15 @@ export default function TasksPage() {
   const [kanbanColumns, setKanbanColumns] = useState(4);
   const [reminderShown, setReminderShown] = useState(false);
   const [form, setForm] = useState<{
-    title: string; description: string; priority: TaskPriority; dueDate: string; assignedName: string;
-  }>({ title: '', description: '', priority: 'medium', dueDate: '', assignedName: '' });
+    title: string; description: string; priority: TaskPriority; dueDate: string;
+    assignedTo: string; // employee UUID (empty = unassigned)
+    category: TaskCategory;
+    recurrence: TaskRecurrence;
+  }>({ title: '', description: '', priority: 'medium', dueDate: '', assignedTo: '', category: 'general', recurrence: 'none' });
 
-  useEffect(() => { store.updateTaskStatuses(); setTasks(store.getTasks()); }, []);
+  const employees = useMemo(() => store.getEmployees().filter(e => e.status === 'active' && e.role !== 'viewer'), []);
+
+  useEffect(() => { store.updateTaskStatuses(); refreshTasks(); }, []);
 
   useEffect(() => {
     const mobile = window.matchMedia('(max-width: 767px)');
@@ -104,37 +114,84 @@ export default function TasksPage() {
     });
   }, [tasks, search, filterPriority]);
 
-  const handleComplete = (id: string) => { store.completeTask(id); setTasks(store.getTasks()); showToast('تم إكمال المهمة', 'success'); };
-  const handleDelete = (id: string) => { store.deleteTask(id); setTasks(store.getTasks()); setDeleteConfirm(null); showToast('تم حذف المهمة', 'success'); };
+  function generateUUID(): string {
+    const buf = new Uint8Array(16);
+    crypto.getRandomValues(buf);
+    buf[6] = (buf[6] & 0x0f) | 0x40; // version 4
+    buf[8] = (buf[8] & 0x3f) | 0x80; // variant 10
+    return Array.from(buf, b => b.toString(16).padStart(2, '0')).join('');
+  }
 
-  const handleAdd = () => {
-    if (!form.title.trim()) return;
-    store.addTask({
-      id: 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-          const r = Math.random() * 16 | 0;
-          const v = c === 'x' ? r : (r & 0x3 | 0x8);
-          return v.toString(16);
-        }), title: form.title, description: form.description,
-      priority: form.priority, status: 'pending',
-      dueDate: form.dueDate || new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
-      createdAt: new Date().toISOString(), assignedName: form.assignedName,
-    });
-    setTasks(store.getTasks()); setShowAdd(false);
-    setForm({ title: '', description: '', priority: 'medium', dueDate: '', assignedName: '' });
-    showToast('تمت إضافة المهمة', 'success');
+  const handleComplete = async (id: string) => {
+    try {
+      await store.completeTask(id);
+      broadcastChange('tasks');
+      showToast('تم إكمال المهمة', 'success');
+    } catch (err) { showToast('خطأ في إكمال المهمة', 'error'); }
+  };
+  const handleDelete = async (id: string) => {
+    try {
+      await store.deleteTask(id);
+      broadcastChange('tasks');
+      setDeleteConfirm(null);
+      showToast('تم حذف المهمة', 'success');
+    } catch (err) { showToast('خطأ في حذف المهمة', 'error'); }
   };
 
-  const handleEdit = () => {
+  const handleAdd = async () => {
+    if (!form.title.trim()) return;
+    const assignedEmp = form.assignedTo ? store.getEmployee(form.assignedTo) : undefined;
+    const task: Task = {
+      id: generateUUID(),
+      title: form.title,
+      description: form.description,
+      priority: form.priority,
+      status: 'pending',
+      dueDate: form.dueDate || new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+      createdAt: new Date().toISOString(),
+      assignedTo: form.assignedTo || undefined,
+      assignedName: assignedEmp?.fullName || '',
+      recurrence: form.recurrence,
+      category: form.category,
+    };
+    try {
+      await store.addTask(task);
+      broadcastChange('tasks');
+      setShowAdd(false);
+      setForm({ title: '', description: '', priority: 'medium', dueDate: '', assignedTo: '', category: 'general', recurrence: 'none' });
+      showToast('تمت إضافة المهمة', 'success');
+    } catch (err) {
+      showToast('خطأ في إضافة المهمة', 'error');
+    }
+  };
+
+  const handleEdit = async () => {
     if (!editTask) return;
-    store.updateTask(editTask.id, { title: form.title, description: form.description, priority: form.priority, dueDate: form.dueDate, assignedName: form.assignedName });
-    setTasks(store.getTasks()); setEditTask(null);
-    setForm({ title: '', description: '', priority: 'medium', dueDate: '', assignedName: '' });
-    showToast('تم تحديث المهمة', 'success');
+    const assignedEmp = form.assignedTo ? store.getEmployee(form.assignedTo) : undefined;
+    try {
+      await store.updateTask(editTask.id, {
+        title: form.title, description: form.description, priority: form.priority,
+        dueDate: form.dueDate, assignedTo: form.assignedTo || undefined,
+        assignedName: assignedEmp?.fullName || '', category: form.category, recurrence: form.recurrence,
+      });
+      broadcastChange('tasks');
+      setEditTask(null);
+      setForm({ title: '', description: '', priority: 'medium', dueDate: '', assignedTo: '', category: 'general', recurrence: 'none' });
+      showToast('تم تحديث المهمة', 'success');
+    } catch (err) {
+      showToast('خطأ في تحديث المهمة', 'error');
+    }
   };
 
   const openEdit = (task: Task) => {
     setEditTask(task);
-    setForm({ title: task.title, description: task.description, priority: task.priority, dueDate: task.dueDate.split('T')[0], assignedName: task.assignedName || '' });
+    setForm({
+      title: task.title, description: task.description, priority: task.priority,
+      dueDate: task.dueDate.split('T')[0],
+      assignedTo: task.assignedTo || '',
+      category: task.category || 'general',
+      recurrence: task.recurrence || 'none',
+    });
   };
 
   const stats = useMemo(() => {
@@ -215,6 +272,14 @@ export default function TasksPage() {
               <span className="badge" style={{ background: pri.bg, color: pri.color, fontSize: 10, padding: '2px 8px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 3 }}>
                 {pri.icon} {pri.label}
               </span>
+              {task.category && task.category !== 'general' && (
+                <span className="badge" style={{
+                  background: 'var(--color-surface-alt)', color: 'var(--color-text-secondary)',
+                  fontSize: 10, padding: '2px 8px', fontWeight: 600,
+                }}>
+                  {{ general: 'عامة', valuation: 'تثمين', followup: 'متابعة', administrative: 'إدارية', field_visit: 'زيارة ميدانية', review: 'مراجعة' }[task.category]}
+                </span>
+              )}
               {showStatusBadge && (
                 <span className="badge" style={{ background: st.bg, color: st.color, fontSize: 10, padding: '2px 8px', fontWeight: 600 }}>
                   {st.label}
@@ -240,7 +305,13 @@ export default function TasksPage() {
               {task.assignedName && (
                 <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--color-text-secondary)' }}>
                   <Users size={12} />
-                  {task.assignedName}
+                  المسند إليه: {task.assignedName}
+                </span>
+              )}
+              {task.createdByName && (
+                <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--color-text-muted)' }}>
+                  <Sparkles size={12} />
+                  أنشأها: {task.createdByName}
                 </span>
               )}
               {task.relatedReportNumber && (
@@ -257,6 +328,7 @@ export default function TasksPage() {
           </div>
 
           {/* Actions */}
+          {canManageTasks && (
           <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
             {task.relatedReportId && (
               <Link href={`/reports/${task.relatedReportId}`} style={{
@@ -279,6 +351,7 @@ export default function TasksPage() {
               <Trash2 size={15} />
             </button>
           </div>
+          )}
         </div>
       </div>
     );
@@ -314,7 +387,7 @@ export default function TasksPage() {
                 {currentTask && <p style={{ fontSize: 12, color: 'var(--color-text-muted)', margin: '2px 0 0' }}>{currentTask.title}</p>}
               </div>
             </div>
-            <button onClick={() => { setShowAdd(false); setEditTask(null); setForm({ title: '', description: '', priority: 'medium', dueDate: '', assignedName: '' }); }}
+            <button onClick={() => { setShowAdd(false); setEditTask(null); setForm({ title: '', description: '', priority: 'medium', dueDate: '', assignedTo: '', category: 'general', recurrence: 'none' }); }}
               style={{ background: 'var(--color-surface-alt)', border: 'none', cursor: 'pointer', padding: 6, borderRadius: 8 }}>
               <X size={18} color="var(--color-text-muted)" />
             </button>
@@ -357,13 +430,57 @@ export default function TasksPage() {
             </div>
             <div>
               <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 6, color: 'var(--color-text)' }}>المُسند إليه</label>
-              <input value={form.assignedName} onChange={(e) => setForm(p => ({ ...p, assignedName: e.target.value }))}
-                placeholder="اسم الموظف المسند (اختياري)" style={inputStyle} />
+              <select value={form.assignedTo} onChange={(e) => setForm(p => ({ ...p, assignedTo: e.target.value }))}
+                style={{
+                  width: '100%', padding: '10px 14px', border: '1.5px solid var(--color-border)',
+                  borderRadius: 10, fontSize: 14, fontFamily: 'inherit', direction: 'rtl', outline: 'none',
+                  background: 'var(--color-surface-alt)', color: 'var(--color-text)',
+                  transition: 'border-color 0.15s', cursor: 'pointer',
+                }}>
+                <option value="">-- بدون إسناد --</option>
+                {employees.map(emp => (
+                  <option key={emp.id} value={emp.id}>{emp.fullName} ({emp.role === 'admin' ? 'مدير' : emp.role === 'appraiser' ? 'مقيم' : emp.role === 'reviewer' ? 'مراجع' : emp.role === 'data_entry' ? 'مدخل بيانات' : 'مشاهد'})</option>
+                ))}
+              </select>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div>
+                <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 6, color: 'var(--color-text)' }}>التصنيف</label>
+                <select value={form.category} onChange={(e) => setForm(p => ({ ...p, category: e.target.value as TaskCategory }))}
+                  style={{
+                    width: '100%', padding: '10px 14px', border: '1.5px solid var(--color-border)',
+                    borderRadius: 10, fontSize: 14, fontFamily: 'inherit', direction: 'rtl', outline: 'none',
+                    background: 'var(--color-surface-alt)', color: 'var(--color-text)',
+                    transition: 'border-color 0.15s', cursor: 'pointer',
+                  }}>
+                  <option value="general">عامة</option>
+                  <option value="valuation">تثمين</option>
+                  <option value="followup">متابعة</option>
+                  <option value="administrative">إدارية</option>
+                  <option value="field_visit">زيارة ميدانية</option>
+                  <option value="review">مراجعة</option>
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 6, color: 'var(--color-text)' }}>التكرار</label>
+                <select value={form.recurrence} onChange={(e) => setForm(p => ({ ...p, recurrence: e.target.value as TaskRecurrence }))}
+                  style={{
+                    width: '100%', padding: '10px 14px', border: '1.5px solid var(--color-border)',
+                    borderRadius: 10, fontSize: 14, fontFamily: 'inherit', direction: 'rtl', outline: 'none',
+                    background: 'var(--color-surface-alt)', color: 'var(--color-text)',
+                    transition: 'border-color 0.15s', cursor: 'pointer',
+                  }}>
+                  <option value="none">بدون تكرار</option>
+                  <option value="daily">يومي</option>
+                  <option value="weekly">أسبوعي</option>
+                  <option value="monthly">شهري</option>
+                </select>
+              </div>
             </div>
           </div>
 
           <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 24, paddingTop: 20, borderTop: '1px solid var(--color-border)' }}>
-            <button onClick={() => { setShowAdd(false); setEditTask(null); setForm({ title: '', description: '', priority: 'medium', dueDate: '', assignedName: '' }); }}
+            <button onClick={() => { setShowAdd(false); setEditTask(null); setForm({ title: '', description: '', priority: 'medium', dueDate: '', assignedTo: '', category: 'general', recurrence: 'none' }); }}
               className="btn btn-ghost">إلغاء</button>
             <button onClick={isEdit ? handleEdit : handleAdd} className="btn btn-primary"
               style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -382,8 +499,9 @@ export default function TasksPage() {
       {stats.overdue > 0 && (
         <div className="dash-stagger-in" style={{
           background: 'linear-gradient(135deg, var(--color-danger-bg, #fee2e2), var(--color-surface))',
-          border: '1px solid var(--color-danger)', borderRadius: 16, padding: '16px 22px',
+          border: '1px solid var(--color-danger)', borderRadius: 16, padding: '14px 16px',
           marginBottom: 24, display: 'flex', alignItems: 'center', gap: 14,
+          flexWrap: 'wrap',
         }}>
           <div className="dash-pulse-glow" style={{
             width: 44, height: 44, borderRadius: 12, background: 'var(--color-danger)',
@@ -415,7 +533,7 @@ export default function TasksPage() {
       {/* ════════ HEADER ════════ */}
       <div className="dash-stagger-in" style={{
         background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-light))',
-        borderRadius: 20, padding: '28px 28px 24px', marginBottom: 24,
+        borderRadius: 20, padding: '24px 20px 20px', marginBottom: 24,
         color: 'white', position: 'relative', overflow: 'hidden',
       }}>
         <div style={{
@@ -449,6 +567,7 @@ export default function TasksPage() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 12 }}>
+            {canManageTasks && (
             <button onClick={() => setShowAdd(true)} style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
               padding: '11px 22px', borderRadius: 12,
@@ -459,6 +578,7 @@ export default function TasksPage() {
               <PlusCircle size={18} />
               إضافة مهمة
             </button>
+            )}
 
             {/* Completion progress */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -472,7 +592,7 @@ export default function TasksPage() {
       </div>
 
       {/* ════════ STAT CARDS ════════ */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 10, marginBottom: 20 }}>
         {statItems.map((s, i) => (
           <div key={i} className="card dash-stat-card dash-stagger-in" style={{
             padding: '16px 18px', borderRadius: 14,
@@ -502,7 +622,7 @@ export default function TasksPage() {
         animationDelay: '350ms',
       }}>
         {/* Search */}
-        <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
+        <div style={{ position: 'relative', flex: '1 1 160px', minWidth: 0 }}>
           <Search size={16} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
           <input
             type="text" value={search} onChange={(e) => setSearch(e.target.value)}
@@ -573,7 +693,13 @@ export default function TasksPage() {
 
       {/* ════════ CONTENT ════════ */}
       {viewMode === 'kanban' ? (
-        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${kanbanColumns}, 1fr)`, gap: 16 }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? 'repeat(4, 280px)' : `repeat(${kanbanColumns}, 1fr)`,
+          gap: 16,
+          overflowX: 'auto',
+          ...(isMobile ? { WebkitOverflowScrolling: 'touch' as const } : {}),
+        }}>
           {COLUMNS.map(col => {
             const colTasks = filtered.filter(t => t.status === col.status);
             return (

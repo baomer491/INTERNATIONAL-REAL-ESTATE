@@ -13,14 +13,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const contentMarginRight = (!isMobile && sidebarOpen) ? 'var(--sidebar-width)' : 0;
 
   return (
-    <div style={{ minHeight: '100vh' }}>
+    <div style={{ minHeight: '100vh', overflowX: 'hidden' }}>
       <Sidebar />
       <Topbar />
       <main style={{
         marginRight: contentMarginRight,
         marginTop: 'var(--topbar-height)',
         minHeight: 'calc(100vh - var(--topbar-height))',
-        padding: '24px',
+        padding: isMobile ? '16px' : '24px',
         transition: 'margin-right 0.3s ease',
       }}>
         <ErrorBoundary>

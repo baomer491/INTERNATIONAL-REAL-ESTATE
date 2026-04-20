@@ -4,6 +4,7 @@ import React from 'react';
 import { FileText, Sparkles, Loader2, AlertCircle, RotateCcw, CreditCard, Camera, Upload, ScanText, MapPinned } from 'lucide-react';
 import WizardStepLayout from '../WizardStepLayout';
 import FileUploadZone from '../FileUploadZone';
+import PhotosUpload from '../PhotosUpload';
 import type { OCRExtractionResult, OCRStep } from '@/lib/ocr';
 import { getStepLabel, getConfidenceLabel } from '@/lib/ocr';
 import { useTheme } from '@/hooks/useTheme';
@@ -13,11 +14,12 @@ interface DocumentsStepProps {
   ownershipFile: File | null;
   mapFile: File | null;
   idFile: File | null;
-  propertyPhoto: File | null;
+  propertyPhotos: File[];
   ownershipPreview: string;
   mapPreview: string;
   idPreview: string;
   photoPreview: string;
+  photoPreviews: string[];
   extracting: boolean;
   ocrResult: OCRExtractionResult | null;
   ocrStep: OCRStep;
@@ -35,6 +37,8 @@ interface DocumentsStepProps {
   onExtractSketch: () => void;
   onPreview: (url: string, type: string, name: string, label: string) => void;
   onUpdateExtracted: (field: string, value: string) => void;
+  onPhotosAdd: (files: File[]) => void;
+  onPhotoRemove: (index: number) => void;
 }
 
 export default function DocumentsStep({
@@ -42,11 +46,12 @@ export default function DocumentsStep({
   ownershipFile,
   mapFile,
   idFile,
-  propertyPhoto,
+  propertyPhotos,
   ownershipPreview,
   mapPreview,
   idPreview,
   photoPreview,
+  photoPreviews,
   extracting,
   ocrResult,
   ocrStep,
@@ -63,6 +68,8 @@ export default function DocumentsStep({
   onExtractSketch,
   onPreview,
   onUpdateExtracted,
+  onPhotosAdd,
+  onPhotoRemove,
 }: DocumentsStepProps) {
   const { isDark } = useTheme();
   const dm = isDark;
@@ -190,16 +197,26 @@ export default function DocumentsStep({
             onRemove={onFileRemove}
             onPreview={onPreview}
           />
-          <FileUploadZone
-            field="propertyPhoto"
-            label="صورة العقار"
-            accept=".jpg,.jpeg,.png"
-            preview={photoPreview}
-            file={propertyPhoto}
-            icon={<Camera size={22} color="var(--color-primary)" />}
-            onUpload={onFileUpload}
-            onRemove={onFileRemove}
+          <PhotosUpload
+            photos={propertyPhotos}
+            previews={photoPreviews}
+            onAdd={onPhotosAdd}
+            onRemove={onPhotoRemove}
             onPreview={onPreview}
+            maxPhotos={10}
+          />
+        </div>
+      )}
+
+      {!isLand && (
+        <div style={{ marginBottom: 20 }}>
+          <PhotosUpload
+            photos={propertyPhotos}
+            previews={photoPreviews}
+            onAdd={onPhotosAdd}
+            onRemove={onPhotoRemove}
+            onPreview={onPreview}
+            maxPhotos={10}
           />
         </div>
       )}

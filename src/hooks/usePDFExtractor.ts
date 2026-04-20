@@ -237,9 +237,13 @@ export function usePDFExtractor() {
             }
 
             // Call extraction API with separate arrays
+            const csrfToken = localStorage.getItem('csrf_token');
+            const pdfHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+            if (csrfToken) pdfHeaders['x-csrf-token'] = csrfToken;
+
             const response = await fetch('/api/pdf-extract', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: pdfHeaders,
                 body: JSON.stringify({
                     ownershipPages,
                     sketchPages,

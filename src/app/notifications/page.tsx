@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { store } from '@/lib/store';
 import { formatRelative } from '@/lib/utils';
 import { useApp } from '@/components/layout/AppContext';
+import { useRealtime } from '@/hooks/useRealtime';
+import { broadcastChange } from '@/lib/realtime-engine';
 import {
   Bell, CheckCircle2, FileText, AlertCircle, Settings, Clock,
   CheckCheck, Eye, Trash2, Filter
@@ -37,7 +39,7 @@ const tabs: { value: FilterTab; label: string }[] = [
 
 export default function NotificationsPage() {
   const { refreshNotifications, showToast } = useApp();
-  const [notifications, setNotifications] = useState(store.getNotifications());
+  const { data: notifications, refresh: refreshNotificationsLocal } = useRealtime('notifications', () => store.getNotifications());
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
 
   const filtered = activeTab === 'all' ? notifications : notifications.filter(n => n.type === activeTab);
@@ -45,40 +47,40 @@ export default function NotificationsPage() {
 
   const markRead = (id: string) => {
     store.markAsRead(id);
-    setNotifications(store.getNotifications());
+    broadcastChange('notifications');
     refreshNotifications();
   };
 
   const markAll = () => {
     store.markAllAsRead();
-    setNotifications(store.getNotifications());
+    broadcastChange('notifications');
     refreshNotifications();
     showToast('تم تحديد الكل كمقروء', 'success');
   };
 
   const deleteNotification = (id: string) => {
     store.deleteNotification(id);
-    setNotifications(store.getNotifications());
+    broadcastChange('notifications');
     refreshNotifications();
   };
 
   const clearRead = () => {
     store.clearReadNotifications();
-    setNotifications(store.getNotifications());
+    broadcastChange('notifications');
     refreshNotifications();
     showToast('تم حذف التنبيهات المقروءة', 'success');
   };
 
   return (
     <div className="animate-fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 800, margin: '0 0 4px' }}>التنبيهات</h1>
           <p style={{ fontSize: 14, color: 'var(--color-text-muted)', margin: 0 }}>
             {unread} تنبيه غير مقروء من أصل {notifications.length}
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {unread > 0 && (
             <button onClick={markAll} className="btn btn-outline btn-sm">
               <CheckCheck size={16} /> تحديد الكل كمقروء
@@ -130,6 +132,7 @@ export default function NotificationsPage() {
               padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14,
               background: n.isRead ? 'var(--color-surface)' : 'var(--color-surface-alt)',
               borderRight: n.isRead ? 'none' : '4px solid var(--color-primary)',
+              flexWrap: 'wrap',
             }}>
               <div style={{
                 width: 44, height: 44, borderRadius: 12, background: colors.bg,

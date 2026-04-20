@@ -40,11 +40,29 @@ export default function MarketCompsPanel({ wilayat, propertyType, area, usage, o
     if (isAuto) setAutoTriggered(true);
 
     try {
-      const response = await fetch('/api/market-comps', {
+      let csrfToken = localStorage.getItem('csrf_token');
+      const compsHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (csrfToken) compsHeaders['x-csrf-token'] = csrfToken;
+
+      let response = await fetch('/api/market-comps', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: compsHeaders,
         body: JSON.stringify({ ...params, area: Number(params.area) || 0 }),
       });
+
+      // If CSRF expired, refresh token and retry once
+      if (response.status === 403) {
+        const { fetchCsrfToken } = await import('@/lib/csrf-client');
+        csrfToken = await fetchCsrfToken();
+        if (csrfToken) {
+          compsHeaders['x-csrf-token'] = csrfToken;
+          response = await fetch('/api/market-comps', {
+            method: 'POST',
+            headers: compsHeaders,
+            body: JSON.stringify({ ...params, area: Number(params.area) || 0 }),
+          });
+        }
+      }
 
       const data: MarketCompsResult = await response.json();
 

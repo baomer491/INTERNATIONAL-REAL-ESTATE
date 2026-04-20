@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { callGemini, parseJSONResponse } from '@/lib/gemini-client';
 import { preprocessImages } from '@/lib/image-preprocessor';
 import { validateOwnership, type ValidatedOwnership } from '@/lib/data-postprocessor';
+import { validateToken } from '@/lib/csrf';
 
 const OWNERSHIP_EXTRACTION_PROMPT = `أنت خبير في استخراج بيانات صكوك الملكية العمانية.
 
@@ -57,6 +58,15 @@ const MAX_RETRIES = 1;
 
 export async function POST(request: NextRequest) {
   try {
+    // CSRF check
+    const csrfError = validateToken(request);
+    if (csrfError) {
+      return NextResponse.json(
+        { success: false, error: csrfError },
+        { status: 403 }
+      );
+    }
+
     // Auth check
     const sessionToken = request.cookies.get('ireo_session')?.value;
     if (!sessionToken) {

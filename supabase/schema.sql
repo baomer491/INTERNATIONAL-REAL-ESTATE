@@ -125,6 +125,7 @@ CREATE TABLE notifications (
   priority TEXT NOT NULL DEFAULT 'medium' CHECK (priority IN ('low', 'medium', 'high')),
   is_read BOOLEAN DEFAULT FALSE,
   related_report_id UUID,
+  target_employee_id UUID REFERENCES employees(id),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -139,6 +140,12 @@ CREATE TABLE tasks (
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed', 'overdue')),
   due_date TIMESTAMPTZ NOT NULL,
   assigned_name TEXT DEFAULT '',
+  assigned_to UUID REFERENCES employees(id),
+  created_by UUID REFERENCES employees(id),
+  created_by_name TEXT DEFAULT '',
+  completed_at TIMESTAMPTZ,
+  recurrence TEXT NOT NULL DEFAULT 'none' CHECK (recurrence IN ('none', 'daily', 'weekly', 'monthly')),
+  category TEXT NOT NULL DEFAULT 'general' CHECK (category IN ('general', 'valuation', 'followup', 'administrative', 'field_visit', 'review')),
   related_report_id UUID,
   related_report_number TEXT DEFAULT '',
   created_at TIMESTAMPTZ DEFAULT NOW()

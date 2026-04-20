@@ -1510,6 +1510,8 @@ body {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   z-index: 10;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 [data-theme="dark"] .wizard-nav-bar {
@@ -1631,5 +1633,49 @@ body {
 
   .wizard-step-pill span.step-label {
     display: none;
+  }
+}
+/* ===== Mobile Responsive ===== */
+@media (max-width: 768px) {
+  :root {
+    --topbar-height: 56px;
+    --sidebar-width: 260px;
+  }
+
+  /* Ensure no horizontal overflow */
+  body {
+    overflow-x: hidden;
+  }
+
+  /* Make all grid layouts single column on very small screens */
+  .card {
+    border-radius: var(--radius-md) !important;
+  }
+
+  /* Tables scroll horizontally on mobile */
+  .data-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Smaller fonts on mobile */
+  h1 { font-size: 20px !important; }
+  h2 { font-size: 18px !important; }
+  h3 { font-size: 16px !important; }
+
+  /* Wizard nav bar wraps on mobile */
+  .wizard-nav-bar {
+    padding: 12px 16px;
+    margin: 0 -12px -12px;
+  }
+  .wizard-nav-bar > div {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --topbar-height: 52px;
   }
 }

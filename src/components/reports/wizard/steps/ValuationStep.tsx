@@ -8,6 +8,16 @@ import FormSelect from '../FormSelect';
 import FormTextarea from '../FormTextarea';
 import { valuationMethods, riskLevels, purposeOfValuationOptions } from '@/data/mock';
 import MarketCompsPanel from '@/components/reports/MarketCompsPanel';
+import { store } from '@/lib/store';
+import type { FeesRanges, PropertyType } from '@/types';
+
+function generateFeesOptions(range: { min: number; max: number }) {
+  const opts: { value: string; label: string }[] = [];
+  for (let v = range.min; v <= range.max; v += 5) {
+    opts.push({ value: String(v), label: `${v} ر.ع` });
+  }
+  return opts;
+}
 
 interface ValuationStepProps {
   data: {
@@ -24,6 +34,7 @@ interface ValuationStepProps {
     area: string;
     propertyUsage: string;
     landValue: string;
+    valuationFees: string;
   };
   errors: Record<string, string>;
   onChange: (field: string, value: string) => void;
@@ -75,6 +86,14 @@ export default function ValuationStep({ data, errors, onChange, useUnitArea, uni
           value={data.purposeOfValuation}
           onChange={(v) => onChange('purposeOfValuation', v)}
           options={purposeOfValuationOptions.map((o) => ({ value: o.value, label: o.label }))}
+        />
+        <FormSelect
+          label="أتعاب التثمين (ر.ع)"
+          value={data.valuationFees}
+          onChange={(v) => onChange('valuationFees', v)}
+          options={generateFeesOptions(
+            store.getSettings().feesRanges[data.propertyType as PropertyType] || { min: 50, max: 500 }
+          )}
         />
       </div>
       <div className="wizard-form-grid-2">

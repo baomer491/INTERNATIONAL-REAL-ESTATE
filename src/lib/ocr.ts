@@ -370,9 +370,13 @@ interface APIResponse {
 
 async function callOCRAPI(base64Images: string[]): Promise<APIResponse> {
   try {
+    const csrfToken = typeof window !== 'undefined' ? localStorage.getItem('csrf_token') : null;
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (csrfToken) headers['x-csrf-token'] = csrfToken;
+
     const response = await fetch('/api/ocr', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ images: base64Images }),
     });
     return await response.json();

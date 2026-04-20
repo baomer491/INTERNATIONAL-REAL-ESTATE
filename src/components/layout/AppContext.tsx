@@ -6,13 +6,15 @@ import { store, initializeStore } from '@/lib/store';
 import { checkAndAutoArchive } from '@/lib/auto-archiver';
 import { useTheme } from '@/hooks/useTheme';
 import {
-  startNotificationPolling,
-  stopNotificationPolling,
+  startRealtimeEngine,
+  stopRealtimeEngine,
   requestNotificationPermission,
   showBrowserNotification,
   playNotificationSound,
-} from '@/lib/notification-service';
+  broadcastChange,
+} from '@/lib/realtime-engine';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { fetchCsrfToken, clearCsrfToken } from '@/lib/csrf-client';
 
 interface AppContextType {
   isLoggedIn: boolean;
@@ -59,7 +61,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Track previous unread count to detect new notifications
   const prevUnreadRef = useRef(0);
   const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pollingStartedRef = useRef(false);
+  const engineStartedRef = useRef(false);
 
   useEffect(() => {
     const mq = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`);
@@ -93,31 +95,57 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const user = store.getCurrentUser();
         setCurrentUser(user || null);
 
-        // Start notification polling for logged-in users
-        if (user && !pollingStartedRef.current) {
-          pollingStartedRef.current = true;
-          startNotificationPolling(user.role, user.id, {
+        // Fetch CSRF token for already-logged-in sessions
+        fetchCsrfToken().catch(err => console.error('[AppContext] CSRF token fetch failed:', err));
+
+        // Start the FULL realtime engine (replaces old notification-service)
+        if (user && !engineStartedRef.current) {
+          engineStartedRef.current = true;
+          startRealtimeEngine(user.id, user.fullName, user.role, {
             onNewPendingApproval: (report) => {
-              // Show in-app toast
+              // Show in-app toast for new pending approvals
               setToast({
                 message: `تقرير جديد بانتظار الاعتماد: ${report.reportNumber}`,
                 type: 'info',
               });
-              setTimeout(() => setToast(null), 5000);
+              if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+              toastTimeoutRef.current = setTimeout(() => setToast(null), 5000);
             },
-            onNewNotification: () => {
-              // Refresh notification count
-              setUnreadNotifications(store.unreadCount());
+            onNewNotification: (notif) => {
+              // Only show toast if notification is targeted to current user or broadcast
+              const user2 = store.getCurrentUser();
+              if (!notif.targetEmployeeId || notif.targetEmployeeId === user2?.id) {
+                // Refresh unread count
+                const newUnread = store.unreadCount();
+                setUnreadNotifications(newUnread);
+
+                // Play sound for high priority
+                if (notif.priority === 'high') {
+                  playNotificationSound();
+                }
+
+                // Show browser notification for approval/task types
+                if (notif.type === 'approval' || notif.type === 'task') {
+                  showBrowserNotification(notif.title, {
+                    body: notif.message,
+                    tag: `notif-${notif.id}`,
+                    data: { path: notif.type === 'approval' ? '/approvals' : '/tasks' },
+                  });
+                }
+              }
             },
-            onReportsChanged: () => {
-              // Re-fetch reports from Supabase, then notify UI components
-              store.refreshReportsFromDB().then(() => {
-                window.dispatchEvent(new CustomEvent('reports-updated'));
-              });
+            onEntityChanged: (event) => {
+              // Update unread count when notifications change
+              if (event.type === 'notifications') {
+                setUnreadNotifications(store.unreadCount());
+              }
+            },
+            onPresenceChange: (users) => {
+              // Dispatch presence event for useActiveUsers hook
+              window.dispatchEvent(new CustomEvent('presence-changed', { detail: users }));
             },
           });
 
-          // Request browser notification permission
           requestNotificationPermission();
         }
       }
@@ -131,7 +159,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           if (archivedCount > 0) {
             setTimeout(() => {
               setToast({ message: `تمت أرشفة ${archivedCount} تقرير تلقائياً (معتمدة منذ أكثر من 7 أيام)`, type: 'info' });
-              setTimeout(() => setToast(null), 5000);
+              if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+              toastTimeoutRef.current = setTimeout(() => setToast(null), 5000);
             }, 500);
           }
         });
@@ -145,8 +174,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       mq.removeEventListener('change', handleResize);
-      pollingStartedRef.current = false;
-      stopNotificationPolling();
+      engineStartedRef.current = false;
+      stopRealtimeEngine();
     };
   }, []);
 
@@ -177,8 +206,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       });
     }
 
-    // Dispatch event for real-time updates
-    window.dispatchEvent(new CustomEvent('reports-updated'));
+    // Broadcast to other tabs and dispatch local event
+    broadcastChange('notifications');
+    window.dispatchEvent(new CustomEvent('notifications-updated'));
   }, []);
 
   const login = useCallback(async (username: string, password: string) => {
@@ -189,24 +219,33 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const user = store.getCurrentUser();
       setCurrentUser(user || null);
 
-      // Start notification polling after login
+      // Fetch CSRF token for subsequent API calls
+      fetchCsrfToken().catch(err => console.error('[AppContext] CSRF token fetch failed:', err));
+
+      // Start realtime engine after login
       if (user) {
-        pollingStartedRef.current = true;
-        startNotificationPolling(user.role, user.id, {
+        engineStartedRef.current = true;
+        startRealtimeEngine(user.id, user.fullName, user.role, {
           onNewPendingApproval: (report) => {
             setToast({
               message: `تقرير جديد بانتظار الاعتماد: ${report.reportNumber}`,
               type: 'info',
             });
-            setTimeout(() => setToast(null), 5000);
+            if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+            toastTimeoutRef.current = setTimeout(() => setToast(null), 5000);
           },
-          onNewNotification: () => {
-            setUnreadNotifications(store.unreadCount());
+          onNewNotification: (notif) => {
+            const newUnread = store.unreadCount();
+            setUnreadNotifications(newUnread);
+            if (notif.priority === 'high') playNotificationSound();
           },
-          onReportsChanged: () => {
-            store.refreshReportsFromDB().then(() => {
-              window.dispatchEvent(new CustomEvent('reports-updated'));
-            });
+          onEntityChanged: (event) => {
+            if (event.type === 'notifications') {
+              setUnreadNotifications(store.unreadCount());
+            }
+          },
+          onPresenceChange: (users) => {
+            window.dispatchEvent(new CustomEvent('presence-changed', { detail: users }));
           },
         });
 
@@ -217,7 +256,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
-    stopNotificationPolling();
+    stopRealtimeEngine();
+    clearCsrfToken();
     document.cookie = 'ireo_session=; path=/; max-age=0';
     await store.logout();
     setIsLoggedIn(false);

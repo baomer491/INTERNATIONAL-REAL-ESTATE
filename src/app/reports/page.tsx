@@ -6,6 +6,8 @@ import { store } from '@/lib/store';
 import { formatDateShort, formatCurrency, getStatusInfo, getPropertyTypeLabel } from '@/lib/utils';
 import { useApp } from '@/components/layout/AppContext';
 import { useTheme } from '@/hooks/useTheme';
+import { useRealtime } from '@/hooks/useRealtime';
+import { broadcastChange } from '@/lib/realtime-engine';
 import { reportStatuses, propertyTypes } from '@/data/mock';
 import {
   Search, Filter, PlusCircle, Eye, Trash2,
@@ -18,7 +20,7 @@ export default function ReportsPage() {
   const { showToast, hasPermission, currentUser } = useApp();
   const { isDark } = useTheme();
   const dm = isDark;
-  const [reports, setReports] = useState(() => store.getReports());
+  const { data: reports, refresh: refreshReports } = useRealtime('reports', () => store.getReports());
   const banks = store.getBanks();
 
   const [search, setSearch] = useState('');
@@ -37,27 +39,6 @@ export default function ReportsPage() {
       setShowMineOnly(true);
     }
   }, [isAdmin, isViewer]);
-
-  // Auto-refresh: listen for real-time updates from notification-service
-  useEffect(() => {
-    const handleReportsUpdated = () => {
-      setReports(store.getReports());
-    };
-    window.addEventListener('reports-updated', handleReportsUpdated);
-
-    const interval = setInterval(() => {
-      setReports(store.getReports());
-    }, 15000);
-
-    return () => {
-      window.removeEventListener('reports-updated', handleReportsUpdated);
-      clearInterval(interval);
-    };
-  }, []);
-
-  const refreshReports = () => {
-    setReports(store.getReports());
-  };
 
   const filtered = useMemo(() => {
     return reports.filter(r => {
@@ -79,6 +60,7 @@ export default function ReportsPage() {
     store.deleteReport(id);
     setDeleteId(null);
     refreshReports();
+    broadcastChange('reports');
     showToast('تم حذف التقرير', 'success');
   };
 
@@ -86,12 +68,13 @@ export default function ReportsPage() {
     store.updateReport(id, { status: 'archived' });
     setArchiveId(null);
     refreshReports();
+    broadcastChange('reports');
     showToast('تم أرشفة التقرير بنجاح', 'success');
   };
 
   return (
     <div className="animate-fade-in">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 800, margin: '0 0 4px' }}>التقارير</h1>
           <p style={{ fontSize: 14, color: 'var(--color-text-muted)', margin: 0 }}>
@@ -109,25 +92,25 @@ export default function ReportsPage() {
       {/* Filters */}
       <div className="card" style={{ marginBottom: 20, padding: '16px 20px' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
-          <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
+          <div style={{ position: 'relative', flex: '1 1 100%', minWidth: 0 }}>
             <Search size={16} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
             <input type="text" placeholder="بحث برقم التقرير أو اسم المستفيد..."
               value={search} onChange={(e) => { setSearch(e.target.value); goToPage(1); }}
               style={{ width: '100%', padding: '9px 36px 9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', direction: 'rtl' }} />
           </div>
           <select value={filterBank} onChange={(e) => { setFilterBank(e.target.value); goToPage(1); }}
-            style={{ padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', appearance: 'none', minWidth: 140 }}>
+            style={{ padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', appearance: 'none', minWidth: 120 }}>
             <option value="">كل البنوك</option>
             <option value="__personal__">تثمين شخصي</option>
             {banks.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
           </select>
           <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); goToPage(1); }}
-            style={{ padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', appearance: 'none', minWidth: 140 }}>
+            style={{ padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', appearance: 'none', minWidth: 120 }}>
             <option value="">كل الحالات</option>
             {reportStatuses.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
           </select>
           <select value={filterPropertyType} onChange={(e) => { setFilterPropertyType(e.target.value); goToPage(1); }}
-            style={{ padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', appearance: 'none', minWidth: 140 }}>
+            style={{ padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', appearance: 'none', minWidth: 120 }}>
             <option value="">كل الأنواع</option>
             {propertyTypes.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
           </select>
@@ -228,8 +211,8 @@ export default function ReportsPage() {
 
       {/* Delete Confirmation */}
       {deleteId && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div style={{ background: 'var(--color-surface)', borderRadius: 16, padding: 32, maxWidth: 400, width: '90%', textAlign: 'center', animation: 'slideInUp 0.3s', border: dm ? '1px solid var(--color-border)' : 'none' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 16 }}>
+          <div style={{ background: 'var(--color-surface)', borderRadius: 16, padding: 24, maxWidth: 400, width: '100%', textAlign: 'center', animation: 'slideInUp 0.3s', border: dm ? '1px solid var(--color-border)' : 'none' }}>
             <div style={{ width: 64, height: 64, borderRadius: '50%', background: dm ? '#450a0a' : '#fee2e2', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
               <Trash2 size={28} color="#ef4444" />
             </div>
@@ -245,8 +228,8 @@ export default function ReportsPage() {
 
       {/* Archive Confirmation */}
       {archiveId && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div style={{ background: 'var(--color-surface)', borderRadius: 16, padding: 32, maxWidth: 400, width: '90%', textAlign: 'center', animation: 'slideInUp 0.3s', border: '1px solid var(--color-border)' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 16 }}>
+          <div style={{ background: 'var(--color-surface)', borderRadius: 16, padding: 24, maxWidth: 400, width: '100%', textAlign: 'center', animation: 'slideInUp 0.3s', border: '1px solid var(--color-border)' }}>
             <div style={{ width: 64, height: 64, borderRadius: '50%', background: dm ? '#2e1065' : '#f3e8ff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
               <Archive size={28} color="#7c3aed" />
             </div>

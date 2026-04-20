@@ -52,6 +52,7 @@ export default function ReviewSubmitStep({ data, isLand, isApartment, renderRepo
     ...(data.totalMarketValue ? [{ title: 'Market Value', value: `${parseFloat(data.totalMarketValue).toLocaleString('en-US')} OMR` }] : []),
     ...(data.quickSaleValue ? [{ title: 'Quick Sale Value', value: `${parseFloat(data.quickSaleValue).toLocaleString('en-US')} OMR` }] : []),
     ...(data.rentalValue ? [{ title: 'Rental Value', value: `${parseFloat(data.rentalValue).toLocaleString('en-US')} OMR/month` }] : []),
+    ...(data.valuationFees ? [{ title: 'Valuation Fees', value: `${parseFloat(data.valuationFees).toLocaleString('en-US')} OMR` }] : []),
     { title: 'Valuation Method', value: enValuationMethod[data.valuationMethod] || data.valuationMethod },
     ...(data.confidencePercentage ? [{ title: 'Confidence', value: `${data.confidencePercentage}%` }] : []),
     ...(data.finalRecommendation ? [{ title: 'Recommendation', value: data.finalRecommendation }] : []),

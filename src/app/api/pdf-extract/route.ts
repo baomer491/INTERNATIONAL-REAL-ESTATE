@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { callGemini, parseJSONResponse } from '@/lib/gemini-client';
+import { validateToken } from '@/lib/csrf';
 
 // Prompts for different extraction modes
 const OWNERSHIP_EXTRACTION_PROMPT = `أنت خبير في استخراج بيانات صكوك الملكية العمانية.
@@ -121,6 +122,15 @@ const MAX_PAYLOAD_SIZE = 10 * 1024 * 1024; // 10MB
 
 export async function POST(request: NextRequest) {
   try {
+    // CSRF check
+    const csrfError = validateToken(request);
+    if (csrfError) {
+      return NextResponse.json(
+        { success: false, error: csrfError },
+        { status: 403 }
+      );
+    }
+
     // Auth check: verify session cookie
     const sessionToken = request.cookies.get('ireo_session')?.value;
     if (!sessionToken) {

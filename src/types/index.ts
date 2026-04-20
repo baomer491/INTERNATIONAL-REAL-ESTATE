@@ -20,6 +20,9 @@ export type PropertyType =
   | 'warehouse'
   | 'shop';
 
+export interface FeesRange { min: number; max: number }
+export type FeesRanges = Record<PropertyType, FeesRange>;
+
 export type PropertyUsage = 'residential' | 'commercial' | 'industrial' | 'agricultural' | 'investment';
 export type PropertyCondition = 'excellent' | 'good' | 'average' | 'below_average' | 'poor';
 export type FinishingLevel = 'fully_finished' | 'semi_finished' | 'not_finished' | 'luxury';
@@ -258,7 +261,10 @@ export interface Notification {
   isRead: boolean;
   createdAt: string;
   relatedReportId?: string;
+  targetEmployeeId?: string; // if set, only visible to this employee (null = visible to all / admins)
 }
+
+export type TaskCategory = 'general' | 'valuation' | 'followup' | 'administrative' | 'field_visit' | 'review';
 
 export interface Task {
   id: string;
@@ -268,7 +274,13 @@ export interface Task {
   status: TaskStatus;
   dueDate: string;
   createdAt: string;
-  assignedName?: string;
+  assignedTo?: string;        // employee UUID
+  assignedName?: string;      // denormalized for display
+  createdBy?: string;         // employee UUID who created
+  createdByName?: string;     // denormalized for display
+  completedAt?: string;       // when task was completed
+  recurrence: TaskRecurrence;
+  category: TaskCategory;
   relatedReportId?: string;
   relatedReportNumber?: string;
 }
@@ -287,6 +299,7 @@ export interface AppSettings {
   userEmail: string;
   userPhone: string;
   defaultFees: number;
+  feesRanges: FeesRanges;
 }
 
 export interface DashboardStats {
@@ -360,6 +373,8 @@ export const PERMISSIONS: Permission[] = [
   { id: 'beneficiaries_view', label: 'عرض المستفيدين', description: 'عرض قائمة المستفيدين', category: 'المستفيدين' },
   { id: 'settings_manage', label: 'إدارة الإعدادات', description: 'تعديل إعدادات النظام', category: 'النظام' },
   { id: 'archive_view', label: 'عرض الأرشيف', description: 'عرض التقارير المؤرشفة', category: 'الأرشيف' },
+  { id: 'tasks_manage', label: 'إدارة المهام', description: 'إنشاء وإسناد وتعديل المهام', category: 'المهام' },
+  { id: 'tasks_view', label: 'عرض المهام', description: 'عرض المهام المسندة للموظف', category: 'المهام' },
   { id: 'notifications_view', label: 'عرض التنبيهات', description: 'عرض الإشعارات والتنبيهات', category: 'النظام' },
 ];
 
@@ -413,8 +428,8 @@ export interface MarketCacheEntry {
 
 export const ROLE_DEFAULT_PERMISSIONS: Record<EmployeeRole, string[]> = {
   admin: PERMISSIONS.map(p => p.id),
-  appraiser: ['reports_create', 'reports_view', 'reports_edit', 'reports_export', 'reports_archive', 'approvals_view', 'archive_view', 'notifications_view', 'beneficiaries_view'],
-  reviewer: ['reports_view', 'approvals_view', 'approvals_approve', 'reports_export', 'reports_archive', 'archive_view', 'notifications_view', 'beneficiaries_view'],
-  data_entry: ['reports_create', 'reports_view', 'reports_edit', 'beneficiaries_view', 'notifications_view'],
-  viewer: ['reports_view', 'archive_view', 'notifications_view'],
+  appraiser: ['reports_create', 'reports_view', 'reports_edit', 'reports_export', 'reports_archive', 'approvals_view', 'archive_view', 'notifications_view', 'beneficiaries_view', 'tasks_view'],
+  reviewer: ['reports_view', 'approvals_view', 'approvals_approve', 'reports_export', 'reports_archive', 'archive_view', 'notifications_view', 'beneficiaries_view', 'tasks_view'],
+  data_entry: ['reports_create', 'reports_view', 'reports_edit', 'beneficiaries_view', 'notifications_view', 'tasks_view'],
+  viewer: ['reports_view', 'archive_view', 'notifications_view', 'tasks_view'],
 };

@@ -1,7 +1,7 @@
 import type {
   Bank, Beneficiary, Report, Notification, Task, AppSettings, DashboardStats,
   PropertyType, PropertyUsage, PropertyCondition, FinishingLevel,
-  BeneficiaryRelation, ReportStatus, ApprovalStatus
+  BeneficiaryRelation, ReportStatus, ApprovalStatus, FeesRanges
 } from '@/types';
 
 /* ===== Mock Data (empty — data comes from store/localStorage) ===== */
@@ -28,7 +28,18 @@ export const settings: AppSettings = {
   userRole: '',
   userEmail: '',
   userPhone: '',
-  defaultFees: 500
+  defaultFees: 500,
+  feesRanges: {
+    land:                  { min: 50,  max: 70  },
+    villa:                 { min: 100, max: 130 },
+    apartment:             { min: 80,  max: 100 },
+    residential_building:  { min: 100, max: 150 },
+    commercial_building:   { min: 150, max: 250 },
+    mixed_use:             { min: 150, max: 250 },
+    farm:                  { min: 100, max: 200 },
+    warehouse:             { min: 80,  max: 120 },
+    shop:                  { min: 80,  max: 120 },
+  } satisfies FeesRanges,
 };
 
 /* ===== Dashboard Stats ===== */

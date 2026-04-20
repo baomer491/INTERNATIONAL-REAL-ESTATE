@@ -2,8 +2,11 @@
 
 import React, { useState } from 'react';
 import { store } from '@/lib/store';
+import { generateId } from '@/lib/utils';
 import { useApp } from '@/components/layout/AppContext';
 import { useTheme } from '@/hooks/useTheme';
+import { useRealtime } from '@/hooks/useRealtime';
+import { broadcastChange } from '@/lib/realtime-engine';
 import type { Bank } from '@/types';
 import { Building2, PlusCircle, Phone, Mail, Edit3, X, User } from 'lucide-react';
 
@@ -11,7 +14,7 @@ export default function BanksPage() {
   const { showToast, hasPermission } = useApp();
   const { isDark } = useTheme();
   const dm = isDark;
-  const [banks, setBanks] = useState(store.getBanks());
+  const { data: banks, refresh: refreshBanks } = useRealtime('banks', () => store.getBanks());
   const [showAdd, setShowAdd] = useState(false);
   const [editBank, setEditBank] = useState<Bank | null>(null);
   const [form, setForm] = useState({ name: '', contactPerson: '', phone: '', email: '', address: '' });
@@ -35,7 +38,8 @@ export default function BanksPage() {
       address: form.address,
     };
     store.addBank(newBank);
-    setBanks(store.getBanks());
+    refreshBanks();
+    broadcastChange('banks');
     setShowAdd(false);
     setForm({ name: '', contactPerson: '', phone: '', email: '', address: '' });
     showToast('تمت إضافة البنك', 'success');
@@ -50,7 +54,8 @@ export default function BanksPage() {
       email: form.email,
       address: form.address,
     });
-    setBanks(store.getBanks());
+    refreshBanks();
+    broadcastChange('banks');
     setEditBank(null);
     setForm({ name: '', contactPerson: '', phone: '', email: '', address: '' });
     showToast('تم تحديث بيانات البنك', 'success');
@@ -62,8 +67,8 @@ export default function BanksPage() {
   };
 
   const Modal = ({ title, onClose, onSave }: { title: string; onClose: () => void; onSave: () => void }) => (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-      <div style={{ background: dm ? 'var(--color-surface)' : 'white', borderRadius: 16, padding: 32, maxWidth: 480, width: '90%', animation: 'slideInUp 0.3s', border: dm ? '1px solid var(--color-border)' : 'none' }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 16 }}>
+      <div style={{ background: dm ? 'var(--color-surface)' : 'white', borderRadius: 16, padding: 24, maxWidth: 480, width: '100%', animation: 'slideInUp 0.3s', border: dm ? '1px solid var(--color-border)' : 'none' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>{title}</h3>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={24} /></button>
@@ -93,7 +98,7 @@ export default function BanksPage() {
 
   return (
     <div className="animate-fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 800, margin: '0 0 4px' }}>البنوك</h1>
           <p style={{ fontSize: 14, color: 'var(--color-text-muted)', margin: 0 }}>{banks.length} بنك</p>
@@ -105,7 +110,7 @@ export default function BanksPage() {
         )}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
         {banks.map(bank => (
           <div key={bank.id} className="card">
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>

@@ -5,6 +5,8 @@ import { store } from '@/lib/store';
 import { formatDate } from '@/lib/utils';
 import { useTheme } from '@/hooks/useTheme';
 import { useApp } from '@/components/layout/AppContext';
+import { useRealtime } from '@/hooks/useRealtime';
+import { broadcastChange } from '@/lib/realtime-engine';
 import type { Beneficiary, BeneficiaryRelation } from '@/types';
 import { Users, Search, Phone, Mail, MapPin, FileText, Eye, X, PlusCircle, Edit3, Trash2 } from 'lucide-react';
 import { beneficiaryRelations } from '@/data/mock';
@@ -39,7 +41,7 @@ export default function BeneficiariesPage() {
   const { isDark } = useTheme();
   const { showToast } = useApp();
   const dm = isDark;
-  const [beneficiaries, setBeneficiaries] = useState(store.getBeneficiaries());
+  const { data: beneficiaries, refresh: refreshBeneficiaries } = useRealtime('beneficiaries', () => store.getBeneficiaries());
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<Beneficiary | null>(null);
   const [showAdd, setShowAdd] = useState(false);
@@ -79,7 +81,8 @@ export default function BeneficiariesPage() {
       banksIds: form.banksIds,
     };
     store.addBeneficiary(newBn);
-    setBeneficiaries(store.getBeneficiaries());
+    refreshBeneficiaries();
+    broadcastChange('beneficiaries');
     setShowAdd(false);
     setForm(emptyForm);
     showToast('تمت إضافة المستفيد', 'success');
@@ -102,7 +105,8 @@ export default function BeneficiariesPage() {
       notes: form.notes,
       banksIds: form.banksIds,
     });
-    setBeneficiaries(store.getBeneficiaries());
+    refreshBeneficiaries();
+    broadcastChange('beneficiaries');
     setEditBn(null);
     setForm(emptyForm);
     showToast('تم تحديث بيانات المستفيد', 'success');
@@ -126,7 +130,8 @@ export default function BeneficiariesPage() {
   const handleDelete = () => {
     if (!deleteConfirm) return;
     store.deleteBeneficiary(deleteConfirm.id);
-    setBeneficiaries(store.getBeneficiaries());
+    refreshBeneficiaries();
+    broadcastChange('beneficiaries');
     setDeleteConfirm(null);
     showToast('تم حذف المستفيد', 'success');
   };
@@ -152,8 +157,8 @@ export default function BeneficiariesPage() {
   };
 
   const FormModal = ({ title, onClose, onSave }: { title: string; onClose: () => void; onSave: () => void }) => (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-      <div style={{ background: dm ? 'var(--color-surface)' : 'white', borderRadius: 16, padding: 28, maxWidth: 560, width: '90%', maxHeight: '85vh', overflowY: 'auto', animation: 'slideInUp 0.3s', border: dm ? '1px solid var(--color-border)' : 'none' }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 16 }}>
+      <div style={{ background: dm ? 'var(--color-surface)' : 'white', borderRadius: 16, padding: 24, maxWidth: 560, width: '100%', maxHeight: '85vh', overflowY: 'auto', animation: 'slideInUp 0.3s', border: dm ? '1px solid var(--color-border)' : 'none' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>{title}</h3>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}><X size={24} /></button>
@@ -163,7 +168,7 @@ export default function BeneficiariesPage() {
             <label style={labelStyle}>الاسم الكامل *</label>
             <input value={form.fullName} onChange={e => setForm(p => ({ ...p, fullName: e.target.value }))} style={inputStyle} />
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
             <div>
               <label style={labelStyle}>الرقم المدني *</label>
               <input value={form.civilId} onChange={e => setForm(p => ({ ...p, civilId: e.target.value }))} style={inputStyle} />
@@ -173,7 +178,7 @@ export default function BeneficiariesPage() {
               <input value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} style={inputStyle} />
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
             <div>
               <label style={labelStyle}>البريد الإلكتروني</label>
               <input value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} style={inputStyle} />
@@ -235,7 +240,7 @@ export default function BeneficiariesPage() {
 
   return (
     <div className="animate-fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 800, margin: '0 0 4px' }}>المستفيدين</h1>
           <p style={{ fontSize: 14, color: 'var(--color-text-muted)', margin: 0 }}>{filtered.length} مستفيد</p>
@@ -246,7 +251,7 @@ export default function BeneficiariesPage() {
       </div>
 
       <div className="card" style={{ marginBottom: 20, padding: '16px 20px' }}>
-        <div style={{ position: 'relative', maxWidth: 400 }}>
+        <div style={{ position: 'relative', maxWidth: 400, width: '100%' }}>
           <Search size={18} style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
           <input type="text" placeholder="بحث بالاسم أو الرقم المدني..."
             value={search} onChange={(e) => setSearch(e.target.value)}
@@ -254,7 +259,7 @@ export default function BeneficiariesPage() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
         {paginatedFiltered.map(bn => (
           <div key={bn.id} className="card" style={{ cursor: 'default' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
@@ -310,8 +315,8 @@ export default function BeneficiariesPage() {
       <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} hasNext={hasNext} hasPrev={hasPrev} isDark={dm} />
 
       {selected && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div style={{ background: dm ? 'var(--color-surface)' : 'white', borderRadius: 16, padding: 32, maxWidth: 500, width: '90%', maxHeight: '80vh', overflowY: 'auto', animation: 'slideInUp 0.3s', border: dm ? '1px solid var(--color-border)' : 'none' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 16 }}>
+          <div style={{ background: dm ? 'var(--color-surface)' : 'white', borderRadius: 16, padding: 24, maxWidth: 500, width: '100%', maxHeight: '80vh', overflowY: 'auto', animation: 'slideInUp 0.3s', border: dm ? '1px solid var(--color-border)' : 'none' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>تفاصيل المستفيد</h3>
               <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}><X size={24} /></button>
@@ -384,8 +389,8 @@ export default function BeneficiariesPage() {
       )}
 
       {deleteConfirm && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div style={{ background: dm ? 'var(--color-surface)' : 'white', borderRadius: 16, padding: 32, maxWidth: 400, width: '90%', textAlign: 'center', animation: 'slideInUp 0.3s', border: dm ? '1px solid var(--color-border)' : 'none' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 16 }}>
+          <div style={{ background: dm ? 'var(--color-surface)' : 'white', borderRadius: 16, padding: 24, maxWidth: 400, width: '100%', textAlign: 'center', animation: 'slideInUp 0.3s', border: dm ? '1px solid var(--color-border)' : 'none' }}>
             <div style={{
               width: 56, height: 56, borderRadius: '50%', background: 'var(--color-danger)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px',

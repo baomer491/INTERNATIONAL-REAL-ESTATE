@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { fetchOmanRealProperties } from '@/lib/market-comps';
 import { callGemini } from '@/lib/gemini-client';
 import type { MarketComp, MarketCompsResult } from '@/types';
+import { validateToken } from '@/lib/csrf';
 
 const VALUATION_PROMPT = `أنت خبير تقييم عقاري معتمد في سلطنة عمان.
 
@@ -149,6 +150,15 @@ function localAnalysis(params: {
 
 export async function POST(request: NextRequest) {
   try {
+    // CSRF check
+    const csrfError = validateToken(request);
+    if (csrfError) {
+      return NextResponse.json(
+        { success: false, error: csrfError },
+        { status: 403 }
+      );
+    }
+
     // Auth check: verify session cookie
     const sessionToken = request.cookies.get('ireo_session')?.value;
     if (!sessionToken) {

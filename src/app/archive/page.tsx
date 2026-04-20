@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { store } from '@/lib/store';
 import { formatDate, formatCurrency, getPropertyTypeLabel } from '@/lib/utils';
 import { useTheme } from '@/hooks/useTheme';
+import { useRealtime } from '@/hooks/useRealtime';
+import { broadcastChange } from '@/lib/realtime-engine';
 import type { ReportStatus } from '@/types';
 import { Archive, Search, RotateCcw, Eye, FileText } from 'lucide-react';
 import { useApp } from '@/components/layout/AppContext';
@@ -13,7 +15,7 @@ export default function ArchivePage() {
   const { showToast } = useApp();
   const { isDark } = useTheme();
   const dm = isDark;
-  const [reports, setReports] = useState(store.getReports());
+  const { data: reports } = useRealtime('reports', () => store.getReports());
   const [search, setSearch] = useState('');
 
   const archived = reports.filter(r => r.status === 'archived' || r.status === 'approved');
@@ -23,7 +25,7 @@ export default function ArchivePage() {
 
   const handleRestore = (id: string) => {
     store.updateReport(id, { status: 'draft' });
-    setReports(store.getReports());
+    broadcastChange('reports');
     showToast('تم استرجاع التقرير', 'success');
   };
 

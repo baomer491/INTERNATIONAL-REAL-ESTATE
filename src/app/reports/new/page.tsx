@@ -24,6 +24,7 @@ import {
 
 import StepIndicator from '@/components/reports/wizard/StepIndicator';
 import FileUploadZone from '@/components/reports/wizard/FileUploadZone';
+import PhotosUpload from '@/components/reports/wizard/PhotosUpload';
 import ValuationTypeStep from '@/components/reports/wizard/steps/ValuationTypeStep';
 import BankSelectionStep from '@/components/reports/wizard/steps/BankSelectionStep';
 import BeneficiaryStep from '@/components/reports/wizard/steps/BeneficiaryStep';
@@ -46,7 +47,7 @@ interface WizardData {
   ownershipFile: File | null;
   mapFile: File | null;
   idFile: File | null;
-  propertyPhoto: File | null;
+  propertyPhotos: File[];
   extractedData: {
     plotNumber: string; drawingNumber: string; area: string;
     wilayat: string; governorate: string; usageType: string; owner: string;
@@ -129,11 +130,12 @@ interface WizardData {
   aptAirConditioning: string;
   aptInternalFinishing: InternalFinishingItem[];
   aptEstimatedPerMonth: string;
+  valuationFees: string;
 }
 
 const initialData: WizardData = {
   valuationType: 'bank', bankId: '', bankName: '',
-  ownershipFile: null, mapFile: null, idFile: null, propertyPhoto: null,
+  ownershipFile: null, mapFile: null, idFile: null, propertyPhotos: [],
   extractedData: { plotNumber: '', drawingNumber: '', area: '', wilayat: '', governorate: '', usageType: '', owner: '' },
   beneficiaryName: '', civilId: '', phone: '', address: '',
   relation: 'owner', applicantName: '',
@@ -160,6 +162,7 @@ const initialData: WizardData = {
   aptFoundation: '', aptWalls: '', aptRoof: '', aptFloorType: '', aptAirConditioning: '',
   aptInternalFinishing: internalFinishingDefaults.map(f => ({ description: f.descriptionEn, typeOfItem: '', condition: '' })),
   aptEstimatedPerMonth: '',
+  valuationFees: '',
 };
 
 const allSteps = [
@@ -215,7 +218,7 @@ function CreateReportWizardInner() {
           valuationType: existing.bankId ? 'bank' : 'personal',
           bankId: existing.bankId,
           bankName: existing.bankName === 'تثمين شخصي' ? '' : existing.bankName,
-          ownershipFile: null, mapFile: null, idFile: null, propertyPhoto: null,
+          ownershipFile: null, mapFile: null, idFile: null, propertyPhotos: [],
           extractedData: { plotNumber: existing.extractedData.plotNumber || '', drawingNumber: '', area: String(existing.extractedData.area || ''), wilayat: existing.extractedData.wilayat || '', governorate: existing.extractedData.governorate || '', usageType: existing.extractedData.usageType || '', owner: '' },
           beneficiaryName: existing.beneficiaryName,
           civilId: existing.beneficiaryCivilId,
@@ -295,6 +298,7 @@ function CreateReportWizardInner() {
           aptAirConditioning: existing.apartmentDetails?.airConditioning || '',
           aptInternalFinishing: existing.apartmentDetails?.internalFinishing || internalFinishingDefaults.map(f => ({ description: f.descriptionEn, typeOfItem: '', condition: '' })),
           aptEstimatedPerMonth: existing.apartmentDetails?.estimatedPerMonth || '',
+          valuationFees: String(existing.fees || ''),
         };
       }
     }
@@ -392,6 +396,30 @@ function CreateReportWizardInner() {
     removePreview(field);
   }, [removePreview]);
 
+  // Multi-photo handlers
+  const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
+
+  const handlePhotosAdd = useCallback((files: File[]) => {
+    setData(prev => ({
+      ...prev,
+      propertyPhotos: [...prev.propertyPhotos, ...files],
+    }));
+    const newPreviews = files.map(f => URL.createObjectURL(f));
+    setPhotoPreviews(prev => [...prev, ...newPreviews]);
+  }, []);
+
+  const handlePhotoRemove = useCallback((index: number) => {
+    setData(prev => ({
+      ...prev,
+      propertyPhotos: prev.propertyPhotos.filter((_, i) => i !== index),
+    }));
+    setPhotoPreviews(prev => {
+      const url = prev[index];
+      if (url) URL.revokeObjectURL(url);
+      return prev.filter((_, i) => i !== index);
+    });
+  }, []);
+
   const handleOCRExtraction = () => {
     const files = [data.ownershipFile, data.mapFile].filter((f): f is File => f !== null);
     runExtraction(files, (result) => {
@@ -429,7 +457,7 @@ function CreateReportWizardInner() {
   };
 
   const handleSaveDraft = () => {
-    const { ownershipFile, mapFile, idFile, propertyPhoto, ...draftData } = data;
+    const { ownershipFile, mapFile, idFile, propertyPhotos, ...draftData } = data;
     store.saveDraft('new_report', draftData);
     showToast('تم حفظ المسودة', 'success');
   };
@@ -439,18 +467,15 @@ function CreateReportWizardInner() {
     setSubmitting(true);
     try {
     const settings = store.getSettings();
-    const fileToDataUrl = (file: File): Promise<string> => new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-    const [ownershipUrl, mapUrl, idUrl, photoUrl] = await Promise.all([
-      data.ownershipFile ? fileToDataUrl(data.ownershipFile) : Promise.resolve(''),
-      data.mapFile ? fileToDataUrl(data.mapFile) : Promise.resolve(''),
-      data.idFile ? fileToDataUrl(data.idFile) : Promise.resolve(''),
-      data.propertyPhoto ? fileToDataUrl(data.propertyPhoto) : Promise.resolve(''),
+    const { compressImageToDataUrl } = await import('@/lib/image-compress');
+    const [ownershipUrl, mapUrl, idUrl] = await Promise.all([
+      data.ownershipFile ? compressImageToDataUrl(data.ownershipFile) : Promise.resolve(''),
+      data.mapFile ? compressImageToDataUrl(data.mapFile) : Promise.resolve(''),
+      data.idFile ? compressImageToDataUrl(data.idFile) : Promise.resolve(''),
     ]);
+    const photoUrls = await Promise.all(
+      data.propertyPhotos.map(f => compressImageToDataUrl(f))
+    );
 
     const report: Report = {
       id: generateId('r'),
@@ -512,7 +537,7 @@ function CreateReportWizardInner() {
         ...(data.ownershipFile ? [{ id: generateId('d'), name: data.ownershipFile.name, type: 'ownership' as const, size: data.ownershipFile.size, uploadedAt: new Date().toISOString(), url: ownershipUrl }] : []),
         ...(data.mapFile ? [{ id: generateId('d'), name: data.mapFile.name, type: 'map' as const, size: data.mapFile.size, uploadedAt: new Date().toISOString(), url: mapUrl }] : []),
         ...(data.idFile ? [{ id: generateId('d'), name: data.idFile.name, type: 'id' as const, size: data.idFile.size, uploadedAt: new Date().toISOString(), url: idUrl }] : []),
-        ...(data.propertyPhoto ? [{ id: generateId('d'), name: data.propertyPhoto.name, type: 'photo' as const, size: data.propertyPhoto.size, uploadedAt: new Date().toISOString(), url: photoUrl }] : []),
+        ...data.propertyPhotos.map((f, i) => ({ id: generateId('d'), name: f.name, type: 'photo' as const, size: f.size, uploadedAt: new Date().toISOString(), url: photoUrls[i] })),
       ],
       extractedData: { ...data.extractedData, area: parseFloat(data.extractedData.area) || 0, isEdited: false },
       valuation: {
@@ -533,7 +558,7 @@ function CreateReportWizardInner() {
       appraiserName: currentUser?.fullName || settings.userName,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      fees: settings.defaultFees || 500,
+      fees: data.valuationFees ? parseFloat(data.valuationFees) : (settings.defaultFees || 500),
       notes: '',
       purposeOfValuation: data.purposeOfValuation || undefined,
       ...(isApartment ? {
@@ -640,7 +665,8 @@ function CreateReportWizardInner() {
       ownershipPreview={previews.ownershipFile || ''}
       mapPreview={previews.mapFile || ''}
       idPreview={previews.idFile || ''}
-      photoPreview={previews.propertyPhoto || ''}
+      photoPreview={photoPreviews[0] || ''}
+      photoPreviews={photoPreviews}
     />
   );
 
@@ -664,7 +690,7 @@ function CreateReportWizardInner() {
         />
       </div>
 
-      <div className="card" style={{ marginBottom: 0, minHeight: 400, paddingBottom: 80 }}>
+      <div className="card" style={{ marginBottom: 0, minHeight: 400, paddingBottom: 80, overflow: 'hidden' }}>
         {contentStep === 1 && <ValuationTypeStep value={data.valuationType} onChange={(v) => update('valuationType', v)} />}
 
         {contentStep === 2 && data.valuationType === 'bank' && (
@@ -701,11 +727,12 @@ function CreateReportWizardInner() {
             ownershipFile={data.ownershipFile}
             mapFile={data.mapFile}
             idFile={data.idFile}
-            propertyPhoto={data.propertyPhoto}
+            propertyPhotos={data.propertyPhotos}
             ownershipPreview={previews.ownershipFile || ''}
             mapPreview={previews.mapFile || ''}
             idPreview={previews.idFile || ''}
-            photoPreview={previews.propertyPhoto || ''}
+            photoPreview={previews.propertyPhotos_0 || ''}
+            photoPreviews={photoPreviews}
             extracting={extracting}
             ocrResult={ocrResult}
             ocrStep={ocrStep}
@@ -717,6 +744,8 @@ function CreateReportWizardInner() {
             sketchExtracted={sketchExtracted}
             onFileUpload={handleFileUpload}
             onFileRemove={handleFileRemove}
+            onPhotosAdd={handlePhotosAdd}
+            onPhotoRemove={handlePhotoRemove}
             onRunOCR={handleOCRExtraction}
             onExtractOwnership={() => {}}
             onExtractSketch={() => {}}
@@ -779,6 +808,7 @@ function CreateReportWizardInner() {
               area: data.area,
               propertyUsage: data.propertyUsage,
               landValue: data.landValue,
+              valuationFees: data.valuationFees,
             }}
             errors={errors}
             onChange={update}
@@ -832,7 +862,8 @@ function CreateReportWizardInner() {
             data={{
               landValue: data.landValue, buildingValue: data.buildingValue,
               totalMarketValue: data.totalMarketValue, quickSaleValue: data.quickSaleValue,
-              rentalValue: data.rentalValue, confidencePercentage: data.confidencePercentage,
+              rentalValue: data.rentalValue, valuationFees: data.valuationFees,
+              confidencePercentage: data.confidencePercentage,
               valuationMethod: data.valuationMethod, riskLevel: data.riskLevel,
               appraiserNotes: data.appraiserNotes, finalRecommendation: data.finalRecommendation,
               wilayat: data.wilayat, propertyType: data.propertyType,
@@ -878,7 +909,7 @@ function CreateReportWizardInner() {
             <p style={{ fontSize: 12, color: 'var(--color-text-muted)', margin: '0 0 24px' }}>يمكنك البدء من جديد لمسح المسودة القديمة</p>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
               <button onClick={() => { store.clearDraft('new_report'); setShowDraftModal(false); setData({ ...initialData, reportNumber: generateReportNumber(store.getSettings().reportNextNumber) }); }} className="btn btn-outline" style={{ flex: 1 }}>البدء من جديد</button>
-              <button onClick={() => { const draft = store.getDraft('new_report') as Partial<WizardData> | null; if (draft) setData({ ...initialData, ...draft, ownershipFile: null, mapFile: null, idFile: null, propertyPhoto: null, reportNumber: draft.reportNumber || generateReportNumber(store.getSettings().reportNextNumber) }); showToast('تم استعادة المسودة بنجاح', 'success'); setShowDraftModal(false); }} className="btn btn-primary" style={{ flex: 1 }}>استئناف المسودة</button>
+              <button onClick={() => { const draft = store.getDraft('new_report') as Partial<WizardData> | null; if (draft) setData({ ...initialData, ...draft, ownershipFile: null, mapFile: null, idFile: null, propertyPhotos: [], reportNumber: draft.reportNumber || generateReportNumber(store.getSettings().reportNextNumber) }); showToast('تم استعادة المسودة بنجاح', 'success'); setShowDraftModal(false); }} className="btn btn-primary" style={{ flex: 1 }}>استئناف المسودة</button>
             </div>
           </div>
         </div>

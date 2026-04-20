@@ -5,6 +5,8 @@ import { store } from '@/lib/store';
 import { useApp } from '@/components/layout/AppContext';
 import { useTheme } from '@/hooks/useTheme';
 import { Settings, Building, User, Palette, FileText, Save, Lock, Eye, EyeOff, CheckCircle2, AlertCircle } from 'lucide-react';
+import { propertyTypes } from '@/data/mock';
+import type { PropertyType } from '@/types';
 
 export default function SettingsPage() {
   const { showToast, hasPermission, currentUser } = useApp();
@@ -72,6 +74,16 @@ export default function SettingsPage() {
     }
   };
 
+  const updateFeesRange = (type: string, field: 'min' | 'max', value: number) => {
+    setSettings(prev => ({
+      ...prev,
+      feesRanges: {
+        ...(prev as any).feesRanges,
+        [type]: { ...(prev as any).feesRanges?.[type], [field]: value },
+      },
+    }));
+  };
+
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '10px 14px', border: '1.5px solid var(--color-border)',
     borderRadius: 8, fontSize: 14, fontFamily: 'inherit', direction: 'rtl',
@@ -99,23 +111,24 @@ export default function SettingsPage() {
         <p style={{ fontSize: 14, color: 'var(--color-text-muted)', margin: 0 }}>إدارة إعدادات النظام</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr', gap: 20 }}>
-        {/* Tabs */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 16 }}>
+        {/* Tabs - horizontal on mobile */}
+        <div style={{ display: 'flex', gap: 4, overflowX: 'auto', paddingBottom: 4, flexDirection: 'row' }}>
           {tabs.map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               style={{
-                display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px',
+                display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px',
                 borderRadius: 10, border: 'none', fontFamily: 'inherit',
                 background: activeTab === tab.id ? 'var(--color-primary)' : 'transparent',
                 color: activeTab === tab.id ? 'white' : 'var(--color-text-secondary)',
-                cursor: 'pointer', fontSize: 14, fontWeight: 600, textAlign: 'right',
-              }}>
+                cursor: 'pointer', fontSize: 13, fontWeight: 600, textAlign: 'right',
+                whiteSpace: 'nowrap', flexShrink: 0,
+              }}
+            >
               {tab.icon} {tab.label}
             </button>
           ))}
         </div>
-
         {/* Content */}
         <div className="card">
           {/* Office Settings */}
@@ -245,7 +258,7 @@ export default function SettingsPage() {
                     </button>
                   </div>
                   {newPassword && (
-                    <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+                    <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                       {[
                         { check: newPassword.length >= 6, label: '6 أحرف على الأقل' },
                         { check: /[A-Z]/.test(newPassword), label: 'حرف كبير' },
@@ -330,6 +343,26 @@ export default function SettingsPage() {
                     <input value={(settings as any)[f.key]} onChange={(e) => update(f.key, e.target.value)} style={inputStyle} />
                   </div>
                 ))}
+                <div>
+                  <label style={{ fontSize: 14, fontWeight: 600, display: 'block', marginBottom: 6 }}>أتعاب التثمين حسب نوع العقار</label>
+                  <div style={{ display: 'grid', gap: 10, marginTop: 4 }}>
+                    {propertyTypes.map((pt) => {
+                      const range = (settings as any).feesRanges?.[pt.value];
+                      return (
+                        <div key={pt.value} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--color-surface-alt, #f8fafc)', padding: '8px 12px', borderRadius: 8 }}>
+                          <span style={{ fontSize: 13, fontWeight: 600, minWidth: 110 }}>{pt.label}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1 }}>
+                            <span style={{ fontSize: 12, color: 'var(--color-text-muted, #64748b)' }}>من</span>
+                            <input type="number" min={0} value={range?.min ?? ''} onChange={(e) => updateFeesRange(pt.value, 'min', Number(e.target.value) || 0)} placeholder="0" style={{ ...inputStyle, flex: 1 }} />
+                            <span style={{ fontSize: 12, color: 'var(--color-text-muted, #64748b)' }}>إلى</span>
+                            <input type="number" min={0} value={range?.max ?? ''} onChange={(e) => updateFeesRange(pt.value, 'max', Number(e.target.value) || 0)} placeholder="0" style={{ ...inputStyle, flex: 1 }} />
+                            <span style={{ fontSize: 12, color: 'var(--color-text-muted, #64748b)', whiteSpace: 'nowrap' }}>ر.ع</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -351,7 +384,7 @@ export default function SettingsPage() {
                     ].map(theme => (
                       <button key={theme.value} onClick={() => update('theme', theme.value)}
                         style={{
-                          width: 120, height: 80, borderRadius: 12,
+                          flex: 1, minWidth: 90, maxWidth: 140, height: 70, borderRadius: 12,
                           border: settings.theme === theme.value ? '3px solid var(--color-primary)' : `2px solid ${theme.border}`,
                           background: theme.bg, cursor: 'pointer',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -368,7 +401,7 @@ export default function SettingsPage() {
           )}
 
           {activeTab !== 'password' && hasPermission('settings_manage') && (
-            <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
               <button onClick={handleSave} className="btn btn-primary">
                 <Save size={18} /> حفظ الإعدادات
               </button>

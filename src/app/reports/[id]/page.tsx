@@ -5,15 +5,17 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { store } from '@/lib/store';
 import { formatDate, formatCurrency, getStatusInfo, getPropertyTypeLabel, getPropertyUsageLabel, formatFileSize } from '@/lib/utils';
-import { exportReportToDocx } from '@/lib/report-export';
+import { exportReportToDocx, exportReportPDF } from '@/lib/report-export';
 import { useApp } from '@/components/layout/AppContext';
 import { useTheme } from '@/hooks/useTheme';
+import { useRealtimeEntity } from '@/hooks/useRealtime';
+import { broadcastChange } from '@/lib/realtime-engine';
 import type { ReportStatus } from '@/types';
 import { buildingMatchOptions } from '@/data/mock';
 import {
   ArrowRight, Printer, Send, CheckCircle2, FileText, MapPin, DollarSign,
   User, Building2, Home, Calendar, History, LandPlot, Info, FileEdit, AlertTriangle,
-  Archive, ArchiveRestore, ChevronDown, Shield
+  Archive, ArchiveRestore, ChevronDown, Shield, Camera, Image as ImageIcon, X, Download, Eye
 } from 'lucide-react';
 
 const topographyLabels: Record<string, string> = { leveled: 'مستوية', sloped: 'مائلة', elevated: 'مرتفعة', low_lying: 'منخفضة', mixed: 'ممزوجة' };
@@ -39,8 +41,13 @@ export default function ReportDetailPage() {
   const { currentUser, showToast } = useApp();
   const { isDark } = useTheme();
   const dm = isDark;
-  const report = store.getReport(params.id as string);
+  const { entity: report, refresh: refreshReport } = useRealtimeEntity(
+    'reports',
+    () => params.id as string,
+    (id) => store.getReport(id)
+  );
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const closeDropdown = useCallback(() => setStatusDropdownOpen(false), []);
@@ -109,7 +116,8 @@ export default function ReportDetailPage() {
       }
       await store.updateReport(report.id, updateData);
       showToast('تم تحديث حالة التقرير', 'success');
-      router.refresh();
+      refreshReport();
+      broadcastChange('reports');
     } catch (err) {
       console.error('Failed to update report status:', err);
       showToast('حدث خطأ أثناء تحديث حالة التقرير', 'error');
@@ -128,6 +136,7 @@ export default function ReportDetailPage() {
         },
       });
       showToast('تم إعادة إرسال التقرير للاعتماد', 'success');
+      broadcastChange('reports');
       router.push('/reports');
     } catch (err) {
       console.error('Failed to resubmit report:', err);
@@ -139,7 +148,8 @@ export default function ReportDetailPage() {
     try {
       await store.updateReport(report.id, { status: 'archived' });
       showToast('تم أرشفة التقرير', 'success');
-      router.refresh();
+      refreshReport();
+      broadcastChange('reports');
     } catch (err) {
       console.error('Failed to archive report:', err);
       showToast('حدث خطأ أثناء أرشفة التقرير', 'error');
@@ -150,7 +160,8 @@ export default function ReportDetailPage() {
     try {
       await store.updateReport(report.id, { status: 'approved' });
       showToast('تم استرجاع التقرير من الأرشيف', 'success');
-      router.refresh();
+      refreshReport();
+      broadcastChange('reports');
     } catch (err) {
       console.error('Failed to restore report:', err);
       showToast('حدث خطأ أثناء استرجاع التقرير', 'error');
@@ -162,7 +173,8 @@ export default function ReportDetailPage() {
       await store.updateReport(report.id, { status: newStatus });
       setStatusDropdownOpen(false);
       showToast('تم تحديث حالة التقرير', 'success');
-      router.refresh();
+      refreshReport();
+      broadcastChange('reports');
     } catch (err) {
       console.error('Failed to update report status:', err);
       showToast('حدث خطأ أثناء تحديث حالة التقرير', 'error');
@@ -272,6 +284,7 @@ export default function ReportDetailPage() {
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           <button onClick={() => exportReportToDocx(report, store.getSettings())} className="btn btn-ghost btn-sm"><Printer size={16} /> تصدير تقرير</button>
+          <button onClick={() => exportReportPDF(report, store.getSettings())} className="btn btn-ghost btn-sm"><FileText size={16} /> تصدير PDF</button>
           {workflowButtons}
           {isAdmin && (
             <div ref={dropdownRef} style={{ position: 'relative' }}>
@@ -289,7 +302,7 @@ export default function ReportDetailPage() {
                   position: 'absolute', top: '100%', left: 0, zIndex: 50,
                   background: dm ? '#1e293b' : 'white',
                   border: `1px solid ${dm ? '#334155' : '#e2e8f0'}`,
-                  borderRadius: 10, padding: 6, minWidth: 200,
+                  borderRadius: 10, padding: 6, minWidth: 'min(200px, calc(100vw - 48px))',
                   boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
                   marginTop: 4,
                 }}>
@@ -361,7 +374,7 @@ export default function ReportDetailPage() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 20 }}>
         <div className="card">
           <Section title={report.bankId ? 'البنك' : 'نوع التثمين'} icon={<Building2 size={20} />}>
             <Field label={report.bankId ? 'اسم البنك' : 'النوع'} value={report.bankId ? report.bankName : 'تثمين شخصي'} />
@@ -388,7 +401,7 @@ export default function ReportDetailPage() {
           {isLand ? (
             <>
               <Section title="بيانات القطعة" icon={<LandPlot size={20} />}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12 }}>
                   <Field label="المحافظة" value={pd.governorate} />
                   <Field label="الولاية" value={pd.wilayat} />
                   <Field label="المنطقة" value={pd.village} />
@@ -406,7 +419,7 @@ export default function ReportDetailPage() {
                 </div>
               </Section>
               <Section title="وصف الأرض" icon={<MapPin size={20} />}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12 }}>
                   <Field label="مطابقة الكروكي" value={krookiMatchLabels[pd.krookiMatch || ''] || pd.krookiMatch} />
                   <Field label="طبوغرافية الأرض" value={topographyLabels[pd.topography || ''] || pd.topography} />
                   <Field label="جودة المحيط" value={qualityLabels[pd.qualityOfSurrounding || ''] || pd.qualityOfSurrounding} />
@@ -421,7 +434,7 @@ export default function ReportDetailPage() {
                 {(pd.surroundingNorth || pd.surroundingEast || pd.surroundingSouth || pd.surroundingWest) && (
                   <div style={{ marginTop: 12 }}>
                     <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 6 }}>الجوار المحيط:</div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 4 }}>
                       {pd.surroundingNorth && <span style={{ fontSize: 13 }}>شمال: <strong>{pd.surroundingNorth}</strong></span>}
                       {pd.surroundingEast && <span style={{ fontSize: 13 }}>شرق: <strong>{pd.surroundingEast}</strong></span>}
                       {pd.surroundingSouth && <span style={{ fontSize: 13 }}>جنوب: <strong>{pd.surroundingSouth}</strong></span>}
@@ -435,7 +448,7 @@ export default function ReportDetailPage() {
           ) : isApartment && apt ? (
             <>
               <Section title="بيانات التوثيق" icon={<LandPlot size={20} />}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12 }}>
                   <Field label="المحافظة" value={pd.governorate} />
                   <Field label="الولاية" value={pd.wilayat} />
                   <Field label="المنطقة" value={pd.village} />
@@ -459,7 +472,7 @@ export default function ReportDetailPage() {
                 </div>
               </Section>
               <Section title="وصف الموقع" icon={<MapPin size={20} />}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12 }}>
                   <Field label="مطابقة الكروكي" value={krookiMatchLabels[pd.krookiMatch || ''] || pd.krookiMatch} />
                   <Field label="طبوغرافية الأرض" value={topographyLabels[pd.topography || ''] || pd.topography} />
                   <Field label="جودة المحيط" value={qualityLabels[pd.qualityOfSurrounding || ''] || pd.qualityOfSurrounding} />
@@ -468,7 +481,7 @@ export default function ReportDetailPage() {
                 {(pd.surroundingNorth || pd.surroundingEast || pd.surroundingSouth || pd.surroundingWest) && (
                   <div style={{ marginTop: 12 }}>
                     <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 6 }}>الجوار المحيط:</div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 4 }}>
                       {pd.surroundingNorth && <span style={{ fontSize: 13 }}>شمال: <strong>{pd.surroundingNorth}</strong></span>}
                       {pd.surroundingEast && <span style={{ fontSize: 13 }}>شرق: <strong>{pd.surroundingEast}</strong></span>}
                       {pd.surroundingSouth && <span style={{ fontSize: 13 }}>جنوب: <strong>{pd.surroundingSouth}</strong></span>}
@@ -479,7 +492,7 @@ export default function ReportDetailPage() {
                 {pd.locationAccess && <Field label="الموقع والوصول" value={pd.locationAccess} />}
               </Section>
               <Section title="تفاصيل الشقة" icon={<Home size={20} />}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12 }}>
                   <Field label="رقم الشقة" value={apt.apartmentNo} />
                   <Field label="رقم المنزل" value={apt.houseNo} />
                   <Field label="تاريخ إتمام البناء" value={apt.completionDate} />
@@ -489,6 +502,7 @@ export default function ReportDetailPage() {
                 {apt.components.length > 0 && (
                   <div style={{ marginTop: 16 }}>
                     <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>مكونات الشقة</div>
+                    <div style={{ overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                       <thead>
                         <tr style={{ borderBottom: '2px solid var(--color-border)' }}>
@@ -507,11 +521,12 @@ export default function ReportDetailPage() {
                         ))}
                       </tbody>
                     </table>
+                    </div>
                   </div>
                 )}
               </Section>
               <Section title="المواصفات والتشطيبات" icon={<Info size={20} />}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12 }}>
                   <Field label="الأساس والهيكل" value={apt.foundationAndStructure} />
                   <Field label="الجدران" value={apt.walls} />
                   <Field label="السقف" value={apt.roof} />
@@ -521,6 +536,7 @@ export default function ReportDetailPage() {
                 {apt.internalFinishing.length > 0 && (
                   <div style={{ marginTop: 16 }}>
                     <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>التشطيبات الداخلية</div>
+                    <div style={{ overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                       <thead>
                         <tr style={{ borderBottom: '2px solid var(--color-border)' }}>
@@ -539,6 +555,7 @@ export default function ReportDetailPage() {
                         ))}
                       </tbody>
                     </table>
+                    </div>
                   </div>
                 )}
                 {apt.estimatedPerMonth && <Field label="الإيجار الشهري المتوقع" value={apt.estimatedPerMonth} />}
@@ -591,6 +608,7 @@ export default function ReportDetailPage() {
             <Field label="نسبة الثقة" value={`${report.valuation.confidencePercentage}%`} />
             <Field label="ملاحظات المقيم" value={report.valuation.appraiserNotes} />
             <Field label="التوصية" value={report.valuation.finalRecommendation} />
+            <Field label="أتعاب التثمين" value={formatCurrency(report.fees)} />
           </Section>
         </div>
 
@@ -598,19 +616,254 @@ export default function ReportDetailPage() {
           <Section title="المستندات" icon={<FileText size={20} />}>
             {report.documents.length === 0 ? (
               <p style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>لا توجد مستندات مرفقة</p>
-            ) : report.documents.map(doc => (
-              <div key={doc.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: dm ? 'var(--color-surface-alt)' : 'var(--color-surface)', borderRadius: 8, marginBottom: 8 }}>
-                <FileText size={18} color="var(--color-primary)" />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600 }}>{doc.name}</div>
-                  <div style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>{formatFileSize(doc.size)}</div>
-                </div>
-                {doc.url && doc.url !== '#' && (
-                  <a href={doc.url} download={doc.name} style={{ fontSize: 11, color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}>تحميل</a>
-                )}
-              </div>
-            ))}
+            ) : (() => {
+              const photos = report.documents.filter(d => d.type === 'photo');
+              const otherDocs = report.documents.filter(d => d.type !== 'photo');
+              const docTypeLabels: Record<string, string> = { ownership: 'وثيقة الملكية', map: 'مخطط كروكي', id: 'وثيقة هوية' };
+              const docTypeIcons: Record<string, React.ReactNode> = {
+                ownership: <Shield size={18} color="#3b82f6" />,
+                map: <MapPin size={18} color="#8b5cf6" />,
+                id: <User size={18} color="#f59e0b" />,
+              };
+              return (
+                <>
+                  {/* Photo Gallery */}
+                  {photos.length > 0 && (
+                    <div style={{ marginBottom: otherDocs.length > 0 ? 20 : 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                        <Camera size={16} color="var(--color-primary)" />
+                        <span style={{ fontSize: 14, fontWeight: 700 }}>صور العقار</span>
+                        <span style={{
+                          fontSize: 11, fontWeight: 700, background: 'var(--color-primary)', color: 'white',
+                          borderRadius: 20, padding: '2px 10px', marginRight: 4,
+                        }}>{photos.length}</span>
+                      </div>
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(2, 1fr)',
+                        gap: 8,
+                      }}>
+                        {photos.map((photo, idx) => (
+                          <div
+                            key={photo.id}
+                            onClick={() => setLightboxIndex(idx)}
+                            style={{
+                              position: 'relative',
+                              aspectRatio: '4/3',
+                              borderRadius: 10,
+                              overflow: 'hidden',
+                              cursor: 'pointer',
+                              border: `1.5px solid ${dm ? '#334155' : '#e2e8f0'}`,
+                              background: dm ? '#1e293b' : '#f1f5f9',
+                            }}
+                          >
+                            <img
+                              src={photo.url}
+                              alt={photo.name}
+                              style={{
+                                width: '100%', height: '100%', objectFit: 'cover',
+                                transition: 'transform 0.25s ease',
+                              }}
+                              onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.06)'; }}
+                              onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
+                            />
+                            <div style={{
+                              position: 'absolute', bottom: 0, left: 0, right: 0,
+                              background: 'linear-gradient(transparent, rgba(0,0,0,0.55))',
+                              padding: '24px 10px 8px',
+                              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                            }}>
+                              <span style={{ fontSize: 11, color: '#fff', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '70%' }}>{photo.name}</span>
+                              <Eye size={14} color="#fff" style={{ opacity: 0.85 }} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Other Documents — rendered as image previews */}
+                  {otherDocs.length > 0 && (
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                        <FileText size={16} color="var(--color-primary)" />
+                        <span style={{ fontSize: 14, fontWeight: 700 }}>المستندات</span>
+                        <span style={{
+                          fontSize: 11, fontWeight: 700, background: '#8b5cf6', color: 'white',
+                          borderRadius: 20, padding: '2px 10px', marginRight: 4,
+                        }}>{otherDocs.length}</span>
+                      </div>
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+                        gap: 12,
+                      }}>
+                        {otherDocs.map(doc => {
+                          const isImage = doc.url && doc.url.startsWith('data:image');
+                          return (
+                            <div key={doc.id} style={{
+                              borderRadius: 12, overflow: 'hidden',
+                              border: `1.5px solid ${dm ? '#334155' : '#e2e8f0'}`,
+                              background: dm ? 'var(--color-surface-alt)' : 'var(--color-surface)',
+                            }}>
+                              {isImage ? (
+                                <div
+                                  onClick={() => {
+                                    const allImages = [...photos.map(p => p.url), ...otherDocs.filter(d => d.url?.startsWith('data:image')).map(d => d.url!)];
+                                    const globalIdx = photos.length + otherDocs.filter(d => d.url?.startsWith('data:image')).indexOf(doc as any);
+                                    setLightboxIndex(globalIdx >= photos.length ? null : globalIdx);
+                                    // For otherDocs images, open in new tab as fallback
+                                    window.open(doc.url, '_blank');
+                                  }}
+                                  style={{ cursor: 'pointer', position: 'relative' }}
+                                >
+                                  <img
+                                    src={doc.url}
+                                    alt={doc.name}
+                                    style={{
+                                      width: '100%', aspectRatio: '4/3', objectFit: 'cover',
+                                      display: 'block',
+                                    }}
+                                  />
+                                  <div style={{
+                                    position: 'absolute', top: 8, right: 8,
+                                    background: 'rgba(0,0,0,0.6)', borderRadius: 8,
+                                    padding: '3px 10px', display: 'flex', alignItems: 'center', gap: 4,
+                                  }}>
+                                    {docTypeIcons[doc.type] || <FileText size={12} color="#fff" />}
+                                    <span style={{ fontSize: 10, color: '#fff', fontWeight: 600 }}>
+                                      {docTypeLabels[doc.type] || 'مستند'}
+                                    </span>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div style={{
+                                  height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  background: dm ? '#1e293b' : '#f1f5f9',
+                                }}>
+                                  <div style={{ textAlign: 'center' }}>
+                                    {docTypeIcons[doc.type] || <FileText size={32} color="var(--color-text-muted)" />}
+                                    <p style={{ fontSize: 11, color: 'var(--color-text-muted)', margin: '6px 0 0' }}>
+                                      {docTypeLabels[doc.type] || 'مستند'}
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+                              <div style={{ padding: '10px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <div style={{ flex: 1, overflow: 'hidden' }}>
+                                  <div style={{ fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc.name}</div>
+                                  <div style={{ fontSize: 10, color: 'var(--color-text-muted)' }}>{formatFileSize(doc.size)}</div>
+                                </div>
+                                {doc.url && doc.url !== '#' && (
+                                  <a
+                                    href={doc.url}
+                                    download={doc.name}
+                                    style={{
+                                      display: 'flex', alignItems: 'center', gap: 3,
+                                      fontSize: 10, color: 'var(--color-primary)',
+                                      textDecoration: 'none', fontWeight: 600,
+                                      padding: '3px 8px', borderRadius: 5,
+                                      border: '1px solid var(--color-primary)',
+                                      flexShrink: 0,
+                                    }}
+                                  >
+                                    <Download size={10} /> تحميل
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </Section>
+
+          {/* Lightbox Modal */}
+          {lightboxIndex !== null && (() => {
+            const photos = report.documents.filter(d => d.type === 'photo');
+            const photo = photos[lightboxIndex];
+            if (!photo) return null;
+            return (
+              <div
+                style={{
+                  position: 'fixed', inset: 0, zIndex: 9999,
+                  background: 'rgba(0,0,0,0.88)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexDirection: 'column', padding: 16,
+                }}
+                onClick={() => setLightboxIndex(null)}
+              >
+                <div style={{
+                  position: 'absolute', top: 16, left: 16, right: 16,
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  zIndex: 1,
+                }} onClick={e => e.stopPropagation()}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <ImageIcon size={18} color="#fff" />
+                    <span style={{ color: '#fff', fontSize: 14, fontWeight: 600 }}>
+                      {photo.name}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setLightboxIndex(null)}
+                    style={{
+                      width: 36, height: 36, borderRadius: '50%',
+                      background: 'rgba(255,255,255,0.15)', border: 'none',
+                      color: '#fff', cursor: 'pointer', display: 'flex',
+                      alignItems: 'center', justifyContent: 'center',
+                      transition: 'background 0.15s',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.3)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)'; }}
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+                <img
+                  src={photo.url}
+                  alt={photo.name}
+                  style={{
+                    maxWidth: '90vw', maxHeight: '78vh',
+                    objectFit: 'contain', borderRadius: 8,
+                    boxShadow: '0 8px 40px rgba(0,0,0,0.4)',
+                  }}
+                  onClick={e => e.stopPropagation()}
+                />
+                {/* Navigation arrows */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 16 }} onClick={e => e.stopPropagation()}>
+                  <button
+                    onClick={() => setLightboxIndex(lightboxIndex > 0 ? lightboxIndex - 1 : photos.length - 1)}
+                    style={{
+                      width: 40, height: 40, borderRadius: '50%',
+                      background: 'rgba(255,255,255,0.15)', border: 'none',
+                      color: '#fff', cursor: 'pointer', display: 'flex',
+                      alignItems: 'center', justifyContent: 'center', fontSize: 20,
+                    }}
+                  >
+                    &#8250;
+                  </button>
+                  <span style={{ color: '#fff', fontSize: 13, fontWeight: 600, direction: 'ltr' }}>
+                    {lightboxIndex + 1} / {photos.length}
+                  </span>
+                  <button
+                    onClick={() => setLightboxIndex(lightboxIndex < photos.length - 1 ? lightboxIndex + 1 : 0)}
+                    style={{
+                      width: 40, height: 40, borderRadius: '50%',
+                      background: 'rgba(255,255,255,0.15)', border: 'none',
+                      color: '#fff', cursor: 'pointer', display: 'flex',
+                      alignItems: 'center', justifyContent: 'center', fontSize: 20,
+                    }}
+                  >
+                    &#8249;
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
 
           <Section title="سجل الحالة" icon={<History size={20} />}>
             <div style={{ borderRight: '2px solid var(--color-border)', paddingRight: 16 }}>

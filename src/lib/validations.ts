@@ -40,6 +40,10 @@ export const taskSchema = z.object({
   description: z.string().optional(),
   priority: z.enum(['low', 'medium', 'high']),
   dueDate: z.string().min(1, 'يرجى تحديد تاريخ الاستحقاق'),
+  assignedTo: z.string().optional(),
+  category: z.enum(['general', 'valuation', 'followup', 'administrative', 'field_visit', 'review']).optional(),
+  recurrence: z.enum(['none', 'daily', 'weekly', 'monthly']).optional(),
+  relatedReportId: z.string().optional(),
 });
 
 export type ValidationResult<T> = {

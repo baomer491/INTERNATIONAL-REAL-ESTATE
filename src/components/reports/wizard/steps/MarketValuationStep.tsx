@@ -1,13 +1,23 @@
 'use client';
 
 import React from 'react';
-import { DollarSign } from 'lucide-react';
+import { DollarSign, Receipt } from 'lucide-react';
 import WizardStepLayout from '../WizardStepLayout';
 import FormInput from '../FormInput';
 import FormSelect from '../FormSelect';
 import FormTextarea from '../FormTextarea';
 import { valuationMethods, riskLevels } from '@/data/mock';
 import MarketCompsPanel from '@/components/reports/MarketCompsPanel';
+import { store } from '@/lib/store';
+import type { PropertyType } from '@/types';
+
+function generateFeesOptions(range: { min: number; max: number }) {
+  const opts: { value: string; label: string }[] = [];
+  for (let v = range.min; v <= range.max; v += 5) {
+    opts.push({ value: String(v), label: `${v} ر.ع` });
+  }
+  return opts;
+}
 
 interface MarketValuationStepProps {
   data: {
@@ -16,6 +26,7 @@ interface MarketValuationStepProps {
     totalMarketValue: string;
     quickSaleValue: string;
     rentalValue: string;
+    valuationFees: string;
     confidencePercentage: string;
     valuationMethod: string;
     riskLevel: string;
@@ -42,6 +53,7 @@ export default function MarketValuationStep({ data, errors, onChange }: MarketVa
         <FormInput label="القيمة السوقية الإجمالية (ر.ع) *" value={data.totalMarketValue} onChange={(v) => onChange('totalMarketValue', v)} error={errors.totalMarketValue} type="number" />
         <FormInput label="قيمة البيع السريع (ر.ع)" value={data.quickSaleValue} onChange={(v) => onChange('quickSaleValue', v)} type="number" />
         <FormInput label="القيمة التأجيرية (ر.ع/شهر)" value={data.rentalValue} onChange={(v) => onChange('rentalValue', v)} type="number" />
+        <FormSelect label="أتعاب التثمين (ر.ع)" value={data.valuationFees} onChange={(v) => onChange('valuationFees', v)} options={generateFeesOptions(store.getSettings().feesRanges[data.propertyType as PropertyType] || { min: 50, max: 500 })} />
         <FormInput label="نسبة الثقة (%)" value={data.confidencePercentage} onChange={(v) => onChange('confidencePercentage', v)} type="number" />
         <FormSelect label="طريقة التقييم" value={data.valuationMethod} onChange={(v) => onChange('valuationMethod', v)} options={valuationMethods.map((m) => ({ value: m, label: m }))} />
         <FormSelect label="مستوى المخاطر" value={data.riskLevel} onChange={(v) => onChange('riskLevel', v)} options={riskLevels.map((r) => ({ value: r.value, label: r.label }))} />

@@ -170,7 +170,7 @@ export default function LoginPage() {
             background: dm
               ? 'linear-gradient(135deg, #0f2337, #1e3a5f, #1a4a7a)'
               : 'linear-gradient(135deg, #0f2337, #1e3a5f, #2d5a8e)',
-            padding: '52px 40px 44px', textAlign: 'center',
+            padding: '36px 24px', textAlign: 'center',
             position: 'relative', overflow: 'hidden',
           }}>
             {/* Decorative circles in header */}
@@ -187,7 +187,7 @@ export default function LoginPage() {
               src="/IRE-logopdf-trans.png"
               alt="مكتب العقارات الدولية"
               style={{
-                width: 190, height: 'auto',
+                width: 140, height: 'auto',
                 margin: '0 auto 16px', display: 'block',
                 filter: 'brightness(0) invert(1)',
                 position: 'relative', zIndex: 1,
@@ -208,7 +208,7 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} style={{ padding: '36px 40px' }}>
+          <form onSubmit={handleSubmit} style={{ padding: '28px 24px' }}>
             <h2 style={{
               fontSize: 20, fontWeight: 700, color: 'var(--color-text)',
               margin: '0 0 28px', textAlign: 'center',

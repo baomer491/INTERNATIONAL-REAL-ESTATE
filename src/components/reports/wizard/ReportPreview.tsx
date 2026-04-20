@@ -12,6 +12,7 @@ interface ReportPreviewProps {
   mapPreview: string;
   idPreview: string;
   photoPreview: string;
+  photoPreviews?: string[];
 }
 
 const enZoned: Record<string, string> = { residential: 'Residential', commercial: 'Commercial', industrial: 'Industrial', agricultural: 'Agricultural', mixed: 'Mixed Use' };
@@ -99,7 +100,7 @@ function fmtArea(v: string | undefined): string {
   return `${v} m²`;
 }
 
-export default function ReportPreview({ data, isLand, isApartment, ownershipPreview, mapPreview, idPreview, photoPreview }: ReportPreviewProps) {
+export default function ReportPreview({ data, isLand, isApartment, ownershipPreview, mapPreview, idPreview, photoPreview, photoPreviews }: ReportPreviewProps) {
   const { currentUser } = useApp();
   const settings = store.getSettings();
   const today = new Date().toLocaleDateString('en-GB');
@@ -156,6 +157,7 @@ export default function ReportPreview({ data, isLand, isApartment, ownershipPrev
         <tbody>
           <tr><td style={tdL}>Market Value</td><td style={td}>{isApartment ? 'Apartment' : 'Land'}</td><td style={{ ...td, fontWeight: 700 }}>{fmtCurrency(data.totalMarketValue)}</td></tr>
           <tr><td style={tdL}>Force Sale Value</td><td style={td}>{isApartment ? 'Apartment' : 'Land'}</td><td style={{ ...td, fontWeight: 700 }}>{fmtCurrency(data.quickSaleValue)}</td></tr>
+          <tr><td style={tdL}>Valuation Fees</td><td style={td} colSpan={2}><strong>{fmtCurrency(data.valuationFees)}</strong></td></tr>
           <tr><td style={tdL}>Valuation Method</td><td style={td} colSpan={2}>{valuationLabel}</td></tr>
           <tr><td style={tdL}>Risk Level</td><td style={td} colSpan={2}>{enRisk[data.riskLevel] || data.riskLevel || '—'}</td></tr>
           <tr><td style={tdL}>Confidence</td><td style={td} colSpan={2}>{data.confidencePercentage || '—'}%</td></tr>
@@ -338,6 +340,7 @@ export default function ReportPreview({ data, isLand, isApartment, ownershipPrev
         <tbody>
           <tr><td style={tdL}>Market Value</td><td style={td}>{isApartment ? 'Apartment' : 'Land'}</td><td style={{ ...td, fontWeight: 700 }}>{fmtCurrency(data.totalMarketValue)}</td></tr>
           <tr><td style={tdL}>Force Sale Value</td><td style={td}>{isApartment ? 'Apartment' : 'Land'}</td><td style={{ ...td, fontWeight: 700 }}>{fmtCurrency(data.quickSaleValue)}</td></tr>
+          <tr><td style={tdL}>Valuation Fees</td><td style={td} colSpan={2}><strong>{fmtCurrency(data.valuationFees)}</strong></td></tr>
         </tbody>
       </table>
       <table style={{ ...tbl, marginTop: 12 }}>
@@ -349,7 +352,7 @@ export default function ReportPreview({ data, isLand, isApartment, ownershipPrev
         </tbody>
       </table>
 
-      {/* PHOTOGRAPHS */}
+      {/* DOCUMENT PHOTOGRAPHS */}
       <h4 style={sec}>{isApartment ? 'EXTERNAL VIEWS OF THE PROPERTY' : 'PHOTOGRAPH OF THE PROPERTY'}</h4>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <tbody>
@@ -370,19 +373,51 @@ export default function ReportPreview({ data, isLand, isApartment, ownershipPrev
             </td>
             <td style={{ ...td, verticalAlign: 'top', padding: 8 }}>
               <p style={{ fontWeight: 700, margin: '0 0 6px', fontSize: 12 }}>{isApartment ? "Owner / Client ID's" : 'Location Satellite Photography'}</p>
-              {(isApartment ? idPreview : photoPreview) ? <img src={isApartment ? idPreview : photoPreview} alt="Property" style={imgS} /> : <div style={emptyS}>No file uploaded</div>}
+              {(() => {
+                const src = isApartment ? idPreview : (photoPreviews?.[0] || photoPreview);
+                return src ? <img src={src} alt="Property" style={imgS} /> : <div style={emptyS}>No file uploaded</div>;
+              })()}
             </td>
           </tr>
           {isApartment && (
             <tr>
               <td style={{ ...td, verticalAlign: 'top', padding: 8 }} colSpan={2}>
                 <p style={{ fontWeight: 700, margin: '0 0 6px', fontSize: 12 }}>Location Satellite Photography</p>
-                {photoPreview ? <img src={photoPreview} alt="Satellite" style={{ ...imgS, maxWidth: 400 }} /> : <div style={emptyS}>No file uploaded</div>}
+                {(photoPreviews?.[0] || photoPreview) ? <img src={photoPreviews?.[0] || photoPreview} alt="Satellite" style={{ ...imgS, maxWidth: 400 }} /> : <div style={emptyS}>No file uploaded</div>}
               </td>
             </tr>
           )}
         </tbody>
       </table>
+
+      {/* PHOTOGRAPHS OF THE PROPERTY */}
+      <h4 style={sec}>PHOTOGRAPHS OF THE PROPERTY</h4>
+      {(photoPreviews && photoPreviews.length > 0) ? (
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <tbody>
+            {Array.from({ length: Math.ceil(photoPreviews.length / 2) }, (_, rowIdx) => (
+              <tr key={rowIdx}>
+                {[0, 1].map(colIdx => {
+                  const photoIdx = rowIdx * 2 + colIdx;
+                  const src = photoPreviews[photoIdx];
+                  return (
+                    <td key={colIdx} style={{ ...td, width: '50%', verticalAlign: 'top', padding: 8 }}>
+                      {src ? (
+                        <>
+                          <p style={{ fontWeight: 700, margin: '0 0 6px', fontSize: 12 }}>Photo {photoIdx + 1}</p>
+                          <img src={src} alt={`Photo ${photoIdx + 1}`} style={imgS} />
+                        </>
+                      ) : null}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <div style={emptyS}>No photographs uploaded</div>
+      )}
     </div>
   );
 }

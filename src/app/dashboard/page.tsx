@@ -7,6 +7,8 @@ import { formatCurrency, formatRelative, getStatusInfo } from '@/lib/utils';
 import { useApp } from '@/components/layout/AppContext';
 import { checkPendingNotifications } from '@/lib/notification-checker';
 import { useTheme } from '@/hooks/useTheme';
+import { useRealtime } from '@/hooks/useRealtime';
+import { broadcastChange } from '@/lib/realtime-engine';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import {
   FileText, CheckCircle2, Clock, AlertCircle, Coins,
@@ -142,12 +144,12 @@ function SectionHeader({ icon, iconBg, title, subtitle, action }: {
    MAIN DASHBOARD PAGE
    ═══════════════════════════════════════════════════ */
 export default function DashboardPage() {
-  const { currentUser, hasPermission } = useApp();
+  const { currentUser, hasPermission, isMobile } = useApp();
   const { isDark } = useTheme();
   const dm = isDark;
 
-  const allReports = store.getReports();
-  const tasks = store.getTasks();
+  const { data: allReports } = useRealtime('reports', () => store.getReports());
+  const { data: tasks } = useRealtime('tasks', () => store.getTasks());
 
   useEffect(() => { checkPendingNotifications(); }, []);
 
@@ -214,14 +216,33 @@ export default function DashboardPage() {
     [statusCounts, colorMap]
   );
 
+  /* ─── Helper: calculate trend from monthly data ─── */
+  const getMonthlyTrend = useMemo(() => {
+    const now = new Date();
+    const thisMonth = displayReports.filter(r => {
+      const rd = new Date(r.createdAt);
+      return rd.getFullYear() === now.getFullYear() && rd.getMonth() === now.getMonth();
+    }).length;
+    const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonth = displayReports.filter(r => {
+      const rd = new Date(r.createdAt);
+      return rd.getFullYear() === lastMonthDate.getFullYear() && rd.getMonth() === lastMonthDate.getMonth();
+    }).length;
+    if (lastMonth === 0 && thisMonth === 0) return { reports: null, pct: '0%' };
+    if (lastMonth === 0) return { reports: `+${thisMonth}`, pct: '100%' };
+    const diff = thisMonth - lastMonth;
+    const pctChange = ((diff / lastMonth) * 100).toFixed(0);
+    return { reports: `${diff > 0 ? '+' : ''}${pctChange}%`, pct: `${diff > 0 ? '+' : ''}${pctChange}%` };
+  }, [displayReports]);
+
   /* ─── Stat Cards ─── */
   const statCards = useMemo(() => {
     if (isAdmin) {
       return [
-        { title: 'إجمالي التقارير', value: allReports.length, icon: <FileText size={22} />, color: dm ? '#60a5fa' : NAVY, bg: dm ? '#1e3a5f' : '#e8eef6', trend: '+12%', trendUp: true },
+        { title: 'إجمالي التقارير', value: allReports.length, icon: <FileText size={22} />, color: dm ? '#60a5fa' : NAVY, bg: dm ? '#1e3a5f' : '#e8eef6', trend: getMonthlyTrend.reports, trendUp: (getMonthlyTrend.reports?.startsWith('+') ?? false) },
         { title: 'بانتظار الاعتماد', value: pendingReviewAll, icon: <AlertCircle size={22} />, color: dm ? '#fbbf24' : '#b45309', bg: dm ? '#451a03' : '#fef3c7', trend: '', trendUp: false },
-        { title: 'المعاملات المنجزة', value: allReports.filter(r => r.status === 'approved').length, icon: <CheckCircle2 size={22} />, color: dm ? '#34d399' : '#15803d', bg: dm ? '#14532d' : '#dcfce7', trend: '+8%', trendUp: true },
-        { title: 'الأتعاب الكلية', value: formatCurrency(totalFees), icon: <Coins size={22} />, color: dm ? '#a78bfa' : '#7c3aed', bg: dm ? '#2e1065' : '#f3e8ff', trend: '+23%', trendUp: true },
+        { title: 'المعاملات المنجزة', value: allReports.filter(r => r.status === 'approved').length, icon: <CheckCircle2 size={22} />, color: dm ? '#34d399' : '#15803d', bg: dm ? '#14532d' : '#dcfce7', trend: totalReports > 0 ? `${((allReports.filter(r => r.status === 'approved').length / totalReports) * 100).toFixed(0)}%` : null, trendUp: true },
+        { title: 'الأتعاب الكلية', value: formatCurrency(totalFees), icon: <Coins size={22} />, color: dm ? '#a78bfa' : '#7c3aed', bg: dm ? '#2e1065' : '#f3e8ff', trend: totalFees > 0 ? `${formatCurrency(totalFees / totalReports)}` : null, trendUp: true },
       ];
     }
     if (isReviewer) {
@@ -264,7 +285,7 @@ export default function DashboardPage() {
     ? `${getGreeting()} — مرحباً بك في نظام التثمين العقاري`
     : `${getGreeting()} ${currentUser?.fullName?.split(' ')[0] || ''} — ${roleLabel}`;
 
-  const allNotifications = store.getNotifications();
+  const { data: allNotifications } = useRealtime('notifications', () => store.getNotifications());
   const unreadNotifications = allNotifications.filter(n => !n.isRead);
 
   /* ─── Chart Tooltip Style ─── */
@@ -301,7 +322,7 @@ export default function DashboardPage() {
           background: dm
             ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 40%, #334155 100%)'
             : `linear-gradient(135deg, ${NAVY} 0%, ${NAVY_LIGHT} 50%, #3a6fa0 100%)`,
-          borderRadius: 20, padding: '32px 28px', marginBottom: 24,
+          borderRadius: 20, padding: isMobile ? '20px 16px' : '32px 28px', marginBottom: 24,
           position: 'relative', overflow: 'hidden', color: 'white',
         }}
       >
@@ -530,7 +551,7 @@ export default function DashboardPage() {
       {/* ════════════════════════════════════════════
           CHART + STATUS DONUT
           ════════════════════════════════════════════ */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: 16, marginBottom: 24 }}>
+      <div style={{        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16, marginBottom: 24 }}>
 
         {/* Monthly Bar Chart (admin only) */}
         {isAdmin && (
@@ -575,7 +596,7 @@ export default function DashboardPage() {
 
           {/* Donut Chart */}
           {pieData.length > 0 ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20, flexWrap: 'wrap' }}>
               <div style={{ width: 140, height: 140, flexShrink: 0 }}>
                 <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                   <PieChart>
@@ -652,7 +673,7 @@ export default function DashboardPage() {
           RECENT REPORTS + SHORTCUTS & TASKS
           ════════════════════════════════════════════ */}
       <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
         gap: 16,
       }}>
 
@@ -709,8 +730,8 @@ export default function DashboardPage() {
                       <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 2, color: dm ? '#60a5fa' : NAVY }}>
                         {report.reportNumber}
                       </div>
-                      <div style={{ fontSize: 12, color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{report.beneficiaryName}</span>
+                      <div style={{ fontSize: 12, color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: '1 1 auto', minWidth: 0 }}>{report.beneficiaryName}</span>
                         <span style={{ width: 3, height: 3, borderRadius: '50%', background: 'var(--color-text-muted)', opacity: 0.4, display: 'inline-block' }} />
                         <span>{report.bankName}</span>
                       </div>

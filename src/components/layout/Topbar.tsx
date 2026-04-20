@@ -67,9 +67,9 @@ export default function Topbar() {
         borderBottom: '1px solid var(--color-border)',
         display: 'flex',
         alignItems: 'center',
-        padding: '0 24px',
+        padding: '0 16px',
         zIndex: 30,
-        gap: 16,
+        gap: 8,
         transition: 'right 0.3s ease',
       }}>
         {/* Menu toggle */}
@@ -106,11 +106,13 @@ export default function Topbar() {
           <span style={{ fontSize: 14, color: 'var(--color-text-muted)', flex: 1 }}>
             {searchQuery || 'ابحث في التقارير، المستفيدين، الموظفين...'}
           </span>
+          {!isMobile && (
           <kbd style={{
             fontSize: 10, color: 'var(--color-text-muted)', background: 'var(--color-surface-alt)',
             padding: '2px 6px', borderRadius: 4, fontFamily: 'monospace',
             border: '1px solid var(--color-border)',
           }}>⌘K</kbd>
+          )}
         </button>
 
         {/* Right section */}
@@ -139,17 +141,18 @@ export default function Topbar() {
           {/* User */}
           <div style={{
             display: 'flex', alignItems: 'center', gap: 10,
-            padding: '6px 12px', borderRadius: 8,
+            padding: isMobile ? '4px 6px' : '6px 12px', borderRadius: 8,
             border: '1px solid var(--color-border)',
           }}>
             <div style={{
-              width: 32, height: 32, borderRadius: '50%',
+              width: isMobile ? 28 : 32, height: isMobile ? 28 : 32, borderRadius: '50%',
               background: 'var(--color-primary)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: 'white',
             }}>
-              <User size={16} />
+              <User size={isMobile ? 14 : 16} />
             </div>
+            {!isMobile && (
             <div>
               <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>
                 {currentUser?.fullName || 'مستخدم'}
@@ -158,6 +161,7 @@ export default function Topbar() {
                 {roleLabel}
               </div>
             </div>
+            )}
           </div>
         </div>
       </header>
