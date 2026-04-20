@@ -156,10 +156,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAdd }: AddEmployee
         border: dm ? '1px solid var(--color-border)' : 'none',
         animation: 'slideInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
       }}>
-        {/* Success State - Show Generated Password */}
-
-          <>
-            {/* Header */}
+        {/* Header */}
             <div style={{
               padding: '24px 28px', borderBottom: '1px solid var(--color-border)',
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -552,7 +549,6 @@ export default function AddEmployeeModal({ isOpen, onClose, onAdd }: AddEmployee
                 )}
               </div>
             </div>
-          </>
       </div>
 
       <style dangerouslySetInnerHTML={{ __html: `
