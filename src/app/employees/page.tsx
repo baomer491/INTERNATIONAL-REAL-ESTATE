@@ -138,7 +138,7 @@ export default function EmployeesPage() {
     department: string;
     notes: string;
     permissions: string[];
-    tempPassword: string;
+    password: string;
   }) => {
     const emp: Employee = {
       id: 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -148,7 +148,7 @@ export default function EmployeesPage() {
         }),
       fullName: data.fullName,
       username: data.username,
-      password: data.tempPassword,
+      password: data.password,
       email: data.email,
       phone: data.phone,
       role: data.role,
@@ -164,6 +164,8 @@ export default function EmployeesPage() {
     };
     await store.addEmployee(emp);
     broadcastChange('employees');
+    setShowAdd(false);
+    showToast('تمت إضافة الموظف بنجاح', 'success');
   };
 
   const handleEdit = () => {
@@ -208,11 +210,15 @@ export default function EmployeesPage() {
     showToast('تم تحديث الصلاحيات', 'success');
   };
 
-  const handleDelete = (id: string) => {
-    store.deleteEmployee(id);
-    broadcastChange('employees');
-    setDeleteConfirm(null);
-    showToast('تم حذف الموظف', 'success');
+  const handleDelete = async (id: string) => {
+    try {
+      await store.deleteEmployee(id);
+      broadcastChange('employees');
+      setDeleteConfirm(null);
+      showToast('تم حذف الموظف', 'success');
+    } catch (err: any) {
+      showToast(err.message || 'فشل في حذف الموظف', 'error');
+    }
   };
 
   const handleToggleStatus = (emp: Employee) => {

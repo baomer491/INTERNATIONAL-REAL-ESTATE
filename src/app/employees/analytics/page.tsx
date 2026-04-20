@@ -385,7 +385,7 @@ export default function EmployeeAnalyticsPage() {
             <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)', fontSize: 14 }}>لا توجد تقارير في هذه الفترة</div>
           ) : (
             <div style={{ height: 280 }}>
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <BarChart data={monthlyProd} style={{ direction: 'ltr' }}>
                   <CartesianGrid strokeDasharray="3 3" stroke={dm ? 'var(--color-border)' : '#e2e8f0'} />
                   <XAxis dataKey="month" tick={{ fontSize: 12, fill: dm ? '#94a3b8' : '#64748b' }} />
@@ -409,7 +409,7 @@ export default function EmployeeAnalyticsPage() {
             <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)', fontSize: 14 }}>لا توجد أتعاب في هذه الفترة</div>
           ) : (
             <div style={{ height: 280 }}>
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <AreaChart data={feesArea} style={{ direction: 'ltr' }}>
                   <CartesianGrid strokeDasharray="3 3" stroke={dm ? 'var(--color-border)' : '#e2e8f0'} />
                   <XAxis dataKey="month" tick={{ fontSize: 12, fill: dm ? '#94a3b8' : '#64748b' }} />
@@ -439,7 +439,7 @@ export default function EmployeeAnalyticsPage() {
             <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)', fontSize: 14 }}>لا توجد سجلات دخول في هذه الفترة</div>
           ) : (
             <div style={{ height: 280 }}>
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <LineChart data={loginActivity} style={{ direction: 'ltr' }}>
                   <CartesianGrid strokeDasharray="3 3" stroke={dm ? 'var(--color-border)' : '#e2e8f0'} />
                   <XAxis dataKey="date" tick={{ fontSize: 11, fill: dm ? '#94a3b8' : '#64748b' }} />
@@ -463,7 +463,7 @@ export default function EmployeeAnalyticsPage() {
             <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)', fontSize: 14 }}>لا توجد بيانات كافية</div>
           ) : (
             <div style={{ height: 280 }}>
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <LineChart data={monthlyAvgTime} style={{ direction: 'ltr' }}>
                   <CartesianGrid strokeDasharray="3 3" stroke={dm ? 'var(--color-border)' : '#e2e8f0'} />
                   <XAxis dataKey="month" tick={{ fontSize: 12, fill: dm ? '#94a3b8' : '#64748b' }} />
@@ -488,7 +488,7 @@ export default function EmployeeAnalyticsPage() {
             <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)', fontSize: 14 }}>لا توجد بيانات أداء كافية للمقارنة</div>
           ) : (
             <div style={{ height: 320 }}>
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <RadarChart data={radarData} style={{ direction: 'ltr' }}>
                   <PolarGrid stroke={dm ? 'var(--color-border)' : '#e2e8f0'} />
                   <PolarAngleAxis dataKey="metric" tick={{ fontSize: 12, fill: dm ? 'var(--color-text-secondary)' : '#475569' }} />
@@ -516,7 +516,7 @@ export default function EmployeeAnalyticsPage() {
           </h3>
           <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
             <div style={{ width: 200, height: 200, flexShrink: 0, position: 'relative' }}>
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <RechartsPie>
                   <Pie data={roleDist} cx="50%" cy="50%" outerRadius={90} innerRadius={55}
                     paddingAngle={4} dataKey="value" startAngle={90} endAngle={-270}

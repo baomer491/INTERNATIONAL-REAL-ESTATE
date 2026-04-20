@@ -76,6 +76,34 @@ export const employeesStore = {
   },
 
   deleteEmployee: async (id: string): Promise<void> => {
+    // Check for dependent tasks before deleting
+    const { data: dependentTasks, error: checkError } = await db
+      .from('tasks')
+      .select('id')
+      .eq('assigned_to', id)
+      .limit(1);
+    if (checkError) {
+      console.error('[store] deleteEmployee check error:', checkError.message);
+      throw new Error('فشل في التحقق من المهام المرتبطة');
+    }
+    if (dependentTasks && dependentTasks.length > 0) {
+      throw new Error('لا يمكن حذف الموظف — توجد مهام مسندة إليه');
+    }
+
+    // Also check tasks created by this employee
+    const { data: createdTasks, error: checkCreatedError } = await db
+      .from('tasks')
+      .select('id')
+      .eq('created_by', id)
+      .limit(1);
+    if (checkCreatedError) {
+      console.error('[store] deleteEmployee check created_by error:', checkCreatedError.message);
+      throw new Error('فشل في التحقق من المهام المرتبطة');
+    }
+    if (createdTasks && createdTasks.length > 0) {
+      throw new Error('لا يمكن حذف الموظف — توجد مهام أنشأها');
+    }
+
     const deleted = cache.employees.find(e => e.id === id);
     cache.employees = cache.employees.filter((e) => e.id !== id);
     const { error } = await db.from('employees').delete().eq('id', id);

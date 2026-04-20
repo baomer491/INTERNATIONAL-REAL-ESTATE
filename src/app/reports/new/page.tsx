@@ -596,7 +596,7 @@ function CreateReportWizardInner() {
         // Ensure beneficiary exists in DB
         const existingBeneficiary = store.getBeneficiary(report.beneficiaryId);
         if (!existingBeneficiary) {
-          store.addBeneficiary({
+          await store.addBeneficiary({
             id: report.beneficiaryId,
             fullName: report.beneficiaryName,
             civilId: report.beneficiaryCivilId,
@@ -628,7 +628,7 @@ function CreateReportWizardInner() {
     // Ensure beneficiary exists in DB before creating the report (FK constraint)
     const existingBen = store.getBeneficiary(report.beneficiaryId);
     if (!existingBen) {
-      store.addBeneficiary({
+      await store.addBeneficiary({
         id: report.beneficiaryId,
         fullName: report.beneficiaryName,
         civilId: report.beneficiaryCivilId,

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   X, User, Shield, CheckCircle2, ChevronRight, ChevronLeft,
-  AlertCircle, Users, Building2, Copy, Eye, EyeOff, Lock
+  AlertCircle, Users, Building2, Eye, EyeOff
 } from 'lucide-react';
 import type { EmployeeRole, Permission } from '@/types';
 import { EMPLOYEE_ROLES, PERMISSIONS, ROLE_DEFAULT_PERMISSIONS } from '@/types';
@@ -11,19 +11,17 @@ import { useTheme } from '@/hooks/useTheme';
 
 const DEPARTMENTS = ['الإدارة العامة', 'قسم التثمين', 'قسم المراجعة', 'قسم إدخال البيانات', 'المبيعات'];
 
-function generateTempPassword(): string {
-  const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-  const lower = 'abcdefghjkmnpqrstuvwxyz';
-  const nums = '23456789';
-  const specials = '@#$%&*';
-  const all = upper + lower + nums + specials;
-  let password = '';
-  password += upper[Math.floor(Math.random() * upper.length)];
-  password += lower[Math.floor(Math.random() * lower.length)];
-  password += nums[Math.floor(Math.random() * nums.length)];
-  password += specials[Math.floor(Math.random() * specials.length)];
-  for (let i = 0; i < 4; i++) password += all[Math.floor(Math.random() * all.length)];
-  return password.split('').sort(() => Math.random() - 0.5).join('');
+function getPasswordStrength(password: string): { label: string; color: string; score: number } {
+  let score = 0;
+  if (password.length >= 6) score++;
+  if (password.length >= 8) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/[a-z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+  if (score <= 2) return { label: 'ضعيفة', color: '#ef4444', score };
+  if (score <= 4) return { label: 'متوسطة', color: '#f59e0b', score };
+  return { label: 'قوية', color: '#22c55e', score };
 }
 
 interface AddEmployeeModalProps {
@@ -38,7 +36,7 @@ interface AddEmployeeModalProps {
     department: string;
     notes: string;
     permissions: string[];
-    tempPassword: string;
+    password: string;
   }) => void;
 }
 
@@ -51,15 +49,14 @@ export default function AddEmployeeModal({ isOpen, onClose, onAdd }: AddEmployee
   const { isDark } = useTheme();
   const [currentStep, setCurrentStep] = useState(1);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [generatedPassword, setGeneratedPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [copied, setCopied] = useState(false);
 
   const [form, setForm] = useState({
     fullName: '',
     username: '',
     email: '',
     phone: '',
+    password: '',
     role: 'appraiser' as EmployeeRole,
     department: '',
     notes: '',
@@ -70,14 +67,13 @@ export default function AddEmployeeModal({ isOpen, onClose, onAdd }: AddEmployee
     if (isOpen) {
       setCurrentStep(1);
       setErrors({});
-      setGeneratedPassword('');
       setShowPassword(false);
-      setCopied(false);
       setForm({
         fullName: '',
         username: '',
         email: '',
         phone: '',
+        password: '',
         role: 'appraiser',
         department: '',
         notes: '',
@@ -102,6 +98,8 @@ export default function AddEmployeeModal({ isOpen, onClose, onAdd }: AddEmployee
       if (!form.email.trim()) newErrors.email = 'البريد الإلكتروني مطلوب';
       else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) newErrors.email = 'بريد إلكتروني غير صحيح';
       if (!form.username.trim()) newErrors.username = 'اسم المستخدم مطلوب';
+      if (!form.password) newErrors.password = 'كلمة المرور مطلوبة';
+      else if (form.password.length < 6) newErrors.password = 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
     }
 
     setErrors(newErrors);
@@ -119,15 +117,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAdd }: AddEmployee
   };
 
   const handleSubmit = () => {
-    const tempPassword = generateTempPassword();
-    setGeneratedPassword(tempPassword);
-    onAdd({ ...form, tempPassword });
-  };
-
-  const handleCopyPassword = () => {
-    navigator.clipboard.writeText(generatedPassword);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    onAdd({ ...form, password: form.password });
   };
 
   const handleRoleChange = (role: EmployeeRole) => {
@@ -167,83 +157,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onAdd }: AddEmployee
         animation: 'slideInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
       }}>
         {/* Success State - Show Generated Password */}
-        {generatedPassword ? (
-          <div style={{ padding: 32, textAlign: 'center' }}>
-            <div style={{
-              width: 80, height: 80, borderRadius: '50%',
-              background: 'linear-gradient(135deg, #22c55e, #16a34a)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              margin: '0 auto 20px'
-            }}>
-              <CheckCircle2 size={40} color="white" />
-            </div>
 
-            <h2 style={{ fontSize: 22, fontWeight: 800, margin: '0 0 8px', color: dm ? 'var(--color-primary)' : '#1e3a5f' }}>
-              تمت إضافة الموظف بنجاح
-            </h2>
-            <p style={{ fontSize: 14, color: txtSec, margin: '0 0 24px' }}>
-              {form.fullName} — {roleInfo?.label}
-            </p>
-
-            <div style={{
-              background: dm ? '#451a03' : '#fffbeb', border: `2px solid ${dm ? '#78350f' : '#fde68a'}`, borderRadius: 16,
-              padding: 20, marginBottom: 24
-            }}>
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, justifyContent: 'center'
-              }}>
-                <AlertCircle size={18} color={dm ? '#fbbf24' : '#b45309'} />
-                <span style={{ fontSize: 14, fontWeight: 700, color: dm ? '#fbbf24' : '#92400e' }}>
-                  كلمة المرور المؤقتة
-                </span>
-              </div>
-              <p style={{ fontSize: 12, color: dm ? '#fcd34d' : '#92400e', margin: '0 0 14px' }}>
-                  انسخ هذه الكلمة المرور وأرسلها للموظف. يجب عليه تغييرها عند أول تسجيل دخول.
-              </p>
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                background: surface, borderRadius: 12, padding: '14px 16px',
-                border: `2px solid ${border}`
-              }}>
-                <div style={{
-                  flex: 1, fontSize: 22, fontWeight: 800, fontFamily: 'monospace',
-                  direction: 'ltr', letterSpacing: 2, color: dm ? 'var(--color-primary)' : '#1e3a5f'
-                }}>
-                  {showPassword ? generatedPassword : '•'.repeat(generatedPassword.length)}
-                </div>
-                <button onClick={() => setShowPassword(!showPassword)} style={{
-                  background: 'none', border: 'none', cursor: 'pointer', color: txtSec, padding: 6
-                }}>
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
-                <button onClick={handleCopyPassword} style={{
-                  padding: '8px 16px', borderRadius: 8, border: 'none',
-                  background: copied ? '#22c55e' : 'var(--color-primary)', color: 'white',
-                  fontWeight: 600, fontSize: 13, cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'inherit'
-                }}>
-                  <Copy size={16} />
-                  {copied ? 'تم النسخ' : 'نسخ'}
-                </button>
-              </div>
-            </div>
-
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center',
-              marginBottom: 20, fontSize: 13, color: txtSec
-            }}>
-              <span>اسم المستخدم:</span>
-              <span style={{
-                fontFamily: 'monospace', fontWeight: 700, background: surfaceAlt,
-                padding: '4px 12px', borderRadius: 8, direction: 'ltr', color: dm ? 'var(--color-primary)' : '#1e3a5f'
-              }}>{form.username}</span>
-            </div>
-
-            <button onClick={onClose} className="btn btn-primary" style={{ width: '100%' }}>
-              تم
-            </button>
-          </div>
-        ) : (
           <>
             {/* Header */}
             <div style={{
@@ -379,14 +293,57 @@ export default function AddEmployeeModal({ isOpen, onClose, onAdd }: AddEmployee
                     )}
                   </div>
 
-                  <div style={{
-                    background: dm ? '#1e3a5f' : 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
-                    borderRadius: 12, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 10
-                  }}>
-                    <Lock size={18} color={dm ? '#60a5fa' : '#1e3a5f'} />
-                    <span style={{ fontSize: 13, fontWeight: 600, color: dm ? '#93c5fd' : '#1e40af' }}>
-                      سيتم توليد كلمة مرور مؤقتة تلقائياً بعد الإضافة
-                    </span>
+                  <div>
+                    <label style={{ fontSize: 13, fontWeight: 600, color: txt, marginBottom: 6, display: 'block' }}>
+                      كلمة المرور *
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={form.password}
+                        onChange={(e) => setForm(prev => ({ ...prev, password: e.target.value }))}
+                        placeholder="أدخل كلمة المرور"
+                        style={{
+                          width: '100%', padding: '12px 44px 12px 16px',
+                          border: `2px solid ${errors.password ? '#ef4444' : border}`,
+                          borderRadius: 12, fontSize: 14, fontFamily: 'inherit', direction: 'ltr',
+                          textAlign: 'right', outline: 'none', background: surface, color: 'var(--color-text)',
+                          transition: 'all 0.2s'
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        style={{
+                          position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)',
+                          background: 'none', border: 'none', cursor: 'pointer', color: txtSec, padding: 4
+                        }}
+                      >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                    {form.password && (
+                      <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div style={{
+                          flex: 1, height: 4, borderRadius: 2, background: dm ? 'var(--color-border)' : '#e5e7eb', overflow: 'hidden'
+                        }}>
+                          <div style={{
+                            height: '100%', borderRadius: 2,
+                            width: `${Math.min((getPasswordStrength(form.password).score / 6) * 100, 100)}%`,
+                            background: getPasswordStrength(form.password).color,
+                            transition: 'all 0.3s ease'
+                          }}></div>
+                        </div>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: getPasswordStrength(form.password).color, whiteSpace: 'nowrap' }}>
+                          {getPasswordStrength(form.password).label}
+                        </span>
+                      </div>
+                    )}
+                    {errors.password && (
+                      <span style={{ fontSize: 12, color: '#ef4444', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <AlertCircle size={14} /> {errors.password}
+                      </span>
+                    )}
                   </div>
 
                   <div>
@@ -596,7 +553,6 @@ export default function AddEmployeeModal({ isOpen, onClose, onAdd }: AddEmployee
               </div>
             </div>
           </>
-        )}
       </div>
 
       <style dangerouslySetInnerHTML={{ __html: `
