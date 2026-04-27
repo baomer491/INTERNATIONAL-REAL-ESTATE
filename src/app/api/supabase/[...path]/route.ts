@@ -62,8 +62,10 @@ async function proxyRequest(
       if (val) headers.set(h, val);
     }
 
-    // Inject the real apikey from server env so the client doesn't need it at build time
-    const realAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    // Inject the real apikey from server env so the client doesn't need it at build time.
+    // Try SUPABASE_ANON_KEY first (server-only), then NEXT_PUBLIC_SUPABASE_ANON_KEY
+    const realAnonKey = process.env.SUPABASE_ANON_KEY
+      || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     if (realAnonKey) {
       headers.set('apikey', realAnonKey);
       // Also set/override Authorization if client sent one with a dummy key
