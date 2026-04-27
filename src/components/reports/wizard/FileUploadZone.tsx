@@ -91,7 +91,7 @@ export default function FileUploadZone({
           <div
             onClick={() => onPreview(preview, file?.type || '', file?.name || '', label)}
             style={{
-              height: 160,
+              height: 200,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -101,15 +101,15 @@ export default function FileUploadZone({
               cursor: 'pointer',
             }}
           >
-            <FileText size={36} color="var(--color-text-muted)" />
-            <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>{file?.name}</span>
+            <FileText size={40} color="var(--color-text-muted)" />
+            <span style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>{file?.name}</span>
           </div>
         ) : (
           <img
             src={preview}
             alt={label}
             onClick={() => onPreview(preview, file?.type || '', file?.name || '', label)}
-            style={{ width: '100%', height: 160, objectFit: 'cover', cursor: 'pointer' }}
+            style={{ width: '100%', height: 200, objectFit: 'cover', cursor: 'pointer' }}
           />
         )}
         <div

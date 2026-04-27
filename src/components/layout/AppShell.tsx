@@ -7,24 +7,37 @@ import { useApp } from './AppContext';
 import { ErrorBoundary } from '../ErrorBoundary';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
-  const { sidebarOpen, isMobile } = useApp();
+  const { sidebarOpen, sidebarCollapsed, isMobile } = useApp();
 
-  /* Desktop: sidebar pushes content. Mobile: sidebar overlays content. */
-  const contentMarginRight = (!isMobile && sidebarOpen) ? 'var(--sidebar-width)' : 0;
+  // Build the grid class based on sidebar state
+  let shellClass = 'app-shell';
+  if (!isMobile) {
+    if (sidebarCollapsed) {
+      shellClass += ' app-shell--sidebar-collapsed';
+    } else if (sidebarOpen) {
+      shellClass += ' app-shell--sidebar-open';
+    }
+  }
+
+  // On mobile, sidebar is an overlay — visibility controlled by sidebarOpen
+  const sidebarVisible = isMobile ? sidebarOpen : true;
 
   return (
-    <div style={{ minHeight: '100vh', overflowX: 'hidden' }}>
-      <Sidebar />
+    <div className={shellClass} style={{ background: 'var(--color-bg)' }}>
+      {/* Sidebar — grid area or overlay depending on breakpoint */}
+      <div className={`app-shell__sidebar ${sidebarVisible ? 'app-shell__sidebar--visible' : ''}`}>
+        <Sidebar />
+      </div>
+
+      {/* Topbar — always visible in grid */}
       <Topbar />
-      <main style={{
-        marginRight: contentMarginRight,
-        marginTop: 'var(--topbar-height)',
-        minHeight: 'calc(100vh - var(--topbar-height))',
-        padding: isMobile ? '16px' : '24px',
-        transition: 'margin-right 0.3s ease',
-      }}>
+
+      {/* Main content — scrollable area */}
+      <main className="app-shell__main">
         <ErrorBoundary>
-          {children}
+          <div className="animate-fade-in" style={{ maxWidth: 'var(--content-max-width)', margin: '0 auto' }}>
+            {children}
+          </div>
         </ErrorBoundary>
       </main>
     </div>

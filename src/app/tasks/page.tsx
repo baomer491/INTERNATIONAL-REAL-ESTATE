@@ -9,7 +9,7 @@ import { useRealtime } from '@/hooks/useRealtime';
 import { broadcastChange } from '@/lib/realtime-engine';
 import type { Task, TaskStatus, TaskPriority, TaskCategory, TaskRecurrence } from '@/types';
 import {
-  ListTodo, CheckCircle2, Clock, AlertTriangle, PlusCircle, X, Eye,
+  ListTodo, CheckCircle2, Clock, AlertTriangle, PlusCircle, X, Eye, RotateCcw,
   Search, Trash2, Edit3, Bell, Calendar, Filter,
   ChevronLeft, Zap, Users, Target, ArrowUpLeft, Sparkles,
   AlertCircle, CircleDot, LayoutGrid, List, FileText,
@@ -23,17 +23,19 @@ const priorityConfig: Record<string, { bg: string; color: string; label: string;
 };
 
 const statusConfig: Record<string, { label: string; color: string; bg: string; headerBg: string }> = {
-  pending: { label: 'قيد الانتظار', color: '#64748b', bg: 'var(--color-surface-alt)', headerBg: '#f1f5f9' },
-  in_progress: { label: 'قيد التنفيذ', color: '#3b82f6', bg: 'var(--color-info-bg, #dbeafe)', headerBg: '#dbeafe' },
-  completed: { label: 'مكتملة', color: '#22c55e', bg: 'var(--color-success-bg, #dcfce7)', headerBg: '#dcfce7' },
-  overdue: { label: 'متأخرة', color: '#ef4444', bg: 'var(--color-danger-bg, #fee2e2)', headerBg: '#fee2e2' },
+  pending: { label: 'قيد الانتظار', color: 'var(--color-text-secondary)', bg: 'var(--color-surface-alt)', headerBg: 'var(--color-surface-alt)' },
+  in_progress: { label: 'قيد التنفيذ', color: 'var(--color-info)', bg: 'var(--color-info-bg)', headerBg: 'var(--color-info-bg)' },
+  under_review: { label: 'تحت المراجعة', color: '#8b5cf6', bg: '#ede9fe', headerBg: '#ede9fe' },
+  completed: { label: 'مكتملة', color: 'var(--color-success)', bg: 'var(--color-success-bg)', headerBg: 'var(--color-success-bg)' },
+  overdue: { label: 'متأخرة', color: 'var(--color-danger)', bg: 'var(--color-danger-bg)', headerBg: 'var(--color-danger-bg)' },
 };
 
 const COLUMNS: { status: TaskStatus; label: string; color: string; icon: React.ReactNode }[] = [
-  { status: 'overdue', label: 'متأخرة', color: '#ef4444', icon: <AlertTriangle size={16} /> },
-  { status: 'pending', label: 'قيد الانتظار', color: '#64748b', icon: <Clock size={16} /> },
-  { status: 'in_progress', label: 'قيد التنفيذ', color: '#3b82f6', icon: <CircleDot size={16} /> },
-  { status: 'completed', label: 'مكتملة', color: '#22c55e', icon: <CheckCircle2 size={16} /> },
+  { status: 'overdue', label: 'متأخرة', color: 'var(--color-danger)', icon: <AlertTriangle size={16} /> },
+  { status: 'pending', label: 'قيد الانتظار', color: 'var(--color-text-secondary)', icon: <Clock size={16} /> },
+  { status: 'in_progress', label: 'قيد التنفيذ', color: 'var(--color-info)', icon: <CircleDot size={16} /> },
+  { status: 'under_review', label: 'تحت المراجعة', color: '#8b5cf6', icon: <Eye size={16} /> },
+  { status: 'completed', label: 'مكتملة', color: 'var(--color-success)', icon: <CheckCircle2 size={16} /> },
 ];
 
 function getTimeRemaining(dueDate: string): { text: string; color: string; days: number; urgency: 'overdue' | 'urgent' | 'soon' | 'normal' } {
@@ -65,7 +67,9 @@ export default function TasksPage() {
   const [editTask, setEditTask] = useState<Task | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [kanbanColumns, setKanbanColumns] = useState(4);
-  const [reminderShown, setReminderShown] = useState(false);
+  const [sortBy, setSortBy] = useState<'priority' | 'dueDate' | 'newest'>('priority');
+  const [showAssignedOnly, setShowAssignedOnly] = useState(false);
+  const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
   const [form, setForm] = useState<{
     title: string; description: string; priority: TaskPriority; dueDate: string;
     assignedTo: string; // employee UUID (empty = unassigned)
@@ -75,7 +79,8 @@ export default function TasksPage() {
 
   const employees = useMemo(() => store.getEmployees().filter(e => e.status === 'active' && e.role !== 'viewer'), []);
 
-  useEffect(() => { store.updateTaskStatuses(); refreshTasks(); }, []);
+  // Overdue is now computed dynamically in store getters
+  useEffect(() => { refreshTasks(); }, []);
 
   useEffect(() => {
     const mobile = window.matchMedia('(max-width: 767px)');
@@ -93,41 +98,77 @@ export default function TasksPage() {
     return () => { mobile.removeEventListener('change', update); tablet.removeEventListener('change', update); desktop.removeEventListener('change', update); };
   }, []);
 
+  // Smart reminder: toast when new overdue or today tasks appear
   useEffect(() => {
-    if (reminderShown) return;
     const overdue = tasks.filter(t => t.status === 'overdue');
     const today = tasks.filter(t => {
       const due = new Date(t.dueDate);
       return due.toDateString() === new Date().toDateString() && t.status !== 'completed';
     });
     if (overdue.length > 0 || today.length > 0) {
-      setReminderShown(true);
-      showToast(`لديك ${overdue.length} مهمة متأخرة و ${today.length} مهمة اليوم`, 'warning');
+      const msg = overdue.length > 0 && today.length > 0
+        ? `لديك ${overdue.length} مهمة متأخرة و ${today.length} مهمة اليوم`
+        : overdue.length > 0 ? `لديك ${overdue.length} مهمة متأخرة` : `لديك ${today.length} مهمة اليوم`;
+      showToast(msg, 'warning');
     }
-  }, [tasks, reminderShown, showToast]);
+  }, [tasks, showToast]);
 
   const filtered = useMemo(() => {
-    return tasks.filter(t => {
+    let result = tasks.filter(t => {
       if (search && !t.title.toLowerCase().includes(search.toLowerCase()) && !t.description.toLowerCase().includes(search.toLowerCase())) return false;
       if (filterPriority && t.priority !== filterPriority) return false;
+      if (showAssignedOnly && currentUser?.id && t.assignedTo !== currentUser.id) return false;
       return true;
     });
-  }, [tasks, search, filterPriority]);
+    const priorityOrder = { high: 0, medium: 1, low: 2 };
+    result = [...result].sort((a, b) => {
+      if (sortBy === 'priority') {
+        const priDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
+        if (priDiff !== 0) return priDiff;
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      }
+      if (sortBy === 'dueDate') return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+    return result;
+  }, [tasks, search, filterPriority, sortBy, showAssignedOnly, currentUser?.id]);
 
-  function generateUUID(): string {
-    const buf = new Uint8Array(16);
-    crypto.getRandomValues(buf);
-    buf[6] = (buf[6] & 0x0f) | 0x40; // version 4
-    buf[8] = (buf[8] & 0x3f) | 0x80; // variant 10
-    return Array.from(buf, b => b.toString(16).padStart(2, '0')).join('');
-  }
+  // UUID generation now handled in store
 
   const handleComplete = async (id: string) => {
     try {
       await store.completeTask(id);
       broadcastChange('tasks');
       showToast('تم إكمال المهمة', 'success');
-    } catch (err) { showToast('خطأ في إكمال المهمة', 'error'); }
+    } catch (err: any) { showToast(err?.message || 'خطأ في إكمال المهمة', 'error'); }
+  };
+  const handleStartTask = async (id: string) => {
+    try {
+      await store.startTask(id);
+      broadcastChange('tasks');
+      showToast('تم بدء المهمة', 'success');
+    } catch (err: any) { showToast(err?.message || 'خطأ في بدء المهمة', 'error'); }
+  };
+  const handleSubmitForReview = async (id: string) => {
+    try {
+      await store.submitTaskForReview(id);
+      broadcastChange('tasks');
+      showToast('تم تقديم المهمة للمراجعة', 'success');
+    } catch (err: any) { showToast(err?.message || 'خطأ في تقديم المهمة', 'error'); }
+  };
+  const handleReopen = async (id: string) => {
+    try {
+      await store.reopenTask(id);
+      broadcastChange('tasks');
+      showToast('تم إعادة فتح المهمة', 'success');
+    } catch (err: any) { showToast(err?.message || 'خطأ في إعادة فتح المهمة', 'error'); }
+  };
+  const handleQuickUpdate = async (id: string, data: Partial<typeof tasks[0]>) => {
+    try {
+      await store.updateTask(id, data);
+      broadcastChange('tasks');
+      showToast('تم التحديث', 'success');
+    } catch (err: any) { showToast(err?.message || 'خطأ في التحديث', 'error'); }
   };
   const handleDelete = async (id: string) => {
     try {
@@ -142,7 +183,7 @@ export default function TasksPage() {
     if (!form.title.trim()) return;
     const assignedEmp = form.assignedTo ? store.getEmployee(form.assignedTo) : undefined;
     const task: Task = {
-      id: generateUUID(),
+      id: crypto.randomUUID(),
       title: form.title,
       description: form.description,
       priority: form.priority,
@@ -222,7 +263,38 @@ export default function TasksPage() {
     { label: 'مكتملة', count: stats.completed, color: 'var(--color-success)', bg: 'var(--color-success-bg, #dcfce7)', icon: <CheckCircle2 size={18} /> },
   ], [stats]);
 
-  /* ─── Task Card ─── */
+  const handleDragStart = (e: React.DragEvent, taskId: string) => {
+    setDraggedTaskId(taskId);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', taskId);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = async (e: React.DragEvent, status: TaskStatus) => {
+    e.preventDefault();
+    const taskId = e.dataTransfer.getData('text/plain') || draggedTaskId;
+    if (!taskId) return;
+    setDraggedTaskId(null);
+    const task = tasks.find(t => t.id === taskId);
+    if (!task || task.status === status) return;
+    try {
+      if (status === 'in_progress') await store.startTask(taskId);
+      else if (status === 'under_review') await store.submitTaskForReview(taskId);
+      else if (status === 'completed') await store.completeTask(taskId);
+      else if (status === 'pending') await store.reopenTask(taskId);
+      else await store.updateTask(taskId, { status });
+      broadcastChange('tasks');
+      showToast('تم نقل المهمة', 'success');
+    } catch (err: any) {
+      showToast(err?.message || 'خطأ في نقل المهمة', 'error');
+    }
+  };
+
+    /* ─── Task Card ─── */
   const renderTaskCard = (task: Task, showStatusBadge: boolean = true) => {
     const pri = priorityConfig[task.priority];
     const st = statusConfig[task.status];
@@ -233,13 +305,13 @@ export default function TasksPage() {
     return (
       <div
         key={task.id}
+        draggable
+        onDragStart={(e) => handleDragStart(e, task.id)}
         className="dash-activity-row"
-        style={{
+        style={{ cursor: 'grab', opacity: draggedTaskId === task.id ? 0.5 : (isCompleted ? 0.6 : 1), 
           background: 'var(--color-surface)', borderRadius: 14, padding: '16px 18px',
           border: `1px solid ${isOverdue ? 'var(--color-danger)' : 'var(--color-border)'}`,
           borderRight: isOverdue ? '4px solid var(--color-danger)' : undefined,
-          opacity: isCompleted ? 0.6 : 1,
-          cursor: 'default',
           position: 'relative', overflow: 'hidden',
         }}
       >
@@ -328,30 +400,69 @@ export default function TasksPage() {
           </div>
 
           {/* Actions */}
-          {canManageTasks && (
-          <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+          <div style={{ display: 'flex', gap: 4, flexShrink: 0, flexWrap: 'wrap' }}>
+            {/* Status transitions */}
+            {task.status === 'pending' && (
+              <button onClick={() => handleStartTask(task.id)} style={{
+                padding: '6px 10px', borderRadius: 10, color: 'var(--color-info)', background: 'var(--color-info-bg)',
+                border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 600, fontFamily: 'inherit',
+                display: 'flex', alignItems: 'center', gap: 4,
+              }}>
+                <CircleDot size={13} /> بدء
+              </button>
+            )}
+            {task.status === 'in_progress' && (
+              <button onClick={() => handleSubmitForReview(task.id)} style={{
+                padding: '6px 10px', borderRadius: 10, color: '#8b5cf6', background: '#ede9fe',
+                border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 600, fontFamily: 'inherit',
+                display: 'flex', alignItems: 'center', gap: 4,
+              }}>
+                <Eye size={13} /> مراجعة
+              </button>
+            )}
+            {(task.status === 'under_review' || task.status === 'in_progress') && (
+              <button onClick={() => handleComplete(task.id)} style={{
+                padding: '6px 10px', borderRadius: 10, color: 'var(--color-success)', background: 'var(--color-success-bg)',
+                border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 600, fontFamily: 'inherit',
+                display: 'flex', alignItems: 'center', gap: 4,
+              }}>
+                <CheckCircle2 size={13} /> إكمال
+              </button>
+            )}
+            {task.status === 'completed' && (
+              <button onClick={() => handleReopen(task.id)} style={{
+                padding: '6px 10px', borderRadius: 10, color: 'var(--color-warning)', background: 'var(--color-warning-bg)',
+                border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 600, fontFamily: 'inherit',
+                display: 'flex', alignItems: 'center', gap: 4,
+              }}>
+                <RotateCcw size={13} /> إعادة فتح
+              </button>
+            )}
             {task.relatedReportId && (
               <Link href={`/reports/${task.relatedReportId}`} style={{
-                padding: 7, borderRadius: 8, color: 'var(--color-info)', background: 'var(--color-info-bg, #dbeafe)',
+                padding: 7, borderRadius: 8, color: 'var(--color-info)', background: 'var(--color-info-bg)',
                 display: 'flex', textDecoration: 'none', border: 'none', cursor: 'pointer',
               }}>
                 <Eye size={15} />
               </Link>
             )}
-            <button onClick={() => openEdit(task)} style={{
-              padding: 7, borderRadius: 8, color: 'var(--color-text-secondary)', background: 'var(--color-surface-alt)',
-              display: 'flex', border: 'none', cursor: 'pointer',
-            }}>
-              <Edit3 size={15} />
-            </button>
-            <button onClick={() => setDeleteConfirm(task.id)} style={{
-              padding: 7, borderRadius: 8, color: 'var(--color-danger)', background: 'var(--color-danger-bg, #fee2e2)',
-              display: 'flex', border: 'none', cursor: 'pointer',
-            }}>
-              <Trash2 size={15} />
-            </button>
+            {canManageTasks && (
+            <>
+              <button onClick={() => openEdit(task)} style={{
+                padding: 7, borderRadius: 8, color: 'var(--color-text-secondary)', background: 'var(--color-surface-alt)',
+                display: 'flex', border: 'none', cursor: 'pointer',
+              }}>
+                <Edit3 size={15} />
+              </button>
+              <button onClick={() => setDeleteConfirm(task.id)} style={{
+                padding: 7, borderRadius: 8, color: 'var(--color-danger)', background: 'var(--color-danger-bg)',
+                display: 'flex', border: 'none', cursor: 'pointer',
+              }}>
+                <Trash2 size={15} />
+              </button>
+            </>
+            )}
           </div>
-          )}
         </div>
       </div>
     );
@@ -404,7 +515,7 @@ export default function TasksPage() {
               <textarea value={form.description} onChange={(e) => setForm(p => ({ ...p, description: e.target.value }))}
                 placeholder="وصف تفصيلي للمهمة..." style={{ ...inputStyle, minHeight: 80, resize: 'vertical' }} />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12 }}>
               <div>
                 <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 6, color: 'var(--color-text)' }}>الأولوية</label>
                 <div style={{ display: 'flex', gap: 6 }}>
@@ -443,7 +554,7 @@ export default function TasksPage() {
                 ))}
               </select>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12 }}>
               <div>
                 <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 6, color: 'var(--color-text)' }}>التصنيف</label>
                 <select value={form.category} onChange={(e) => setForm(p => ({ ...p, category: e.target.value as TaskCategory }))}
@@ -663,6 +774,37 @@ export default function TasksPage() {
           ))}
         </div>
 
+        {/* Sort */}
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as 'priority' | 'dueDate' | 'newest')}
+          style={{
+            padding: '8px 12px', borderRadius: 10, border: '1px solid var(--color-border)',
+            background: 'var(--color-surface-alt)', color: 'var(--color-text)',
+            fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer', outline: 'none',
+          }}
+        >
+          <option value="priority">الأولوية ↑</option>
+          <option value="dueDate">التاريخ ↑</option>
+          <option value="newest">الأحدث</option>
+        </select>
+
+        {/* Assigned to me toggle */}
+        <button
+          onClick={() => setShowAssignedOnly(!showAssignedOnly)}
+          style={{
+            padding: '8px 14px', borderRadius: 10,
+            border: `1.5px solid ${showAssignedOnly ? 'var(--color-primary)' : 'var(--color-border)'}`,
+            background: showAssignedOnly ? 'var(--color-info-bg)' : 'var(--color-surface)',
+            color: showAssignedOnly ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+            fontWeight: 600, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit',
+            display: 'flex', alignItems: 'center', gap: 5,
+          }}
+        >
+          <Users size={14} />
+          {showAssignedOnly ? 'مسندة لي فقط' : 'جميع المهام'}
+        </button>
+
         {/* View Toggle */}
         <div style={{
           display: 'flex', background: 'var(--color-surface-alt)', borderRadius: 10, overflow: 'hidden',
@@ -723,7 +865,11 @@ export default function TasksPage() {
                     {colTasks.length}
                   </span>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, minHeight: 200 }}>
+                <div
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, col.status)}
+                  style={{ display: 'flex', flexDirection: 'column', gap: 10, minHeight: 200, borderRadius: 10, padding: 4, transition: 'background 0.2s' }}
+                >
                   {colTasks.length === 0 ? (
                     <div style={{
                       textAlign: 'center', padding: '32px 16px', color: 'var(--color-text-muted)',

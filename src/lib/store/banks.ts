@@ -54,6 +54,17 @@ export const banksStore = {
     }
   },
 
+  deleteBank: async (id: string): Promise<void> => {
+    const removed = cache.banks.find(b => b.id === id);
+    cache.banks = cache.banks.filter(b => b.id !== id);
+    const { error } = await db.from('banks').delete().eq('id', id);
+    if (error) {
+      console.error('[store] deleteBank error:', error.message);
+      if (removed) cache.banks.push(removed);
+      throw new Error(error.message);
+    }
+  },
+
   refreshBanksFromDB: async (): Promise<void> => {
     try {
       const { data, error } = await db.from('banks').select('*');

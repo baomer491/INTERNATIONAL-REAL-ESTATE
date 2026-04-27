@@ -10,12 +10,13 @@ import { useApp } from '@/components/layout/AppContext';
 import { useTheme } from '@/hooks/useTheme';
 import { useRealtimeEntity } from '@/hooks/useRealtime';
 import { broadcastChange } from '@/lib/realtime-engine';
-import type { ReportStatus } from '@/types';
+import type { ReportStatus, Task } from '@/types';
 import { buildingMatchOptions } from '@/data/mock';
 import {
   ArrowRight, Printer, Send, CheckCircle2, FileText, MapPin, DollarSign,
   User, Building2, Home, Calendar, History, LandPlot, Info, FileEdit, AlertTriangle,
-  Archive, ArchiveRestore, ChevronDown, Shield, Camera, Image as ImageIcon, X, Download, Eye
+  Archive, ArchiveRestore, ChevronDown, Shield, Camera, Image as ImageIcon, X, Download, Eye,
+  ClipboardList
 } from 'lucide-react';
 
 const topographyLabels: Record<string, string> = { leveled: 'مستوية', sloped: 'مائلة', elevated: 'مرتفعة', low_lying: 'منخفضة', mixed: 'ممزوجة' };
@@ -48,7 +49,14 @@ export default function ReportDetailPage() {
   );
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [relatedTasks, setRelatedTasks] = useState<Task[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (report) {
+      setRelatedTasks(store.getTasksByReportId(report.id));
+    }
+  }, [report]);
 
   const closeDropdown = useCallback(() => setStatusDropdownOpen(false), []);
 
@@ -300,8 +308,8 @@ export default function ReportDetailPage() {
               {statusDropdownOpen && (
                 <div style={{
                   position: 'absolute', top: '100%', left: 0, zIndex: 50,
-                  background: dm ? '#1e293b' : 'white',
-                  border: `1px solid ${dm ? '#334155' : '#e2e8f0'}`,
+                  background: 'var(--color-surface)',
+                  border: `1px solid ${'var(--color-border)'}`,
                   borderRadius: 10, padding: 6, minWidth: 'min(200px, calc(100vw - 48px))',
                   boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
                   marginTop: 4,
@@ -318,7 +326,7 @@ export default function ReportDetailPage() {
                           width: '100%', padding: '10px 14px', border: 'none',
                           background: isActive ? (dm ? '#334155' : '#f1f5f9') : 'transparent',
                           borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600,
-                          color: isActive ? (dm ? '#fbbf24' : '#1e3a5f') : (dm ? '#e2e8f0' : '#1e293b'),
+                          color: isActive ? (dm ? '#fbbf24' : '#1e3a5f') : ('var(--color-text)'),
                           transition: 'background 0.15s',
                         }}
                         onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = dm ? '#334155' : '#f8fafc'; }}
@@ -613,6 +621,65 @@ export default function ReportDetailPage() {
         </div>
 
         <div className="card">
+          <Section title="المهام المرتبطة" icon={<ClipboardList size={20} />}>
+            {relatedTasks.length === 0 ? (
+              <p style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>لا توجد مهام مرتبطة بهذا التقرير</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {relatedTasks.map(task => {
+                  const statusMap: Record<string, { label: string; color: string; bg: string }> = {
+                    pending: { label: 'قيد الانتظار', color: 'var(--color-text-secondary)', bg: 'var(--color-surface-alt)' },
+                    in_progress: { label: 'قيد التنفيذ', color: 'var(--color-info)', bg: 'var(--color-info-bg)' },
+                    under_review: { label: 'تحت المراجعة', color: '#8b5cf6', bg: '#ede9fe' },
+                    completed: { label: 'مكتملة', color: 'var(--color-success)', bg: 'var(--color-success-bg)' },
+                    overdue: { label: 'متأخرة', color: 'var(--color-danger)', bg: 'var(--color-danger-bg)' },
+                  };
+                  const st = statusMap[task.status] || statusMap.pending;
+                  return (
+                    <div key={task.id} style={{
+                      border: '1px solid var(--color-border)',
+                      borderRadius: 10,
+                      padding: '10px 12px',
+                      background: 'var(--color-surface-alt)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 6,
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                        <span style={{ fontSize: 13, fontWeight: 700 }}>{task.title}</span>
+                        <span style={{
+                          fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
+                          color: st.color, background: st.bg,
+                        }}>{st.label}</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 12, color: 'var(--color-text-muted)' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <User size={12} />
+                          {task.assignedName || 'غير مسند'}
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <Calendar size={12} />
+                          {formatDate(task.dueDate)}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <div style={{ marginTop: 14 }}>
+              <Link href="/tasks" style={{
+                fontSize: 13, fontWeight: 700, color: 'var(--color-primary)',
+                textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6,
+              }}>
+                <ClipboardList size={14} />
+                عرض جميع المهام
+              </Link>
+            </div>
+          </Section>
+        </div>
+
+        <div className="card">
           <Section title="المستندات" icon={<FileText size={20} />}>
             {report.documents.length === 0 ? (
               <p style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>لا توجد مستندات مرفقة</p>
@@ -640,7 +707,7 @@ export default function ReportDetailPage() {
                       </div>
                       <div style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(2, 1fr)',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
                         gap: 8,
                       }}>
                         {photos.map((photo, idx) => (
@@ -653,8 +720,8 @@ export default function ReportDetailPage() {
                               borderRadius: 10,
                               overflow: 'hidden',
                               cursor: 'pointer',
-                              border: `1.5px solid ${dm ? '#334155' : '#e2e8f0'}`,
-                              background: dm ? '#1e293b' : '#f1f5f9',
+                              border: `1.5px solid ${'var(--color-border)'}`,
+                              background: 'var(--color-surface-alt)',
                             }}
                           >
                             <img
@@ -703,7 +770,7 @@ export default function ReportDetailPage() {
                           return (
                             <div key={doc.id} style={{
                               borderRadius: 12, overflow: 'hidden',
-                              border: `1.5px solid ${dm ? '#334155' : '#e2e8f0'}`,
+                              border: `1.5px solid ${'var(--color-border)'}`,
                               background: dm ? 'var(--color-surface-alt)' : 'var(--color-surface)',
                             }}>
                               {isImage ? (
@@ -739,7 +806,7 @@ export default function ReportDetailPage() {
                               ) : (
                                 <div style={{
                                   height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                  background: dm ? '#1e293b' : '#f1f5f9',
+                                  background: 'var(--color-surface-alt)',
                                 }}>
                                   <div style={{ textAlign: 'center' }}>
                                     {docTypeIcons[doc.type] || <FileText size={32} color="var(--color-text-muted)" />}

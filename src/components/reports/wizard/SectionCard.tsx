@@ -11,14 +11,19 @@ interface SectionCardProps {
 
 export default function SectionCard({ title, titleIcon, children, className, style }: SectionCardProps) {
   return (
-    <div className={`wizard-section-card${className ? ` ${className}` : ''}`} style={style}>
+    <div
+      className={`wizard-section-card animate-fade-in${className ? ` ${className}` : ''}`}
+      style={style}
+    >
       {title && (
         <h3 className="wizard-section-title">
-          {titleIcon}
+          {titleIcon && <span style={{ display: 'inline-flex', color: 'var(--color-secondary)' }}>{titleIcon}</span>}
           {title}
         </h3>
       )}
-      {children}
+      <div className="stagger-children" style={{ direction: 'rtl', textAlign: 'right' }}>
+        {children}
+      </div>
     </div>
   );
 }

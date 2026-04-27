@@ -9,7 +9,7 @@ import {
 } from './shared';
 import {
   mapEmployeeRow, mapBankRow, mapBeneficiaryRow, mapReportRow,
-  mapNotificationRow, mapTaskRow, mapLoginLogRow, mapSettingsRow,
+  mapNotificationRow, mapTaskRow, mapLoginLogRow, mapSettingsRow, mapPreliminaryTemplateRow,
 } from './mappers';
 import { authStore, seedDefaultAdmin } from './auth';
 import { reportsStore } from './reports';
@@ -19,11 +19,13 @@ import { banksStore } from './banks';
 import { tasksStore } from './tasks';
 import { notificationsStore } from './notifications';
 import { settingsStore } from './settings';
+import { preliminaryStore } from './preliminary';
+import { preliminaryTemplateStore } from './preliminary-templates';
 
 /* ===== Initialize Store ===== */
 export async function initializeStore(): Promise<void> {
   try {
-    const [empRes, bankRes, benRes, repRes, notifRes, taskRes, logRes, settingsRes, draftsRes] = await Promise.all([
+    const [empRes, bankRes, benRes, repRes, notifRes, taskRes, logRes, settingsRes, draftsRes, tmplRes] = await Promise.all([
       db.from('employees').select('*'),
       db.from('banks').select('*'),
       db.from('beneficiaries').select('*'),
@@ -33,6 +35,7 @@ export async function initializeStore(): Promise<void> {
       db.from('login_logs').select('*').order('timestamp', { ascending: false }),
       db.from('app_settings').select('*').limit(1),
       db.from('drafts').select('*'),
+      db.from('preliminary_templates').select('*').order('created_at', { ascending: false }),
     ]);
 
     cache.employees = (empRes.data ?? []).map((r: Record<string, unknown>) => mapEmployeeRow(r));
@@ -61,6 +64,15 @@ export async function initializeStore(): Promise<void> {
       }
     }
     cache.drafts = draftsMap;
+
+    // Cache preliminary templates in the store module (not in shared cache)
+    if (tmplRes.data) {
+      const templates = (tmplRes.data ?? []).map((r: Record<string, unknown>) => mapPreliminaryTemplateRow(r));
+      // Update the module-level cache via a setter if needed, but for now we rely on the store's own cache
+      // The preliminaryTemplateStore maintains its own cache
+      // We'll force a refresh
+      await preliminaryTemplateStore.refreshFromDB();
+    }
 
   } catch (err) {
     console.error('[store] initializeStore error:', err);
@@ -91,6 +103,7 @@ export const store = {
   getActiveBanks: banksStore.getActiveBanks,
   addBank: banksStore.addBank,
   updateBank: banksStore.updateBank,
+  deleteBank: banksStore.deleteBank,
   toggleBank: banksStore.toggleBank,
   refreshBanksFromDB: banksStore.refreshBanksFromDB,
 
@@ -114,15 +127,36 @@ export const store = {
 
   /* ============================= Tasks ============================= */
   getTasks: tasksStore.getTasks,
+  getTasksByReportId: (reportId: string) => tasksStore.getTasksByReportId(reportId),
   refreshTasksFromDB: tasksStore.refreshTasksFromDB,
   getTasksForUser: (userId: string) => tasksStore.getTasksForUser(userId),
   getTodayTasks: (userId?: string) => tasksStore.getTodayTasks(userId, tasksStore.getTasksForUser),
   getTaskStats: (userId?: string) => tasksStore.getTaskStats(userId, tasksStore.getTasksForUser),
   addTask: (task: Parameters<typeof tasksStore.addTask>[0]) => tasksStore.addTask(task, store),
   updateTask: tasksStore.updateTask,
+  startTask: (id: string) => tasksStore.startTask(id, store),
+  submitTaskForReview: (id: string) => tasksStore.submitTaskForReview(id, store),
   completeTask: (id: string) => tasksStore.completeTask(id, store),
+  reopenTask: (id: string) => tasksStore.reopenTask(id, store),
+  addTaskComment: (taskId: string, text: string) => tasksStore.addTaskComment(taskId, text, store),
+  createAutoTask: (params: Parameters<typeof tasksStore.createAutoTask>[1]) => tasksStore.createAutoTask(store, params),
   updateTaskStatuses: tasksStore.updateTaskStatuses,
   deleteTask: tasksStore.deleteTask,
+
+  /* ============================= Preliminary Templates ============================= */
+  getPreliminaryTemplates: preliminaryTemplateStore.getAll,
+  addPreliminaryTemplate: preliminaryTemplateStore.add,
+  deletePreliminaryTemplate: preliminaryTemplateStore.delete,
+  getPreliminaryTemplateById: preliminaryTemplateStore.getById,
+  downloadPreliminaryTemplate: preliminaryTemplateStore.download,
+  refreshPreliminaryTemplatesFromDB: preliminaryTemplateStore.refreshFromDB,
+
+  /* ============================= Preliminary Valuations ============================= */
+  getPreliminaryValuations: preliminaryStore.getAll,
+  getPreliminaryValuation: preliminaryStore.getById,
+  addPreliminaryValuation: preliminaryStore.add,
+  updatePreliminaryValuation: preliminaryStore.update,
+  deletePreliminaryValuation: preliminaryStore.delete,
 
   /* ============================= Settings ============================= */
   getSettings: settingsStore.getSettings,

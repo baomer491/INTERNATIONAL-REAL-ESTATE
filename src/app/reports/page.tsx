@@ -74,9 +74,9 @@ export default function ReportsPage() {
 
   return (
     <div className="animate-fade-in">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 800, margin: '0 0 4px' }}>التقارير</h1>
+          <h1 style={{ fontSize: 28, fontWeight: 800, margin: '0 0 6px' }}>التقارير</h1>
           <p style={{ fontSize: 14, color: 'var(--color-text-muted)', margin: 0 }}>
             {filtered.length} تقرير
           </p>
@@ -90,34 +90,38 @@ export default function ReportsPage() {
       </div>
 
       {/* Filters */}
-      <div className="card" style={{ marginBottom: 20, padding: '16px 20px' }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
+      <div className="card" style={{ marginBottom: 28 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'center' }}>
           <div style={{ position: 'relative', flex: '1 1 100%', minWidth: 0 }}>
-            <Search size={16} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
+            <Search size={16} style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)', pointerEvents: 'none' }} />
             <input type="text" placeholder="بحث برقم التقرير أو اسم المستفيد..."
+              className="form-input"
               value={search} onChange={(e) => { setSearch(e.target.value); goToPage(1); }}
-              style={{ width: '100%', padding: '9px 36px 9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', direction: 'rtl' }} />
+              style={{ paddingRight: 40 }} />
           </div>
           <select value={filterBank} onChange={(e) => { setFilterBank(e.target.value); goToPage(1); }}
-            style={{ padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', appearance: 'none', minWidth: 120 }}>
+            className="form-select"
+            style={{ minWidth: 140, flex: '1 1 auto' }}>
             <option value="">كل البنوك</option>
             <option value="__personal__">تثمين شخصي</option>
             {banks.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
           </select>
           <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); goToPage(1); }}
-            style={{ padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', appearance: 'none', minWidth: 120 }}>
+            className="form-select"
+            style={{ minWidth: 140, flex: '1 1 auto' }}>
             <option value="">كل الحالات</option>
             {reportStatuses.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
           </select>
           <select value={filterPropertyType} onChange={(e) => { setFilterPropertyType(e.target.value); goToPage(1); }}
-            style={{ padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', appearance: 'none', minWidth: 120 }}>
+            className="form-select"
+            style={{ minWidth: 140, flex: '1 1 auto' }}>
             <option value="">كل الأنواع</option>
             {propertyTypes.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
           </select>
           {!isViewer && (
             <button onClick={() => { setShowMineOnly(!showMineOnly); goToPage(1); }}
               style={{
-                padding: '8px 16px', borderRadius: 8, border: `1.5px solid ${showMineOnly ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                padding: '8px 16px', borderRadius: 12, border: `1.5px solid ${showMineOnly ? 'var(--color-primary)' : 'var(--color-border)'}`,
                 background: showMineOnly ? 'var(--color-primary)' : 'var(--color-surface)',
                 color: showMineOnly ? 'white' : 'var(--color-text-secondary)',
                 fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6,
@@ -178,16 +182,16 @@ export default function ReportsPage() {
                     <td><span className={`badge badge-${status.color}`}>{status.label}</span></td>
                     <td style={{ fontWeight: 600 }}>{formatCurrency(report.fees)}</td>
                     <td>
-                      <div style={{ display: 'flex', gap: 4 }}>
-                        <Link href={`/reports/${report.id}`} title="عرض" style={{ padding: 6, borderRadius: 6, color: '#3b82f6', background: dm ? '#1e3a5f' : '#dbeafe', display: 'flex' }}><Eye size={16} /></Link>
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        <Link href={`/reports/${report.id}`} title="عرض" className="badge badge-blue" style={{ padding: '7px 10px', cursor: 'pointer', textDecoration: 'none' }}><Eye size={15} /></Link>
                         {(report.status === 'rejected' || report.status === 'needs_revision') && (
-                          <Link href={`/reports/new?edit=${report.id}`} title="تعديل" style={{ padding: 6, borderRadius: 6, color: '#d97706', background: dm ? '#451a03' : '#fef3c7', display: 'flex' }}><FileEdit size={16} /></Link>
+                          <Link href={`/reports/new?edit=${report.id}`} title="تعديل" className="badge badge-amber" style={{ padding: '7px 10px', cursor: 'pointer', textDecoration: 'none' }}><FileEdit size={15} /></Link>
                         )}
                         {hasPermission('reports_archive') && report.status === 'approved' && (
-                          <button onClick={() => setArchiveId(report.id)} title="أرشف" style={{ padding: 6, borderRadius: 6, color: '#7c3aed', background: dm ? '#2e1065' : '#f3e8ff', border: 'none', cursor: 'pointer', display: 'flex' }}><Archive size={16} /></button>
+                          <button onClick={() => setArchiveId(report.id)} title="أرشف" className="badge badge-purple" style={{ padding: '7px 10px', cursor: 'pointer', border: 'none', fontFamily: 'inherit' }}><Archive size={15} /></button>
                         )}
                         {hasPermission('reports_delete') && (
-                          <button onClick={() => setDeleteId(report.id)} title="حذف" style={{ padding: 6, borderRadius: 6, color: '#ef4444', background: dm ? '#450a0a' : '#fee2e2', border: 'none', cursor: 'pointer', display: 'flex' }}><Trash2 size={16} /></button>
+                          <button onClick={() => setDeleteId(report.id)} title="حذف" className="badge badge-red" style={{ padding: '7px 10px', cursor: 'pointer', border: 'none', fontFamily: 'inherit' }}><Trash2 size={15} /></button>
                         )}
                       </div>
                     </td>
@@ -204,7 +208,7 @@ export default function ReportsPage() {
             <span style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
               عرض {startIndex + 1} - {Math.min(endIndex, filtered.length)} من {filtered.length}
             </span>
-            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} hasNext={hasNext} hasPrev={hasPrev} isDark={dm} />
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} hasNext={hasNext} hasPrev={hasPrev} />
           </div>
         )}
       </div>
@@ -212,13 +216,13 @@ export default function ReportsPage() {
       {/* Delete Confirmation */}
       {deleteId && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 16 }}>
-          <div style={{ background: 'var(--color-surface)', borderRadius: 16, padding: 24, maxWidth: 400, width: '100%', textAlign: 'center', animation: 'slideInUp 0.3s', border: dm ? '1px solid var(--color-border)' : 'none' }}>
-            <div style={{ width: 64, height: 64, borderRadius: '50%', background: dm ? '#450a0a' : '#fee2e2', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+          <div style={{ background: 'var(--color-surface)', borderRadius: 20, padding: 24, maxWidth: 400, width: '100%', textAlign: 'center', animation: 'slideInUp 0.3s', border: dm ? '1px solid var(--color-border)' : 'none' }}>
+            <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--color-danger-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
               <Trash2 size={28} color="#ef4444" />
             </div>
             <h3 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 8px' }}>حذف التقرير؟</h3>
             <p style={{ fontSize: 14, color: 'var(--color-text-muted)', margin: '0 0 24px' }}>هل أنت متأكد من حذف هذا التقرير؟ لا يمكن التراجع.</p>
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+            <div style={{ display: 'flex', gap: 14, justifyContent: 'center' }}>
               <button onClick={() => setDeleteId(null)} className="btn btn-ghost">إلغاء</button>
               <button onClick={() => handleDelete(deleteId)} className="btn btn-danger">حذف</button>
             </div>
@@ -229,13 +233,13 @@ export default function ReportsPage() {
       {/* Archive Confirmation */}
       {archiveId && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 16 }}>
-          <div style={{ background: 'var(--color-surface)', borderRadius: 16, padding: 24, maxWidth: 400, width: '100%', textAlign: 'center', animation: 'slideInUp 0.3s', border: '1px solid var(--color-border)' }}>
-            <div style={{ width: 64, height: 64, borderRadius: '50%', background: dm ? '#2e1065' : '#f3e8ff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+          <div style={{ background: 'var(--color-surface)', borderRadius: 20, padding: 24, maxWidth: 400, width: '100%', textAlign: 'center', animation: 'slideInUp 0.3s', border: '1px solid var(--color-border)' }}>
+            <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--color-primary-50)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
               <Archive size={28} color="#7c3aed" />
             </div>
             <h3 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 8px', color: 'var(--color-text)' }}>أرشفة التقرير؟</h3>
             <p style={{ fontSize: 14, color: 'var(--color-text-muted)', margin: '0 0 24px' }}>سيتم نقل التقرير إلى الأرشيف ويمكنك استعادته لاحقاً.</p>
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+            <div style={{ display: 'flex', gap: 14, justifyContent: 'center' }}>
               <button onClick={() => setArchiveId(null)} className="btn btn-ghost">إلغاء</button>
               <button onClick={() => handleArchive(archiveId)} className="btn btn-primary">أرشف</button>
             </div>

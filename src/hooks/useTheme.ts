@@ -7,7 +7,20 @@ export function useTheme() {
 
   useEffect(() => {
     const apply = () => {
-      const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+      let theme: string | null = null;
+      if (typeof window !== 'undefined') {
+        const userId = localStorage.getItem('ireo_current_user_id');
+        if (userId) {
+          theme = localStorage.getItem('ireo_theme_' + userId);
+        }
+        if (!theme) {
+          try {
+            const settings = JSON.parse(localStorage.getItem('ireo_settings') || '{}');
+            theme = settings.theme || null;
+          } catch { /* ignore */ }
+        }
+      }
+      const dark = theme === 'dark' || document.documentElement.getAttribute('data-theme') === 'dark';
       setIsDark(dark);
     };
 

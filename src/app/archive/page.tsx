@@ -32,16 +32,16 @@ export default function ArchivePage() {
   return (
     <div className="animate-fade-in">
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 800, margin: '0 0 4px' }}>الأرشيف</h1>
+        <h1 style={{ fontSize: 28, fontWeight: 800, margin: '0 0 6px' }}>الأرشيف</h1>
         <p style={{ fontSize: 14, color: 'var(--color-text-muted)', margin: 0 }}>{filtered.length} تقرير مؤرشف</p>
       </div>
 
-      <div className="card" style={{ marginBottom: 20, padding: '16px 20px' }}>
+      <div className="card" style={{ marginBottom: 28 }}>
         <div style={{ position: 'relative' }}>
           <Search size={18} style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
           <input type="text" placeholder="بحث في الأرشيف..."
             value={search} onChange={(e) => setSearch(e.target.value)}
-            style={{ width: '100%', padding: '10px 40px 10px 14px', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 14, fontFamily: 'inherit', direction: 'rtl' }} />
+            style={{ width: '100%', padding: '10px 40px 10px 14px', border: '1px solid var(--color-border)', borderRadius: 24, fontSize: 14, fontFamily: 'inherit', direction: 'rtl' }} />
         </div>
       </div>
 
@@ -52,9 +52,9 @@ export default function ArchivePage() {
             <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-muted)' }}>لا توجد تقارير مؤرشفة</p>
           </div>
         ) : filtered.map(report => (
-          <div key={report.id} className="card" style={{ padding: '16px 20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-              <div style={{ width: 44, height: 44, borderRadius: 10, background: dm ? '#2e1065' : '#f3e8ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: dm ? '#a78bfa' : '#7c3aed' }}>
+          <div key={report.id} className="card">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
+              <div style={{ width: 44, height: 44, borderRadius: 24, background: 'var(--color-primary-50)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)' }}>
                 <FileText size={20} />
               </div>
               <div style={{ flex: 1, minWidth: 200 }}>

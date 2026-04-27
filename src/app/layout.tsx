@@ -26,9 +26,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           __html: `
             (function() {
               try {
-                var settings = JSON.parse(localStorage.getItem('ireo_settings') || '{}');
-                if (settings.theme === 'dark') {
-                  document.documentElement.setAttribute('data-theme', 'dark');
+                var userId = localStorage.getItem('ireo_current_user_id');
+                var theme = null;
+                if (userId) {
+                  theme = localStorage.getItem('ireo_theme_' + userId);
+                }
+                if (!theme) {
+                  var settings = JSON.parse(localStorage.getItem('ireo_settings') || '{}');
+                  theme = settings.theme;
+                }
+                if (theme === 'dark' || theme === 'sepia') {
+                  document.documentElement.setAttribute('data-theme', theme);
                 }
               } catch(e) {}
             })();

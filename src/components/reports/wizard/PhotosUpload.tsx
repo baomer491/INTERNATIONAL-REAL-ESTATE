@@ -62,8 +62,8 @@ export default function PhotosUpload({
       {photos.length > 0 && (
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-          gap: 10,
+          gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+          gap: 14,
         }}>
           {photos.map((photo, idx) => (
             <div
@@ -193,7 +193,7 @@ export default function PhotosUpload({
       {canAddMore && (
         <div
           className={`wizard-file-zone${dragActive ? ' drag-active' : ''}`}
-          style={{ minHeight: photos.length > 0 ? 80 : 120 }}
+          style={{ minHeight: photos.length > 0 ? 100 : 140 }}
           onDragOver={(e) => {
             e.preventDefault();
             setDragActive(true);

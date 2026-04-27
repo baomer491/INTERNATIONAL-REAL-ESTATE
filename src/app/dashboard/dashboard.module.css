@@ -1,0 +1,288 @@
+/* ─── Dashboard-Specific Styles ─── */
+/* Spacing, layout, and animation utilities for the dashboard page */
+
+/* ─── Skeleton Loading ─── */
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg,
+    var(--color-surface-alt) 25%,
+    var(--color-surface-hover) 37%,
+    var(--color-surface-alt) 63%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 12px;
+}
+
+.skeletonCard {
+  composes: skeleton;
+  border-radius: 20px;
+  padding: 26px 24px;
+  min-height: 140px;
+}
+
+.skeletonText {
+  composes: skeleton;
+  height: 16px;
+  margin-bottom: 10px;
+}
+
+.skeletonTextShort {
+  composes: skeletonText;
+  width: 60%;
+}
+
+.skeletonTextLong {
+  composes: skeletonText;
+  width: 85%;
+}
+
+.skeletonCircle {
+  composes: skeleton;
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+}
+
+.skeletonValue {
+  composes: skeleton;
+  height: 38px;
+  width: 50%;
+  margin-bottom: 6px;
+  border-radius: 8px;
+}
+
+/* ─── Hero Section ─── */
+.hero {
+  border-radius: 24px;
+  position: relative;
+  overflow: hidden;
+  color: white;
+  margin-bottom: var(--space-8);
+}
+
+.heroPattern {
+  position: absolute;
+  inset: 0;
+  opacity: 0.03;
+  background-image: repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(255,255,255,0.1) 40px, rgba(255,255,255,0.1) 41px),
+    repeating-linear-gradient(-45deg, transparent, transparent 40px, rgba(255,255,255,0.1) 40px, rgba(255,255,255,0.1) 41px);
+}
+
+/* ─── Stat Card ─── */
+.statCard {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  background: var(--color-surface);
+  transition: box-shadow 0.2s ease;
+}
+
+.statCard:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.statDeco {
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  opacity: 0.35;
+}
+
+/* ─── Activity Timeline ─── */
+.activityItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--color-border-light);
+  transition: background 0.15s;
+}
+
+.activityItem:last-child {
+  border-bottom: none;
+}
+
+.activityDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+
+/* ─── Task Item ─── */
+.taskItem {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  margin-bottom: 8px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.taskItem:hover {
+  background: var(--color-surface-hover);
+}
+
+/* ─── Section Header ─── */
+.sectionIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─── Shortcut Grid ─── */
+.shortcutItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 18px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  text-decoration: none;
+  color: inherit;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.shortcutItem:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.shortcutIconWrap {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─── Empty State ─── */
+.emptyState {
+  text-align: center;
+  padding: 40px 0;
+  color: var(--color-text-muted);
+}
+
+.emptyIcon {
+  margin-bottom: 12px;
+  opacity: 0.25;
+}
+
+/* ─── Trend Badge ─── */
+.trendBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 10px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ─── Report Row ─── */
+.reportRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--color-border-light);
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.15s;
+}
+
+.reportRow:last-child {
+  border-bottom: none;
+}
+
+.reportRow:hover {
+  background: var(--color-surface-alt);
+  margin: 0 -14px;
+  padding: 14px;
+  border-radius: 12px;
+}
+
+.reportIconWrap {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+/* ─── Link Button (gold accent) ─── */
+.linkBtn {
+  font-size: 13px;
+  text-decoration: none;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  border-radius: 10px;
+  transition: all 0.2s;
+}
+
+/* ─── Status Pill ─── */
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.15s;
+}
+
+.statusPill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.statusPillCount {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 768px) {
+  .hero {
+    padding: 24px 20px !important;
+  }
+  .statCard {
+    padding: 20px 18px;
+  }
+}

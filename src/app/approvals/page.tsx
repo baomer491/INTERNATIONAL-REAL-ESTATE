@@ -101,6 +101,22 @@ export default function ApprovalsPage() {
           priority: 'high',
           relatedReportId: selected.id,
         });
+        // Auto-create revision task for the appraiser
+        if (selected.appraiserId) {
+          try {
+            await store.createAutoTask({
+              title: `تعديل تقرير ${selected.reportNumber}`,
+              description: `تم إرجاع التقرير للتعديل من قبل ${currentUser?.fullName || 'المراجع'}${notes ? `: ${notes}` : ''}`,
+              category: 'valuation',
+              assignedTo: selected.appraiserId,
+              relatedReportId: selected.id,
+              relatedReportNumber: selected.reportNumber,
+              priority: 'high',
+            });
+          } catch (autoTaskErr) {
+            console.error('[approvals] Auto-task creation error (needs_revision):', autoTaskErr);
+          }
+        }
       }
       showToast(
         status === 'approved' ? 'تم اعتماد التقرير' : status === 'rejected' ? 'تم رفض التقرير' : 'تم إرجاع التقرير للمراجعة',
@@ -142,15 +158,15 @@ export default function ApprovalsPage() {
 
   return (
     <div className="animate-fade-in">
-      <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
+      <div style={{ marginBottom: 32, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 800, margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <h1 style={{ fontSize: 28, fontWeight: 800, margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 8 }}>
             الاعتمادات
             {pendingCount > 0 && (
               <span style={{
                 background: pendingPulse ? '#ef4444' : 'var(--color-primary)',
                 color: 'white', fontSize: 13, fontWeight: 700,
-                padding: '2px 10px', borderRadius: 12,
+                padding: '2px 10px', borderRadius: 16,
                 animation: pendingPulse ? 'pulse 1s ease-in-out 3' : 'none',
               }}>
                 {pendingCount} بانتظار
@@ -175,7 +191,7 @@ export default function ApprovalsPage() {
       `}} />
 
       {/* Filter tabs */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 12, marginBottom: 28, flexWrap: 'wrap' }}>
         {[
           { value: '', label: 'الكل', count: approvalReports.length },
           { value: 'pending_approval', label: 'بانتظار الاعتماد', count: approvalReports.filter(r => r.status === 'pending_approval').length },
@@ -185,7 +201,7 @@ export default function ApprovalsPage() {
         ].map(tab => (
           <button key={tab.value} onClick={() => setFilter(tab.value)}
             style={{
-              padding: '8px 16px', borderRadius: 8, border: 'none',
+              padding: '8px 16px', borderRadius: 12, border: 'none',
               background: filter === tab.value ? 'var(--color-primary)' : 'var(--color-surface-alt)',
               color: filter === tab.value ? 'white' : 'var(--color-text-secondary)',
               fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit',
@@ -194,7 +210,7 @@ export default function ApprovalsPage() {
             {tab.label}
             <span style={{
               background: filter === tab.value ? 'rgba(255,255,255,0.2)' : 'var(--color-border)',
-              padding: '2px 8px', borderRadius: 10, fontSize: 11,
+              padding: '2px 8px', borderRadius: 14, fontSize: 11,
             }}>
               {tab.count}
             </span>
@@ -206,7 +222,7 @@ export default function ApprovalsPage() {
         <div style={{ marginBottom: 20 }}>
           <button onClick={() => setShowMineOnly(!showMineOnly)}
             style={{
-              padding: '8px 16px', borderRadius: 8, border: `1.5px solid ${showMineOnly ? 'var(--color-primary)' : 'var(--color-border)'}`,
+              padding: '8px 16px', borderRadius: 12, border: `1.5px solid ${showMineOnly ? 'var(--color-primary)' : 'var(--color-border)'}`,
               background: showMineOnly ? 'var(--color-primary)' : 'var(--color-surface)',
               color: showMineOnly ? 'white' : 'var(--color-text-secondary)',
               fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
@@ -225,16 +241,16 @@ export default function ApprovalsPage() {
         ) : filtered.map(report => {
           const status = getStatusInfo(report.status);
           return (
-            <div key={report.id} className="card" style={{ padding: '16px 20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+            <div key={report.id} className="card">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
                 <div style={{
-                  width: 48, height: 48, borderRadius: 12, background: dm ? '#1e3a5f' : '#e8eef6',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: dm ? '#60a5fa' : '#1e3a5f',
+                  width: 48, height: 48, borderRadius: 16, background: 'var(--color-primary-50)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)',
                 }}>
                   <FileText size={22} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
                     <span style={{ fontSize: 16, fontWeight: 700 }}>{report.reportNumber}</span>
                     <span className={`badge badge-${status.color}`}>{status.label}</span>
                   </div>
@@ -292,7 +308,7 @@ export default function ApprovalsPage() {
         );
 
         const SectionH = ({ title, icon }: { title: string; icon: React.ReactNode }) => (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 0 8px', borderBottom: `2px solid var(--color-primary)`, marginBottom: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0 8px', borderBottom: `2px solid var(--color-primary)`, marginBottom: 8 }}>
             {icon}
             <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-primary)' }}>{title}</span>
           </div>
@@ -300,17 +316,18 @@ export default function ApprovalsPage() {
 
         return (
         <>
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', zIndex: 100, padding: '16px', overflowY: 'auto' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.78)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: 24, direction: 'rtl' }}>
           <div style={{
-            background: dm ? 'var(--color-surface)' : 'white', borderRadius: 16,
-            maxWidth: 900, width: '100%', margin: 'auto',
-            animation: 'slideInUp 0.3s', border: dm ? '1px solid var(--color-border)' : '1px solid #e2e8f0',
+            background: 'var(--color-surface)', borderRadius: 28,
+            maxWidth: 900, width: '100%', maxHeight: '94vh',
+            overflow: 'hidden', display: 'flex', flexDirection: 'column',
+            animation: 'slideInUp 0.3s', border: '1px solid var(--color-border)',
           }}>
             {/* Header bar */}
             <div style={{
               padding: '16px 24px', borderBottom: `1px solid ${dm ? 'var(--color-border)' : '#e2e8f0'}`,
               display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0,
-              background: dm ? 'var(--color-surface)' : 'white', borderRadius: '16px 16px 0 0', zIndex: 2,
+              background: 'var(--color-surface)', borderRadius: '16px 16px 0 0', zIndex: 2,
             }}>
               <div>
                 <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>مراجعة التقرير</h3>
@@ -323,7 +340,7 @@ export default function ApprovalsPage() {
             </div>
 
             {/* Scrollable content */}
-            <div style={{ padding: '20px 24px', maxHeight: 'calc(90vh - 180px)', overflowY: 'auto' }}>
+            <div style={{ padding: '20px 24px', flex: 1, overflowY: 'auto' }}>
 
               {/* ── Basic Info ── */}
               <SectionH title="معلومات التقرير" icon={<FileText size={18} color="var(--color-primary)" />} />
@@ -382,7 +399,7 @@ export default function ApprovalsPage() {
                     <F label="العائد على البيع/الإيجار" value={qualityLabels[pd.returnOnSaleRent || ''] || pd.returnOnSaleRent} />
                   </div>
                   {(pd.surroundingNorth || pd.surroundingEast || pd.surroundingSouth || pd.surroundingWest) && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 4, marginBottom: 16 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 4, marginBottom: 16 }}>
                       {pd.surroundingNorth && <F label="الشمال" value={pd.surroundingNorth} />}
                       {pd.surroundingEast && <F label="الشرق" value={pd.surroundingEast} />}
                       {pd.surroundingSouth && <F label="الجنوب" value={pd.surroundingSouth} />}
@@ -477,26 +494,26 @@ export default function ApprovalsPage() {
               <SectionH title="التقييم المالي" icon={<DollarSign size={18} color="var(--color-primary)" />} />
               <div style={{
                 display: 'grid', gridTemplateColumns: isLand ? '1fr 1fr' : 'repeat(auto-fill, minmax(160px, 1fr))',
-                gap: 8, marginBottom: 12,
+                gap: 12, marginBottom: 12,
               }}>
                 {!isLand && !isApartment && <F label="قيمة الأرض" value={formatCurrency(val.landValue)} />}
                 {!isLand && !isApartment && <F label="قيمة المبنى" value={formatCurrency(val.buildingValue)} />}
-                <div style={{ padding: '10px 12px', background: dm ? '#14532d22' : '#dcfce7', borderRadius: 8, border: '1px solid #22c55e40' }}>
+                <div style={{ padding: '10px 12px', background: dm ? '#14532d22' : '#dcfce7', borderRadius: 12, border: '1px solid #22c55e40' }}>
                   <span style={{ fontSize: 11, color: '#22c55e', fontWeight: 500, display: 'block' }}>القيمة السوقية</span>
                   <span style={{ fontSize: 18, fontWeight: 800, color: '#22c55e' }}>{formatCurrency(val.totalMarketValue)}</span>
                 </div>
-                <div style={{ padding: '10px 12px', background: dm ? '#451a0322' : '#fef3c7', borderRadius: 8, border: '1px solid #f59e0b40' }}>
+                <div style={{ padding: '10px 12px', background: dm ? '#451a0322' : '#fef3c7', borderRadius: 12, border: '1px solid #f59e0b40' }}>
                   <span style={{ fontSize: 11, color: '#f59e0b', fontWeight: 500, display: 'block' }}>قيمة البيع القسري</span>
                   <span style={{ fontSize: 18, fontWeight: 800, color: '#f59e0b' }}>{formatCurrency(val.quickSaleValue)}</span>
                 </div>
                 {val.rentalValue && (
-                  <div style={{ padding: '10px 12px', background: dm ? '#1e3a5f22' : '#e8eef6', borderRadius: 8, border: '1px solid #3b82f640' }}>
+                  <div style={{ padding: '10px 12px', background: dm ? '#1e3a5f22' : '#e8eef6', borderRadius: 12, border: '1px solid #3b82f640' }}>
                     <span style={{ fontSize: 11, color: 'var(--color-primary)', fontWeight: 500, display: 'block' }}>القيمة الإيجارية</span>
                     <span style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-primary)' }}>{formatCurrency(val.rentalValue)}/شهر</span>
                   </div>
                 )}
                 {apt?.estimatedPerMonth && (
-                  <div style={{ padding: '10px 12px', background: dm ? '#7c3aed22' : '#f3e8ff', borderRadius: 8, border: '1px solid #8b5cf640' }}>
+                  <div style={{ padding: '10px 12px', background: dm ? '#7c3aed22' : '#f3e8ff', borderRadius: 12, border: '1px solid #8b5cf640' }}>
                     <span style={{ fontSize: 11, color: '#8b5cf6', fontWeight: 500, display: 'block' }}>التقدير الشهري</span>
                     <span style={{ fontSize: 18, fontWeight: 800, color: '#8b5cf6' }}>{apt.estimatedPerMonth} OMR</span>
                   </div>
@@ -509,13 +526,13 @@ export default function ApprovalsPage() {
                 <F label="أتعاب التثمين" value={formatCurrency(selected.fees)} />
               </div>
               {val.appraiserNotes && (
-                <div style={{ padding: '10px 14px', background: dm ? 'var(--color-surface-alt)' : '#f8fafc', borderRadius: 8, marginBottom: 12, border: `1px solid ${dm ? 'var(--color-border)' : '#e2e8f0'}` }}>
+                <div style={{ padding: '10px 14px', background: 'var(--color-surface-alt)', borderRadius: 12, marginBottom: 12, border: `1px solid ${dm ? 'var(--color-border)' : '#e2e8f0'}` }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: 4 }}>ملاحظات المقيم</div>
                   <div style={{ fontSize: 13, lineHeight: 1.6 }}>{val.appraiserNotes}</div>
                 </div>
               )}
               {val.finalRecommendation && (
-                <div style={{ padding: '10px 14px', background: dm ? 'var(--color-surface-alt)' : '#f8fafc', borderRadius: 8, marginBottom: 16, border: `1px solid ${dm ? 'var(--color-border)' : '#e2e8f0'}` }}>
+                <div style={{ padding: '10px 14px', background: 'var(--color-surface-alt)', borderRadius: 12, marginBottom: 20, border: `1px solid ${dm ? 'var(--color-border)' : '#e2e8f0'}` }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: 4 }}>التوصية النهائية</div>
                   <div style={{ fontSize: 13, lineHeight: 1.6 }}>{val.finalRecommendation}</div>
                 </div>
@@ -535,8 +552,8 @@ export default function ApprovalsPage() {
                             return (
                               <div key={doc.id} style={{
                                 width: isImage ? 'calc(50% - 6px)' : 'auto', minWidth: isImage ? 200 : 160,
-                                borderRadius: 10, overflow: 'hidden',
-                                border: `1.5px solid ${dm ? '#334155' : '#e2e8f0'}`,
+                                borderRadius: 14, overflow: 'hidden',
+                                border: `1.5px solid ${'var(--color-border)'}`,
                                 background: dm ? 'var(--color-surface-alt)' : 'var(--color-surface)',
                               }}>
                                 {isImage ? (
@@ -564,7 +581,7 @@ export default function ApprovalsPage() {
                                     </div>
                                   </div>
                                 )}
-                                <div style={{ padding: '6px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: `1px solid ${dm ? '#334155' : '#e2e8f0'}` }}>
+                                <div style={{ padding: '6px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: `1px solid ${'var(--color-border)'}` }}>
                                   <span style={{ fontSize: 10, color: 'var(--color-text-muted)' }}>{formatFileSize(doc.size)}</span>
                                   {doc.url && doc.url !== '#' && (
                                     <a href={doc.url} download={doc.name} onClick={e => e.stopPropagation()} style={{ fontSize: 10, color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}>
@@ -585,12 +602,12 @@ export default function ApprovalsPage() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
                           <Camera size={14} color="var(--color-primary)" />
                           <span style={{ fontSize: 12, fontWeight: 700 }}>صور العقار</span>
-                          <span style={{ fontSize: 10, fontWeight: 700, background: 'var(--color-primary)', color: 'white', borderRadius: 10, padding: '1px 8px' }}>{photos.length}</span>
+                          <span style={{ fontSize: 10, fontWeight: 700, background: 'var(--color-primary)', color: 'white', borderRadius: 14, padding: '1px 8px' }}>{photos.length}</span>
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>
                           {photos.map((photo, idx) => (
                             <div key={photo.id} onClick={() => setLightboxIndex(idx)}
-                              style={{ position: 'relative', aspectRatio: '4/3', borderRadius: 8, overflow: 'hidden', cursor: 'pointer', border: `1px solid ${dm ? '#334155' : '#e2e8f0'}` }}>
+                              style={{ position: 'relative', aspectRatio: '4/3', borderRadius: 12, overflow: 'hidden', cursor: 'pointer', border: `1px solid ${'var(--color-border)'}` }}>
                               <img src={photo.url} alt={photo.name} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.2s' }}
                                 onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.05)'; }}
                                 onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }} />
@@ -608,16 +625,16 @@ export default function ApprovalsPage() {
 
               {/* ── Reviewer Actions ── */}
               <div style={{
-                marginTop: 8, padding: '16px', background: dm ? 'var(--color-surface-alt)' : '#f8fafc',
-                borderRadius: 12, border: `1px solid ${dm ? 'var(--color-border)' : '#e2e8f0'}`,
+                marginTop: 8, padding: '24px', background: 'var(--color-surface-alt)',
+                borderRadius: 16, border: `1px solid ${dm ? 'var(--color-border)' : '#e2e8f0'}`,
               }}>
                 <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
                   <MessageSquare size={15} /> قرار المراجع
                 </div>
                 <textarea value={notes} onChange={(e) => setNotes(e.target.value)}
-                  style={{ width: '100%', padding: 10, border: '1px solid var(--color-border)', borderRadius: 8, minHeight: 70, fontFamily: 'inherit', direction: 'rtl', fontSize: 13, marginBottom: 12, background: dm ? 'var(--color-surface)' : 'white', color: 'var(--color-text)', resize: 'vertical' }}
+                  style={{ width: '100%', padding: 10, border: '1px solid var(--color-border)', borderRadius: 12, minHeight: 70, fontFamily: 'inherit', direction: 'rtl', fontSize: 13, marginBottom: 12, background: 'var(--color-surface)', color: 'var(--color-text)', resize: 'vertical' }}
                   placeholder="أضف ملاحظاتك هنا..." />
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                   <button onClick={() => { setSelectedId(null); setLightboxIndex(null); }} className="btn btn-ghost" disabled={actionLoading}>إلغاء</button>
                   <button onClick={() => handleAction('needs_revision')} className="btn btn-outline" style={{ color: '#f59e0b', borderColor: '#f59e0b' }} disabled={actionLoading}>
                     <RotateCcw size={16} /> إعادة للمراجعة
@@ -679,13 +696,13 @@ export default function ApprovalsPage() {
                 alt={photo.name}
                 style={{
                   maxWidth: '90vw', maxHeight: '78vh',
-                  objectFit: 'contain', borderRadius: 8,
+                  objectFit: 'contain', borderRadius: 12,
                   boxShadow: '0 8px 40px rgba(0,0,0,0.4)',
                 }}
                 onClick={e => e.stopPropagation()}
               />
               {/* Navigation arrows */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 16 }} onClick={e => e.stopPropagation()}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginTop: 16 }} onClick={e => e.stopPropagation()}>
                 <button
                   onClick={() => setLightboxIndex(lightboxIndex > 0 ? lightboxIndex - 1 : photos.length - 1)}
                   style={{

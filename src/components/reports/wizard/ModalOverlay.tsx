@@ -11,7 +11,7 @@ interface ModalOverlayProps {
 export default function ModalOverlay({ children, onClose, wide }: ModalOverlayProps) {
   return (
     <div className="wizard-modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="wizard-modal-content" style={wide ? { maxWidth: 600 } : undefined}>
+      <div className="wizard-modal-content" style={wide ? { maxWidth: 720 } : undefined}>
         <button
           onClick={onClose}
           style={{

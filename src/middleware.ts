@@ -25,10 +25,10 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Check for session cookie
+  // Check for session cookie (set by server on login with httpOnly flag)
   const session = request.cookies.get('ireo_session');
 
-  if (!session || !session.value) {
+  if (!session || !session.value || session.value.trim() === '') {
     const loginUrl = new URL('/', request.url);
     return NextResponse.redirect(loginUrl);
   }

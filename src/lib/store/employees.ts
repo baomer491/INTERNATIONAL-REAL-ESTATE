@@ -104,6 +104,18 @@ export const employeesStore = {
       throw new Error('لا يمكن حذف الموظف — توجد مهام أنشأها');
     }
 
+    // Delete notifications targeting this employee (cascade)
+    const { error: notifDeleteError } = await db
+      .from('notifications')
+      .delete()
+      .eq('target_employee_id', id);
+    if (notifDeleteError) {
+      console.error('[store] deleteEmployee notifications cleanup error:', notifDeleteError.message);
+      throw new Error('فشل في حذف الإشعارات المرتبطة');
+    }
+    // Also update cache
+    cache.notifications = cache.notifications.filter(n => n.targetEmployeeId !== id);
+
     const deleted = cache.employees.find(e => e.id === id);
     cache.employees = cache.employees.filter((e) => e.id !== id);
     const { error } = await db.from('employees').delete().eq('id', id);

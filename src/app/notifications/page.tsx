@@ -73,14 +73,14 @@ export default function NotificationsPage() {
 
   return (
     <div className="animate-fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 32, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 800, margin: '0 0 4px' }}>التنبيهات</h1>
+          <h1 style={{ fontSize: 28, fontWeight: 800, margin: '0 0 6px' }}>التنبيهات</h1>
           <p style={{ fontSize: 14, color: 'var(--color-text-muted)', margin: 0 }}>
             {unread} تنبيه غير مقروء من أصل {notifications.length}
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           {unread > 0 && (
             <button onClick={markAll} className="btn btn-outline btn-sm">
               <CheckCheck size={16} /> تحديد الكل كمقروء
@@ -95,13 +95,13 @@ export default function NotificationsPage() {
       </div>
 
       {/* Filter Tabs */}
-      <div style={{ display: 'flex', gap: 6, marginBottom: 20, overflowX: 'auto', paddingBottom: 4 }}>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 28, overflowX: 'auto', paddingBottom: 4 }}>
         {tabs.map(tab => {
           const count = tab.value === 'all' ? filtered.length : filtered.filter(n => n.type === tab.value).length;
           const isActive = activeTab === tab.value;
           return (
             <button key={tab.value} onClick={() => setActiveTab(tab.value)} style={{
-              padding: '8px 18px', borderRadius: 8, border: 'none',
+              padding: '8px 18px', borderRadius: 24, border: 'none',
               background: isActive ? 'var(--color-primary)' : 'var(--color-surface-alt)',
               color: isActive ? 'white' : 'var(--color-text-secondary)',
               fontWeight: 600, fontSize: 13, fontFamily: 'inherit',
@@ -135,13 +135,13 @@ export default function NotificationsPage() {
               flexWrap: 'wrap',
             }}>
               <div style={{
-                width: 44, height: 44, borderRadius: 12, background: colors.bg,
+                width: 44, height: 44, borderRadius: 24, background: colors.bg,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', color: colors.color,
               }}>
                 {iconMap[n.type]}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 2 }}>
                   <span style={{ fontSize: 14, fontWeight: n.isRead ? 500 : 700 }}>{n.title}</span>
                   {n.priority === 'high' && <span className="badge badge-red" style={{ fontSize: 10, padding: '2px 8px' }}>عاجل</span>}
                 </div>

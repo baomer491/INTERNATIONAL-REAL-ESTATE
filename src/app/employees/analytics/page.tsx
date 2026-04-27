@@ -12,9 +12,10 @@ import {
   PieChart as RechartsPie, Pie, Cell,
 } from 'recharts';
 import {
-  TrendingUp, Users, Clock, Award, BarChart3, Activity,
-  FileText, CheckCircle2, Star, Zap, Calendar,
-  UserCheck, Target, Timer,
+  Clock, Award, BarChart3, Activity,
+  FileText, CheckCircle2, Star, Calendar,
+  UserCheck, Target, Timer, ChevronDown, Crown,
+  Sparkles, Shield,
 } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -31,11 +32,6 @@ function getAvatarColor(id: string): string {
 }
 
 const AR_MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-
-function getMonthLabel(dateStr: string): string {
-  const d = new Date(dateStr);
-  return AR_MONTHS[d.getMonth()] || '';
-}
 
 function getMonthKey(dateStr: string): string {
   const d = new Date(dateStr);
@@ -62,7 +58,17 @@ interface EmpPerf {
   monthlyFees: Record<string, number>;
 }
 
-/* ─── component ─── */
+/* ─── Premium Design Constants ─── */
+const GOLD = '#c9a96e';
+const GOLD_LIGHT = '#e0c080';
+const GOLD_BG = 'rgba(201,169,110,0.08)';
+const GOLD_BORDER = 'rgba(201,169,110,0.18)';
+const NAVY = '#0f1d33';
+const TEAL = '#4ecdc4';
+
+/* ─── Chart Color Palette ─── */
+const CHART_COLORS = [GOLD, '#4ecdc4', '#0f1d33', '#f43f5e', '#38bdf8', '#22c55e', '#7c3aed'];
+
 export default function EmployeeAnalyticsPage() {
   const { isDark } = useTheme();
   const dm = isDark;
@@ -73,72 +79,49 @@ export default function EmployeeAnalyticsPage() {
 
   const [selectedEmployee, setSelectedEmployee] = useState<string>('all');
   const [period, setPeriod] = useState<'week' | 'month' | 'quarter'>('month');
+  const [chartsOpen, setChartsOpen] = useState(true);
 
   const activeEmployees = allEmployees.filter(e => e.status === 'active');
   const periodStart = periodRange(period);
 
-  /* ─── filter reports by period ─── */
   const reportsInPeriod = useMemo(() =>
     allReports.filter(r => new Date(r.createdAt) >= periodStart),
     [allReports, periodStart]
   );
 
-  /* ─── compute performance from REAL reports ─── */
   const perfByEmployee = useMemo<EmpPerf[]>(() => {
     const map: Record<string, EmpPerf> = {};
-
-    // Initialize all employees
     activeEmployees.forEach(e => {
       map[e.id] = {
-        id: e.id,
-        name: e.fullName,
-        role: e.role,
-        reportsCreated: 0,
-        reportsApproved: 0,
-        totalFees: 0,
-        avgCompletionDays: 0,
-        total: 0,
-        monthlyReports: {},
-        monthlyApprovals: {},
-        monthlyFees: {},
+        id: e.id, name: e.fullName, role: e.role,
+        reportsCreated: 0, reportsApproved: 0, totalFees: 0,
+        avgCompletionDays: 0, total: 0,
+        monthlyReports: {}, monthlyApprovals: {}, monthlyFees: {},
       };
     });
-
     const completionDays: Record<string, number[]> = {};
-
     reportsInPeriod.forEach(r => {
       const mk = getMonthKey(r.createdAt);
-
-      // Reports created by appraiser
       if (r.appraiserId && map[r.appraiserId]) {
         const emp = map[r.appraiserId];
         emp.reportsCreated++;
         emp.monthlyReports[mk] = (emp.monthlyReports[mk] || 0) + 1;
         emp.totalFees += r.fees || 0;
         emp.monthlyFees[mk] = (emp.monthlyFees[mk] || 0) + (r.fees || 0);
-
-        // Track completion time for approved reports
         if (r.status === 'approved' && r.approval?.reviewedAt) {
-          const created = new Date(r.createdAt).getTime();
-          const reviewed = new Date(r.approval.reviewedAt).getTime();
-          const days = Math.max(0, (reviewed - created) / 86400000);
+          const days = Math.max(0, (new Date(r.approval.reviewedAt).getTime() - new Date(r.createdAt).getTime()) / 86400000);
           if (!completionDays[r.appraiserId]) completionDays[r.appraiserId] = [];
           completionDays[r.appraiserId].push(days);
         }
       }
-
-      // Reports approved by reviewer/admin (from approval.reviewedBy — stored as name)
       if (r.approval?.reviewedBy) {
-        const reviewerName = r.approval.reviewedBy;
-        const reviewer = Object.values(map).find(e => e.name === reviewerName);
+        const reviewer = Object.values(map).find(e => e.name === r.approval?.reviewedBy);
         if (reviewer) {
           reviewer.reportsApproved++;
           reviewer.monthlyApprovals[mk] = (reviewer.monthlyApprovals[mk] || 0) + 1;
         }
       }
     });
-
-    // Calculate averages
     Object.keys(map).forEach(id => {
       const emp = map[id];
       emp.total = emp.reportsCreated + emp.reportsApproved;
@@ -146,56 +129,44 @@ export default function EmployeeAnalyticsPage() {
         emp.avgCompletionDays = completionDays[id].reduce((a, b) => a + b, 0) / completionDays[id].length;
       }
     });
-
-    return Object.values(map)
-      .filter(e => e.total > 0)
-      .sort((a, b) => b.total - a.total);
+    return Object.values(map).filter(e => e.total > 0).sort((a, b) => b.total - a.total);
   }, [reportsInPeriod, activeEmployees]);
 
   const topPerformer = perfByEmployee[0];
 
-  /* ─── login stats ─── */
   const logsInPeriod = useMemo(() =>
     allLogs.filter(l => new Date(l.timestamp) >= periodStart),
     [allLogs, periodStart]
   );
 
   const totalLoginSessions = logsInPeriod.filter(l => l.action === 'login').length;
-  const avgSessionsPerEmployee = activeEmployees.length > 0
-    ? (totalLoginSessions / activeEmployees.length).toFixed(1) : '0';
+  const avgSessionsPerEmployee = activeEmployees.length > 0 ? (totalLoginSessions / activeEmployees.length).toFixed(1) : '0';
   const onlineNow = activeEmployees.filter(e => e.isActiveSession).length;
 
-  /* ─── monthly production chart ─── */
   const monthlyProd = useMemo(() => {
-    // Get unique month keys in period, sorted
     const monthKeys = new Set<string>();
     reportsInPeriod.forEach(r => monthKeys.add(getMonthKey(r.createdAt)));
     const sorted = Array.from(monthKeys).sort();
-
     return sorted.map(mk => {
-      const [y, m] = mk.split('-');
-      const monthLabel = AR_MONTHS[parseInt(m) - 1] || mk;
+      const m = parseInt(mk.split('-')[1]) - 1;
       const filtered = reportsInPeriod.filter(r => {
         if (selectedEmployee !== 'all' && r.appraiserId !== selectedEmployee) return false;
         return getMonthKey(r.createdAt) === mk;
       });
       return {
-        month: monthLabel,
+        month: AR_MONTHS[m] || mk,
         تقارير: filtered.filter(r => r.status !== 'draft').length,
         اعتمادات: filtered.filter(r => r.status === 'approved').length,
       };
     });
   }, [reportsInPeriod, selectedEmployee]);
 
-  /* ─── monthly avg completion time ─── */
   const monthlyAvgTime = useMemo(() => {
     const monthKeys = new Set<string>();
     reportsInPeriod.forEach(r => monthKeys.add(getMonthKey(r.createdAt)));
     const sorted = Array.from(monthKeys).sort();
-
     return sorted.map(mk => {
-      const [y, m] = mk.split('-');
-      const monthLabel = AR_MONTHS[parseInt(m) - 1] || mk;
+      const m = parseInt(mk.split('-')[1]) - 1;
       const filtered = reportsInPeriod.filter(r => {
         if (selectedEmployee !== 'all' && r.appraiserId !== selectedEmployee) return false;
         return r.status === 'approved' && r.approval?.reviewedAt && getMonthKey(r.createdAt) === mk;
@@ -204,18 +175,13 @@ export default function EmployeeAnalyticsPage() {
         ? +(filtered.reduce((s, r) => {
             const days = (new Date(r.approval!.reviewedAt!).getTime() - new Date(r.createdAt).getTime()) / 86400000;
             return s + Math.max(0, days);
-          }, 0) / filtered.length).toFixed(1)
-        : 0;
-      return { month: monthLabel, متوسط_الأيام: avg };
+          }, 0) / filtered.length).toFixed(1) : 0;
+      return { month: AR_MONTHS[m] || mk, متوسط_الأيام: avg };
     });
   }, [reportsInPeriod, selectedEmployee]);
 
-  /* ─── login activity chart ─── */
   const loginActivity = useMemo(() => {
-    const logs = selectedEmployee !== 'all'
-      ? logsInPeriod.filter(l => l.employeeId === selectedEmployee)
-      : logsInPeriod;
-
+    const logs = selectedEmployee !== 'all' ? logsInPeriod.filter(l => l.employeeId === selectedEmployee) : logsInPeriod;
     const days: Record<string, { date: string; logins: number; logouts: number }> = {};
     logs.forEach(l => {
       const d = new Date(l.timestamp).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' });
@@ -226,7 +192,6 @@ export default function EmployeeAnalyticsPage() {
     return Object.values(days).slice(-14);
   }, [logsInPeriod, selectedEmployee]);
 
-  /* ─── radar comparison (top 3) ─── */
   const radarData = useMemo(() => {
     const top3 = perfByEmployee.slice(0, 3);
     if (top3.length === 0) return [];
@@ -238,9 +203,6 @@ export default function EmployeeAnalyticsPage() {
     ];
   }, [perfByEmployee]);
 
-  const radarColors = ['#1e3a5f', '#b45309', '#7c3aed'];
-
-  /* ─── role distribution ─── */
   const roleDist = useMemo(() => {
     const counts: Record<string, number> = {};
     activeEmployees.forEach(e => { counts[e.role] = (counts[e.role] || 0) + 1; });
@@ -249,328 +211,805 @@ export default function EmployeeAnalyticsPage() {
     }));
   }, [activeEmployees]);
 
-  /* ─── fees area chart ─── */
   const feesArea = useMemo(() => {
     const monthKeys = new Set<string>();
     reportsInPeriod.forEach(r => monthKeys.add(getMonthKey(r.createdAt)));
     const sorted = Array.from(monthKeys).sort();
     const topEmps = perfByEmployee.filter(e => e.totalFees > 0).slice(0, 3);
-
     return sorted.map(mk => {
-      const [y, m] = mk.split('-');
-      const monthLabel = AR_MONTHS[parseInt(m) - 1] || mk;
-      const row: Record<string, any> = { month: monthLabel };
-      topEmps.forEach(e => {
-        row[e.name] = e.monthlyFees[mk] || 0;
-      });
+      const m = parseInt(mk.split('-')[1]) - 1;
+      const row: Record<string, any> = { month: AR_MONTHS[m] || mk };
+      topEmps.forEach(e => { row[e.name] = e.monthlyFees[mk] || 0; });
       return row;
     });
   }, [reportsInPeriod, perfByEmployee]);
 
-  const feesColors = ['#1e3a5f', '#b45309', '#0891b2'];
-
-  /* ─── selected employee detail ─── */
-  const selectedData = selectedEmployee !== 'all'
-    ? allEmployees.find(e => e.id === selectedEmployee)
-    : null;
-
+  const selectedData = selectedEmployee !== 'all' ? allEmployees.find(e => e.id === selectedEmployee) : null;
   const selectedPerf = perfByEmployee.find(e => e.id === selectedEmployee);
-  const selectedLogs = selectedEmployee !== 'all'
-    ? logsInPeriod.filter(l => l.employeeId === selectedEmployee)
-    : logsInPeriod;
+  const selectedLogs = selectedEmployee !== 'all' ? logsInPeriod.filter(l => l.employeeId === selectedEmployee) : logsInPeriod;
 
-  /* ─── KPI cards ─── */
+  const periodLabel = period === 'week' ? 'آخر أسبوع' : period === 'month' ? 'هذا الشهر' : 'هذا الربع';
+
+  /* ─── Reusable Components ─── */
+
+  const premiumCard: React.CSSProperties = {
+    background: 'var(--color-surface)',
+    border: `1px solid ${dm ? 'rgba(201,169,110,0.1)' : 'var(--color-border)'}`,
+    borderRadius: 20,
+    padding: '24px 28px',
+    boxShadow: dm ? '0 4px 20px rgba(0,0,0,0.3)' : 'var(--shadow-card)',
+    transition: 'all 0.3s ease',
+    position: 'relative',
+    overflow: 'hidden',
+  };
+
+  const sectionHeader = (icon: React.ReactNode, title: string, subtitle?: string, accent?: string) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+      <div style={{
+        width: 42, height: 42, borderRadius: 14,
+        background: accent
+          ? `${accent}15`
+          : dm ? 'rgba(201,169,110,0.12)' : 'rgba(201,169,110,0.1)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: accent || GOLD,
+        border: `1px solid ${accent ? accent + '20' : GOLD_BORDER}`,
+      }}>
+        {icon}
+      </div>
+      <div>
+        <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)', letterSpacing: '-0.01em' }}>{title}</div>
+        {subtitle && <div style={{ fontSize: 11, color: 'var(--color-text-muted)', fontWeight: 500, marginTop: 1 }}>{subtitle}</div>}
+      </div>
+    </div>
+  );
+
+  /* ─── KPI Definitions ─── */
   const kpiCards = [
-    { title: 'الموظفون النشطون', value: activeEmployees.length, icon: <UserCheck size={20} />, color: dm ? '#34d399' : '#15803d', bg: dm ? '#14532d' : '#dcfce7', sub: `من ${allEmployees.length} إجمالي` },
-    { title: 'متصل الآن', value: onlineNow, icon: <Activity size={20} />, color: dm ? '#22d3ee' : '#0891b2', bg: dm ? '#164e63' : '#cffafe', sub: activeEmployees.length > 0 ? `${((onlineNow / activeEmployees.length) * 100).toFixed(0)}% من النشطين` : '0%' },
-    { title: 'إجمالي الجلسات', value: totalLoginSessions, icon: <Calendar size={20} />, color: dm ? '#60a5fa' : '#1e3a5f', bg: dm ? '#1e3a5f' : '#e8eef6', sub: `${avgSessionsPerEmployee} لكل موظف` },
-    { title: 'أفضل أداء', value: topPerformer?.name || '—', icon: <Award size={20} />, color: dm ? '#fbbf24' : '#b45309', bg: dm ? '#451a03' : '#fef3c7', sub: topPerformer ? `${topPerformer.total} معاملة` : '' },
+    {
+      label: 'الموظفون النشطون',
+      value: activeEmployees.length,
+      total: allEmployees.length,
+      icon: <UserCheck size={21} />,
+      color: '#22c55e',
+      bg: dm ? 'rgba(34,197,94,0.1)' : 'rgba(34,197,94,0.08)',
+      period: `${periodLabel}`,
+    },
+    {
+      label: 'متصل الآن',
+      value: onlineNow,
+      icon: <Activity size={21} />,
+      color: '#38bdf8',
+      bg: dm ? 'rgba(56,189,248,0.1)' : 'rgba(56,189,248,0.08)',
+      period: `${activeEmployees.length > 0 ? ((onlineNow / activeEmployees.length) * 100).toFixed(0) : 0}% من النشطين`,
+    },
+    {
+      label: 'جلسات الدخول',
+      value: totalLoginSessions,
+      icon: <Calendar size={21} />,
+      color: GOLD,
+      bg: dm ? 'rgba(201,169,110,0.1)' : 'rgba(201,169,110,0.08)',
+      period: `~${avgSessionsPerEmployee} لكل موظف`,
+    },
+    {
+      label: 'أفضل أداء',
+      value: topPerformer?.name || '—',
+      icon: <Crown size={21} />,
+      color: '#f59e0b',
+      bg: dm ? 'rgba(245,158,11,0.1)' : 'rgba(245,158,11,0.08)',
+      period: topPerformer ? `${topPerformer.total} عملية` : '',
+      isText: true,
+    },
   ];
 
-  const cardStyle = { padding: '20px' };
-
   return (
-    <div className="animate-fade-in">
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
-        <div>
-          <h1 style={{ fontSize: 24, fontWeight: 800, margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 10 }}>
-            <TrendingUp size={28} color="var(--color-primary)" />
-            تحليل أداء الموظفين
-          </h1>
-          <p style={{ fontSize: 14, color: 'var(--color-text-muted)', margin: 0 }}>
-            تقارير وإحصائيات شاملة عن أداء فريق العمل — بيانات حقيقية
-          </p>
+    <div className="animate-fade-in" style={{ padding: '0 4px' }}>
+      {/* ═══════════════════════════════════════════ */}
+      {/* PREMIUM HEADER */}
+      {/* ═══════════════════════════════════════════ */}
+      <div style={{
+        background: dm
+          ? 'linear-gradient(145deg, #0f1522 0%, #0f1d33 40%, #1a2535 100%)'
+          : 'linear-gradient(145deg, #0f1d33 0%, #142542 60%, #1a3050 100%)',
+        borderRadius: 24,
+        padding: '28px 34px',
+        marginBottom: 28,
+        position: 'relative',
+        overflow: 'hidden',
+        border: dm ? '1px solid rgba(201,169,110,0.12)' : '1px solid rgba(255,255,255,0.08)',
+        boxShadow: dm ? '0 8px 32px rgba(0,0,0,0.4)' : '0 12px 40px rgba(15,29,51,0.3)',
+      }}>
+        {/* Decorative gold line top */}
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: 2,
+          background: `linear-gradient(90deg, transparent, ${GOLD}, transparent)`,
+          opacity: 0.7,
+        }}></div>
+
+        {/* Background decorative circles */}
+        <div style={{
+          position: 'absolute', top: -60, right: -40,
+          width: 200, height: 200, borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(201,169,110,0.06) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }}></div>
+        <div style={{
+          position: 'absolute', bottom: -30, left: 80,
+          width: 140, height: 140, borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(78,205,196,0.05) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }}></div>
+
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+            {/* Icon container with gold border */}
+            <div style={{
+              width: 60, height: 60, borderRadius: 18,
+              background: 'rgba(255,255,255,0.08)',
+              border: '1.5px solid rgba(201,169,110,0.25)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              backdropFilter: 'blur(8px)',
+              boxShadow: '0 4px 20px rgba(201,169,110,0.1)',
+            }}>
+              <Sparkles size={28} color={GOLD} />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 2 }}>
+                <h1 style={{ fontSize: 28, fontWeight: 800, color: 'white', margin: 0, letterSpacing: '-0.02em' }}>
+                  تحليل أداء الموظفين
+                </h1>
+                <span style={{
+                  fontSize: 10, fontWeight: 700, color: GOLD,
+                  padding: '3px 10px', borderRadius: 20,
+                  background: 'rgba(201,169,110,0.15)',
+                  border: '1px solid rgba(201,169,110,0.25)',
+                  letterSpacing: '0.05em',
+                }}>
+                  PREMIUM
+                </span>
+              </div>
+              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', margin: 0, fontWeight: 400 }}>
+                Employee Performance Analytics · بيانات حقيقية من الفترة المحددة
+              </p>
+            </div>
+          </div>
+
+          {/* Filter controls */}
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+            <div style={{
+              display: 'flex', borderRadius: 14,
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              overflow: 'hidden',
+              backdropFilter: 'blur(4px)',
+            }}>
+              {(['week', 'month', 'quarter'] as const).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPeriod(p)}
+                  style={{
+                    padding: '10px 18px',
+                    fontSize: 12, fontWeight: 700,
+                    fontFamily: 'inherit',
+                    background: period === p ? 'rgba(201,169,110,0.2)' : 'transparent',
+                    color: period === p ? GOLD : 'rgba(255,255,255,0.6)',
+                    border: 'none',
+                    cursor: 'pointer',
+                    transition: 'all 0.25s ease',
+                    borderLeft: p !== 'quarter' ? '1px solid rgba(255,255,255,0.08)' : 'none',
+                  }}>
+                  {p === 'week' ? 'أسبوع' : p === 'month' ? 'شهر' : 'ربع'}
+                </button>
+              ))}
+            </div>
+
+            <select value={selectedEmployee} onChange={(e) => setSelectedEmployee(e.target.value)}
+              style={{
+                padding: '10px 18px', borderRadius: 14,
+                border: '1px solid rgba(255,255,255,0.15)',
+                background: 'rgba(255,255,255,0.06)',
+                color: 'white', fontSize: 13, fontWeight: 600,
+                fontFamily: 'inherit',
+                cursor: 'pointer', direction: 'rtl',
+                backdropFilter: 'blur(4px)',
+                minWidth: 160,
+                outline: 'none',
+              }}>
+              <option value="all" style={{ color: '#0f172a' }}>🎯 كل الموظفين</option>
+              {activeEmployees.map(e => (
+                <option key={e.id} value={e.id} style={{ color: '#0f172a' }}>
+                  {e.fullName}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <select value={period} onChange={(e) => setPeriod(e.target.value as any)}
-            style={{ padding: '9px 14px', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', appearance: 'none', background: 'var(--color-surface)', color: 'var(--color-text)' }}>
-            <option value="week">آخر أسبوع</option>
-            <option value="month">هذا الشهر</option>
-            <option value="quarter">هذا الربع</option>
-          </select>
-          <select value={selectedEmployee} onChange={(e) => setSelectedEmployee(e.target.value)}
-            style={{ padding: '9px 14px', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', appearance: 'none', minWidth: 160, background: 'var(--color-surface)', color: 'var(--color-text)' }}>
-            <option value="all">كل الموظفين</option>
-            {activeEmployees.map(e => <option key={e.id} value={e.id}>{e.fullName}</option>)}
-          </select>
+
+        {/* Bottom stats row */}
+        <div style={{
+          position: 'relative',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: 14,
+          marginTop: 22,
+          paddingTop: 20,
+          borderTop: '1px solid rgba(255,255,255,0.08)',
+        }}>
+          <QuickStat icon={<FileText size={16} />} label="التقارير" value={reportsInPeriod.length} color="rgba(255,255,255,0.9)" />
+          <QuickStat icon={<Crown size={16} />} label="أفضل موظف" value={topPerformer?.name || '—'} color={GOLD} />
+          <QuickStat icon={<Activity size={16} />} label="متصل الآن" value={`${onlineNow} موظف`} color="#22c55e" />
+          <QuickStat icon={<BarChart3 size={16} />} label="نسبة الإنجاز" value={reportsInPeriod.length > 0 ? `${Math.round((reportsInPeriod.filter(r => r.status === 'approved').length / reportsInPeriod.length) * 100)}%` : '0%'} color={TEAL} />
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, marginBottom: 24 }}>
+      {/* ═══════════════════════════════════════════ */}
+      {/* KPI CARDS */}
+      {/* ═══════════════════════════════════════════ */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 16, marginBottom: 28 }}>
         {kpiCards.map((kpi, i) => (
-          <div key={i} className="card" style={cardStyle}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-              <div>
-                <p style={{ fontSize: 12, color: 'var(--color-text-muted)', margin: '0 0 6px', fontWeight: 500 }}>{kpi.title}</p>
-                <p style={{ fontSize: typeof kpi.value === 'number' ? 28 : 18, fontWeight: 800, color: kpi.color, margin: 0, lineHeight: 1.3 }}>
-                  {String(kpi.value)}
+          <div key={i} style={{
+            ...premiumCard,
+            padding: '22px 24px',
+          }}>
+            {/* Gold accent bar top */}
+            <div style={{
+              position: 'absolute', top: 0, left: 16, right: 16, height: 2,
+              borderRadius: '0 0 4px 4px',
+              background: `linear-gradient(90deg, ${kpi.color}, transparent)`,
+              opacity: 0.6,
+            }}></div>
+
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', paddingTop: 4 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontSize: 11, color: 'var(--color-text-muted)', margin: '0 0 8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  {kpi.label}
                 </p>
-                {kpi.sub && <p style={{ fontSize: 12, color: 'var(--color-text-muted)', margin: '4px 0 0' }}>{kpi.sub}</p>}
+                <p style={{
+                  fontSize: kpi.isText ? 17 : 32,
+                  fontWeight: 800, color: kpi.color, margin: 0, lineHeight: 1.2,
+                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                  letterSpacing: '-0.02em',
+                }}>
+                  {kpi.value}
+                </p>
+                {kpi.total !== undefined && (
+                  <p style={{ fontSize: 11, color: dm ? '#475569' : '#94a3b8', margin: '3px 0 0', fontWeight: 500 }}>
+                    من {kpi.total} إجمالي
+                  </p>
+                )}
+                {kpi.period && (
+                  <p style={{ fontSize: 11, color: 'var(--color-text-muted)', margin: '4px 0 0', fontWeight: 500 }}>
+                    {kpi.period}
+                  </p>
+                )}
               </div>
-              <div style={{ width: 44, height: 44, borderRadius: 12, background: kpi.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: kpi.color }}>{kpi.icon}</div>
+              <div style={{
+                width: 50, height: 50, borderRadius: 16,
+                background: kpi.bg,
+                border: `1px solid ${kpi.color}20`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: kpi.color,
+                flexShrink: 0,
+                boxShadow: `0 4px 12px ${kpi.color}10`,
+              }}>
+                {kpi.icon}
+              </div>
+            </div>
+
+            {/* Bottom progress indicator */}
+            <div style={{
+              marginTop: 14,
+              height: 3, borderRadius: 2,
+              background: 'var(--color-surface-alt)',
+              overflow: 'hidden',
+            }}>
+              <div style={{
+                height: '100%', borderRadius: 2,
+                width: `${Math.min(100, i === 0 ? (activeEmployees.length / Math.max(allEmployees.length, 1) * 100) : i === 1 ? (onlineNow / Math.max(activeEmployees.length, 1) * 100) : i === 2 ? 75 : topPerformer ? Math.min(100, (topPerformer.total / Math.max(perfByEmployee.reduce((s, e) => Math.max(s, e.total), 0), 1)) * 100) : 0)}%`,
+                background: `linear-gradient(90deg, ${kpi.color}, ${kpi.color}80)`,
+                transition: 'width 1s ease',
+              }}></div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Selected Employee Detail */}
-      {selectedData && selectedPerf && (
-        <div className="card" style={{ marginBottom: 24, padding: '24px', borderRight: `4px solid ${getAvatarColor(selectedData.id)}` }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20, flexWrap: 'wrap' }}>
-            <div style={{ width: 56, height: 56, borderRadius: 14, background: getAvatarColor(selectedData.id), display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 20, fontWeight: 700, flexShrink: 0 }}>
-              {getInitials(selectedData.fullName)}
+      {/* ═══════════════════════════════════════════ */}
+      {/* TOP PERFORMER HERO */}
+      {/* ═══════════════════════════════════════════ */}
+      {topPerformer && (
+        <div style={{
+          ...premiumCard,
+          marginBottom: 28,
+          background: dm
+            ? 'linear-gradient(135deg, #0f1522 0%, #1a2028 100%)'
+            : 'linear-gradient(135deg, #fefefe 0%, #faf8f3 100%)',
+          border: dm
+            ? '1px solid rgba(201,169,110,0.25)'
+            : '1px solid rgba(201,169,110,0.3)',
+          boxShadow: dm
+            ? '0 4px 24px rgba(201,169,110,0.08)'
+            : '0 4px 24px rgba(201,169,110,0.12)',
+        }}>
+          {/* Gold corner accents */}
+          <div style={{ position: 'absolute', top: 0, left: 0, width: 80, height: 80, borderTop: `2px solid ${GOLD}30`, borderLeft: `2px solid ${GOLD}30`, borderRadius: '20px 0 0 0' }}></div>
+          <div style={{ position: 'absolute', bottom: 0, right: 0, width: 80, height: 80, borderBottom: `2px solid ${GOLD}30`, borderRight: `2px solid ${GOLD}30`, borderRadius: '0 0 20px 0' }}></div>
+
+          {/* Floating decorative element */}
+          <div style={{
+            position: 'absolute', top: -15, left: 40,
+            width: 48, height: 48, borderRadius: 14,
+            background: 'linear-gradient(135deg, #f59e0b, #c9a96e)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 8px 24px rgba(245,158,11,0.3)',
+            transform: 'rotate(-5deg)',
+          }}>
+            <Crown size={22} color="white" />
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap', position: 'relative' }}>
+            {/* Avatar */}
+            <div style={{
+              width: 80, height: 80, borderRadius: 22,
+              background: 'linear-gradient(145deg, #fbbf24, #c9a96e, #b88a44)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'white', fontSize: 26, fontWeight: 900, flexShrink: 0,
+              boxShadow: '0 8px 28px rgba(201,169,110,0.35)',
+              position: 'relative',
+            }}>
+              {getInitials(topPerformer.name)}
+              {/* Shine effect */}
+              <div style={{
+                position: 'absolute', inset: 0, borderRadius: 22,
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 50%)',
+              }}></div>
             </div>
-            <div style={{ flex: 1 }}>
-              <h3 style={{ fontSize: 18, fontWeight: 800, margin: '0 0 4px' }}>{selectedData.fullName}</h3>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <span className="badge" style={{ background: `${EMPLOYEE_ROLES.find(r => r.value === selectedData.role)?.color}15`, color: EMPLOYEE_ROLES.find(r => r.value === selectedData.role)?.color }}>
-                  {EMPLOYEE_ROLES.find(r => r.value === selectedData.role)?.label}
+
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                <Crown size={16} color={GOLD} />
+                <span style={{ fontSize: 12, fontWeight: 700, color: GOLD, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                  أفضل أداء · EMPLOYEE OF THE PERIOD
                 </span>
-                <span style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>{selectedData.department}</span>
-                <span style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>انضم: {new Date(selectedData.joinDate).toLocaleDateString('en-US')}</span>
+              </div>
+              <h3 style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text)', margin: '0 0 6px', letterSpacing: '-0.02em' }}>
+                {topPerformer.name}
+              </h3>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                <span style={{
+                  padding: '4px 12px', borderRadius: 14,
+                  background: `${EMPLOYEE_ROLES.find(r => r.value === topPerformer.role)?.color}15`,
+                  border: `1px solid ${EMPLOYEE_ROLES.find(r => r.value === topPerformer.role)?.color}25`,
+                  color: EMPLOYEE_ROLES.find(r => r.value === topPerformer.role)?.color,
+                  fontSize: 12, fontWeight: 700,
+                }}>
+                  {EMPLOYEE_ROLES.find(r => r.value === topPerformer.role)?.label}
+                </span>
+                <span style={{ fontSize: 12, color: 'var(--color-text-muted)', fontWeight: 500 }}>
+                  {topPerformer.reportsCreated} تقرير · {topPerformer.reportsApproved} اعتماد
+                </span>
               </div>
             </div>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12 }}>
-            {[
-              { label: 'التقارير المُنشأة', value: selectedPerf.reportsCreated, icon: <FileText size={16} />, color: dm ? '#60a5fa' : '#1e3a5f' },
-              { label: 'التقارير المعتمدة', value: selectedPerf.reportsApproved, icon: <CheckCircle2 size={16} />, color: dm ? '#34d399' : '#15803d' },
-              { label: 'متوسط وقت الإنجاز', value: selectedPerf.avgCompletionDays > 0 ? `${selectedPerf.avgCompletionDays.toFixed(1)} يوم` : '—', icon: <Timer size={16} />, color: dm ? '#fbbf24' : '#b45309' },
-              { label: 'إجمالي الأتعاب', value: formatCurrency(selectedPerf.totalFees), icon: <Star size={16} />, color: dm ? '#a78bfa' : '#7c3aed' },
-              { label: 'جلسات الدخول', value: selectedLogs.filter(l => l.action === 'login').length, icon: <Calendar size={16} />, color: dm ? '#22d3ee' : '#0891b2' },
-              { label: 'الحالة', value: selectedData.isActiveSession ? 'متصل' : 'غير متصل', icon: selectedData.isActiveSession ? <Activity size={16} /> : <Clock size={16} />, color: selectedData.isActiveSession ? '#22c55e' : dm ? 'var(--color-text-muted)' : '#94a3b8' },
-            ].map((item, i) => (
-              <div key={i} style={{ padding: '14px 16px', background: dm ? 'var(--color-surface-alt)' : '#f8fafc', borderRadius: 10, border: dm ? '1px solid var(--color-border)' : '1px solid #e2e8f0' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                  <span style={{ color: item.color }}>{item.icon}</span>
-                  <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>{item.label}</span>
+
+            {/* Stats */}
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              {[
+                { label: 'التقارير', value: topPerformer.reportsCreated, color: 'var(--color-primary)' },
+                { label: 'الاعتمادات', value: topPerformer.reportsApproved, color: '#22c55e' },
+                { label: 'الأتعاب', value: formatCurrency(topPerformer.totalFees), color: GOLD },
+                { label: 'أيام الإنجاز', value: topPerformer.avgCompletionDays > 0 ? `${topPerformer.avgCompletionDays.toFixed(1)} ي` : '—', color: TEAL },
+              ].map((stat, i) => (
+                <div key={i} style={{
+                  textAlign: 'center',
+                  padding: '14px 20px',
+                  background: dm ? 'rgba(15,21,34,0.6)' : 'rgba(255,255,255,0.8)',
+                  borderRadius: 16,
+                  border: `1px solid ${stat.color}15`,
+                  minWidth: 85,
+                }}>
+                  <div style={{ fontSize: 20, fontWeight: 800, color: stat.color, lineHeight: 1.2 }}>{stat.value}</div>
+                  <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 4, fontWeight: 600 }}>{stat.label}</div>
                 </div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: item.color }}>{item.value}</div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════ */}
+      {/* SELECTED EMPLOYEE DETAIL */}
+      {/* ═══════════════════════════════════════════ */}
+      {selectedData && selectedPerf && (
+        <div style={{
+          ...premiumCard,
+          marginBottom: 28,
+          borderRight: `3px solid ${getAvatarColor(selectedData.id)}`,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: 20,
+              background: `linear-gradient(135deg, ${getAvatarColor(selectedData.id)}, ${getAvatarColor(selectedData.id)}dd)`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'white', fontSize: 20, fontWeight: 800, flexShrink: 0,
+              boxShadow: `0 4px 16px ${getAvatarColor(selectedData.id)}30`,
+              position: 'relative',
+            }}>
+              {getInitials(selectedData.fullName)}
+              <div style={{
+                position: 'absolute', inset: 0, borderRadius: 20,
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%)',
+              }}></div>
+            </div>
+            <div style={{ flex: 1 }}>
+              <h3 style={{ fontSize: 18, fontWeight: 800, margin: '0 0 5px', color: 'var(--color-text)', letterSpacing: '-0.01em' }}>
+                {selectedData.fullName}
+              </h3>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                <span style={{
+                  padding: '3px 12px', borderRadius: 14,
+                  background: `${EMPLOYEE_ROLES.find(r => r.value === selectedData.role)?.color}15`,
+                  border: `1px solid ${EMPLOYEE_ROLES.find(r => r.value === selectedData.role)?.color}25`,
+                  color: EMPLOYEE_ROLES.find(r => r.value === selectedData.role)?.color,
+                  fontSize: 12, fontWeight: 700,
+                }}>
+                  {EMPLOYEE_ROLES.find(r => r.value === selectedData.role)?.label}
+                </span>
+                <span style={{ fontSize: 12, color: 'var(--color-text-muted)', fontWeight: 500 }}>
+                  {selectedData.department || 'بدون قسم'}
+                </span>
+                {selectedData.isActiveSession && (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#22c55e', fontWeight: 700 }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 8px rgba(34,197,94,0.5)', animation: 'pulse 2s infinite' }}></span>
+                    متصل الآن
+                  </span>
+                )}
+              </div>
+            </div>
+            <button
+              onClick={() => setSelectedEmployee('all')}
+              style={{
+                padding: '9px 18px', borderRadius: 14,
+                border: '1px solid var(--color-border)',
+                background: 'transparent',
+                color: 'var(--color-text-muted)',
+                cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 600,
+                transition: 'all 0.2s ease',
+                whiteSpace: 'nowrap',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = GOLD; e.currentTarget.style.color = GOLD; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.color = 'var(--color-text-muted)'; }}
+            >
+              عرض الكل ←
+            </button>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
+            {[
+              { label: 'التقارير', value: selectedPerf.reportsCreated, icon: <FileText size={16} />, color: 'var(--color-primary)' },
+              { label: 'الاعتمادات', value: selectedPerf.reportsApproved, icon: <CheckCircle2 size={16} />, color: '#22c55e' },
+              { label: 'متوسط الإنجاز', value: selectedPerf.avgCompletionDays > 0 ? `${selectedPerf.avgCompletionDays.toFixed(1)} يوم` : '—', icon: <Timer size={16} />, color: TEAL },
+              { label: 'الأتعاب', value: formatCurrency(selectedPerf.totalFees), icon: <Star size={16} />, color: GOLD },
+              { label: 'جلسات الدخول', value: selectedLogs.filter(l => l.action === 'login').length, icon: <Calendar size={16} />, color: '#38bdf8' },
+              { label: 'حالة الاتصال', value: selectedData.isActiveSession ? 'متصل' : 'غير متصل', icon: selectedData.isActiveSession ? <Activity size={16} /> : <Clock size={16} />, color: selectedData.isActiveSession ? '#22c55e' : 'var(--color-text-muted)' },
+            ].map((item, i) => (
+              <div key={i} style={{
+                padding: '16px 18px',
+                background: 'var(--color-bg)',
+                borderRadius: 16,
+                border: `1px solid ${item.color}15`,
+                transition: 'all 0.2s ease',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
+                  <span style={{ color: item.color, opacity: 0.8 }}>{item.icon}</span>
+                  <span style={{ fontSize: 11, color: 'var(--color-text-muted)', fontWeight: 600 }}>{item.label}</span>
+                </div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: item.color, letterSpacing: '-0.01em' }}>
+                  {item.value}
+                </div>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* Monthly Production + Fees Charts */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginBottom: 24 }}>
-        <div className="card" style={cardStyle}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 20px', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <BarChart3 size={20} color="var(--color-primary)" />
-            الإنتاج الشهري
-          </h3>
-          {monthlyProd.length === 0 ? (
-            <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)', fontSize: 14 }}>لا توجد تقارير في هذه الفترة</div>
-          ) : (
-            <div style={{ height: 280 }}>
-              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-                <BarChart data={monthlyProd} style={{ direction: 'ltr' }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={dm ? 'var(--color-border)' : '#e2e8f0'} />
-                  <XAxis dataKey="month" tick={{ fontSize: 12, fill: dm ? '#94a3b8' : '#64748b' }} />
-                  <YAxis tick={{ fontSize: 12, fill: dm ? '#94a3b8' : '#64748b' }} />
-                  <Tooltip contentStyle={{ borderRadius: 8, border: dm ? '1px solid var(--color-border)' : '1px solid #e2e8f0', fontSize: 13 }} />
-                  <Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Bar dataKey="تقارير" fill={dm ? '#3b82f6' : '#1e3a5f'} radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="اعتمادات" fill="#22c55e" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+      {/* ═══════════════════════════════════════════ */}
+      {/* CHARTS SECTION */}
+      {/* ═══════════════════════════════════════════ */}
+      <div style={{ marginBottom: 28 }}>
+        <button
+          onClick={() => setChartsOpen(!chartsOpen)}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            width: '100%', background: 'none', border: 'none', cursor: 'pointer',
+            fontFamily: 'inherit', padding: '0 0 16px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{
+              width: 42, height: 42, borderRadius: 14,
+              background: dm ? 'rgba(201,169,110,0.12)' : 'rgba(201,169,110,0.1)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: GOLD,
+              border: `1px solid ${GOLD_BORDER}`,
+            }}>
+              <BarChart3 size={20} />
             </div>
-          )}
-        </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>الرسوم البيانية التفصيلية</div>
+              <div style={{ fontSize: 11, color: 'var(--color-text-muted)', fontWeight: 500 }}>الإنتاج · الأتعاب · الدخول · وقت الإنجاز</div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 11, color: 'var(--color-text-muted)', fontWeight: 600 }}>
+              {chartsOpen ? 'إخفاء' : 'عرض'}
+            </span>
+            <ChevronDown size={18} color={GOLD}
+              style={{ transform: chartsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.35s ease' }} />
+          </div>
+        </button>
 
-        <div className="card" style={cardStyle}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 20px', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Zap size={20} color={dm ? '#a78bfa' : '#7c3aed'} />
-            الأتعاب الشهرية
-          </h3>
-          {feesArea.length === 0 ? (
-            <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)', fontSize: 14 }}>لا توجد أتعاب في هذه الفترة</div>
-          ) : (
-            <div style={{ height: 280 }}>
-              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-                <AreaChart data={feesArea} style={{ direction: 'ltr' }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={dm ? 'var(--color-border)' : '#e2e8f0'} />
-                  <XAxis dataKey="month" tick={{ fontSize: 12, fill: dm ? '#94a3b8' : '#64748b' }} />
-                  <YAxis tick={{ fontSize: 12, fill: dm ? '#94a3b8' : '#64748b' }} />
-                  <Tooltip contentStyle={{ borderRadius: 8, border: dm ? '1px solid var(--color-border)' : '1px solid #e2e8f0', fontSize: 13 }} />
-                  <Legend wrapperStyle={{ fontSize: 12 }} />
-                  {perfByEmployee.filter(e => e.totalFees > 0).slice(0, 3).map((emp, i) => (
-                    <Area key={emp.id} type="monotone" dataKey={emp.name}
-                      stroke={feesColors[i]} fill={`${feesColors[i]}20`}
-                      strokeWidth={2} />
-                  ))}
-                </AreaChart>
-              </ResponsiveContainer>
+        {chartsOpen && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: 18 }}>
+            {/* Monthly Production */}
+            <div style={premiumCard}>
+              {sectionHeader(<BarChart3 size={19} />, 'الإنتاج الشهري', 'التقارير المنجزة والاعتمادات')}
+              {monthlyProd.length === 0 ? (
+                <EmptyChart />
+              ) : (
+                <div style={{ height: 280 }}>
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                    <BarChart data={monthlyProd} style={{ direction: 'ltr' }}>
+                      <defs>
+                        <linearGradient id="gradReports" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={GOLD} stopOpacity={0.9} />
+                          <stop offset="100%" stopColor={GOLD} stopOpacity={0.3} />
+                        </linearGradient>
+                        <linearGradient id="gradApprovals" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={TEAL} stopOpacity={0.9} />
+                          <stop offset="100%" stopColor={TEAL} stopOpacity={0.3} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" strokeOpacity={0.4} />
+                      <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--color-text-muted)', fontWeight: 500 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 11, fill: 'var(--color-text-muted)', fontWeight: 500 }} axisLine={false} tickLine={false} />
+                      <Tooltip
+                        contentStyle={{
+                          borderRadius: 16,
+                          border: `1px solid ${GOLD_BORDER}`,
+                          background: 'var(--color-surface)',
+                          fontSize: 13,
+                          boxShadow: 'var(--shadow-lg)',
+                        }}
+                        cursor={{ fill: 'var(--color-surface-alt)' }}
+                      />
+                      <Legend wrapperStyle={{ fontSize: 12, fontWeight: 600 }} />
+                      <Bar dataKey="تقارير" fill="url(#gradReports)" radius={[6, 6, 0, 0]} barSize={32} />
+                      <Bar dataKey="اعتمادات" fill="url(#gradApprovals)" radius={[6, 6, 0, 0]} barSize={32} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+
+            {/* Fees Area */}
+            <div style={premiumCard}>
+              {sectionHeader(<Sparkles size={19} />, 'الأتعاب الشهرية', 'إجمالي أتعاب أفضل الموظفين')}
+              {feesArea.length === 0 ? (
+                <EmptyChart />
+              ) : (
+                <div style={{ height: 280 }}>
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                    <AreaChart data={feesArea} style={{ direction: 'ltr' }}>
+                      <defs>
+                        {perfByEmployee.filter(e => e.totalFees > 0).slice(0, 3).map((emp, i) => (
+                          <linearGradient key={emp.id} id={`grad${emp.id}`} x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor={CHART_COLORS[i]} stopOpacity={0.3} />
+                            <stop offset="100%" stopColor={CHART_COLORS[i]} stopOpacity={0.02} />
+                          </linearGradient>
+                        ))}
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" strokeOpacity={0.4} />
+                      <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--color-text-muted)', fontWeight: 500 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 11, fill: 'var(--color-text-muted)', fontWeight: 500 }} axisLine={false} tickLine={false} />
+                      <Tooltip
+                        contentStyle={{
+                          borderRadius: 16,
+                          border: `1px solid ${GOLD_BORDER}`,
+                          background: 'var(--color-surface)',
+                          fontSize: 13,
+                          boxShadow: 'var(--shadow-lg)',
+                        }}
+                      />
+                      <Legend wrapperStyle={{ fontSize: 12, fontWeight: 600 }} />
+                      {perfByEmployee.filter(e => e.totalFees > 0).slice(0, 3).map((emp, i) => (
+                        <Area
+                          key={emp.id}
+                          type="monotone"
+                          dataKey={emp.name}
+                          stroke={CHART_COLORS[i]}
+                          fill={`url(#grad${emp.id})`}
+                          strokeWidth={2.5}
+                          dot={{ r: 4, fill: CHART_COLORS[i], strokeWidth: 0 }}
+                          activeDot={{ r: 6, stroke: CHART_COLORS[i], strokeWidth: 2, fill: 'var(--color-surface)' }}
+                        />
+                      ))}
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </div>
+
+            {/* Login Activity */}
+            <div style={premiumCard}>
+              {sectionHeader(<Activity size={19} />, 'نشاط الدخول', 'سجلات آخر 14 يوماً')}
+              {loginActivity.length === 0 ? (
+                <EmptyChart />
+              ) : (
+                <div style={{ height: 280 }}>
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                    <LineChart data={loginActivity} style={{ direction: 'ltr' }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" strokeOpacity={0.4} />
+                      <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'var(--color-text-muted)', fontWeight: 500 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 11, fill: 'var(--color-text-muted)', fontWeight: 500 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                      <Tooltip
+                        contentStyle={{
+                          borderRadius: 16,
+                          border: `1px solid ${GOLD_BORDER}`,
+                          background: 'var(--color-surface)',
+                          fontSize: 13,
+                          boxShadow: 'var(--shadow-lg)',
+                        }}
+                      />
+                      <Legend wrapperStyle={{ fontSize: 12, fontWeight: 600 }} />
+                      <Line type="monotone" dataKey="logins" name="دخول" stroke={GOLD} strokeWidth={2.5}
+                        dot={{ r: 5, fill: GOLD, strokeWidth: 0 }}
+                        activeDot={{ r: 7, stroke: GOLD, strokeWidth: 2, fill: 'var(--color-surface)' }} />
+                      <Line type="monotone" dataKey="logouts" name="خروج" stroke="#f43f5e" strokeWidth={2}
+                        dot={{ r: 4, fill: '#f43f5e', strokeWidth: 0 }}
+                        strokeDasharray="5 4"
+                        activeDot={{ r: 6, stroke: '#f43f5e', strokeWidth: 2, fill: 'var(--color-surface)' }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </div>
+
+            {/* Avg Completion Time */}
+            <div style={premiumCard}>
+              {sectionHeader(<Target size={19} />, 'متوسط وقت الإنجاز', 'بالأيام — الأقل أفضل')}
+              {monthlyAvgTime.length === 0 ? (
+                <EmptyChart />
+              ) : (
+                <div style={{ height: 280 }}>
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                    <LineChart data={monthlyAvgTime} style={{ direction: 'ltr' }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" strokeOpacity={0.4} />
+                      <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--color-text-muted)', fontWeight: 500 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 11, fill: 'var(--color-text-muted)', fontWeight: 500 }} axisLine={false} tickLine={false} domain={[0, 'auto']} />
+                      <Tooltip
+                        contentStyle={{
+                          borderRadius: 16,
+                          border: `1px solid ${GOLD_BORDER}`,
+                          background: 'var(--color-surface)',
+                          fontSize: 13,
+                          boxShadow: 'var(--shadow-lg)',
+                        }}
+                      />
+                      <Line type="monotone" dataKey="متوسط_الأيام" name="متوسط الأيام" stroke={TEAL} strokeWidth={3}
+                        dot={{ r: 6, fill: TEAL, strokeWidth: 2, stroke: 'var(--color-surface)' }}
+                        activeDot={{ r: 8, stroke: TEAL, strokeWidth: 3, fill: 'var(--color-surface)' }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Login Activity + Avg Time Charts */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginBottom: 24 }}>
-        <div className="card" style={cardStyle}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 20px', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Clock size={20} color={dm ? '#22d3ee' : '#0891b2'} />
-            نشاط الدخول
-          </h3>
-          {loginActivity.length === 0 ? (
-            <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)', fontSize: 14 }}>لا توجد سجلات دخول في هذه الفترة</div>
-          ) : (
-            <div style={{ height: 280 }}>
-              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-                <LineChart data={loginActivity} style={{ direction: 'ltr' }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={dm ? 'var(--color-border)' : '#e2e8f0'} />
-                  <XAxis dataKey="date" tick={{ fontSize: 11, fill: dm ? '#94a3b8' : '#64748b' }} />
-                  <YAxis tick={{ fontSize: 12, fill: dm ? '#94a3b8' : '#64748b' }} />
-                  <Tooltip contentStyle={{ borderRadius: 8, border: dm ? '1px solid var(--color-border)' : '1px solid #e2e8f0', fontSize: 13 }} />
-                  <Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Line type="monotone" dataKey="logins" stroke={dm ? '#60a5fa' : '#1e3a5f'} strokeWidth={2} dot={{ r: 4, fill: dm ? '#60a5fa' : '#1e3a5f' }} />
-                  <Line type="monotone" dataKey="logouts" stroke="#ef4444" strokeWidth={2} dot={{ r: 4, fill: '#ef4444' }} strokeDasharray="5 5" />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-        </div>
-
-        <div className="card" style={cardStyle}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 20px', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Target size={20} color={dm ? '#fbbf24' : '#b45309'} />
-            متوسط وقت الإنجاز (أيام)
-          </h3>
-          {monthlyAvgTime.length === 0 ? (
-            <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)', fontSize: 14 }}>لا توجد بيانات كافية</div>
-          ) : (
-            <div style={{ height: 280 }}>
-              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-                <LineChart data={monthlyAvgTime} style={{ direction: 'ltr' }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={dm ? 'var(--color-border)' : '#e2e8f0'} />
-                  <XAxis dataKey="month" tick={{ fontSize: 12, fill: dm ? '#94a3b8' : '#64748b' }} />
-                  <YAxis tick={{ fontSize: 12, fill: dm ? '#94a3b8' : '#64748b' }} domain={[0, 6]} />
-                  <Tooltip contentStyle={{ borderRadius: 8, border: dm ? '1px solid var(--color-border)' : '1px solid #e2e8f0', fontSize: 13 }} />
-                  <Line type="monotone" dataKey="متوسط_الأيام" stroke={dm ? '#fbbf24' : '#b45309'} strokeWidth={3} dot={{ r: 6, fill: dm ? '#fbbf24' : '#b45309', strokeWidth: 2 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Radar + Role Distribution */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginBottom: 24 }}>
-        <div className="card" style={cardStyle}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 20px', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Award size={20} color={dm ? '#a78bfa' : '#7c3aed'} />
-            مقارنة أفضل 3 موظفين
-          </h3>
+      {/* ═══════════════════════════════════════════ */}
+      {/* RADAR + ROLE DISTRIBUTION */}
+      {/* ═══════════════════════════════════════════ */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: 20, marginBottom: 28 }}>
+        {/* Radar Comparison */}
+        <div style={premiumCard}>
+          {sectionHeader(<Award size={19} />, 'مقارنة الأداء', 'الرادار — أفضل 3 موظفين')}
           {radarData.length === 0 ? (
-            <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)', fontSize: 14 }}>لا توجد بيانات أداء كافية للمقارنة</div>
+            <EmptyChart h={300} />
           ) : (
             <div style={{ height: 320 }}>
               <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <RadarChart data={radarData} style={{ direction: 'ltr' }}>
-                  <PolarGrid stroke={dm ? 'var(--color-border)' : '#e2e8f0'} />
-                  <PolarAngleAxis dataKey="metric" tick={{ fontSize: 12, fill: dm ? 'var(--color-text-secondary)' : '#475569' }} />
-                  <PolarRadiusAxis tick={{ fontSize: 10, fill: dm ? 'var(--color-text-muted)' : '#94a3b8' }} />
-                  <Tooltip contentStyle={{ borderRadius: 8, border: dm ? '1px solid var(--color-border)' : '1px solid #e2e8f0', fontSize: 13 }} />
+                  <PolarGrid stroke="var(--color-border)" strokeOpacity={0.5} />
+                  <PolarAngleAxis dataKey="metric" tick={{ fontSize: 12, fill: 'var(--color-text-secondary)', fontWeight: 600 }} />
+                  <PolarRadiusAxis tick={{ fontSize: 10, fill: 'var(--color-text-muted)' }} />
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: 16,
+                      border: `1px solid ${GOLD_BORDER}`,
+                      background: 'var(--color-surface)',
+                      fontSize: 13,
+                      boxShadow: 'var(--shadow-lg)',
+                    }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: 12, fontWeight: 600 }} />
                   {perfByEmployee.slice(0, 3).map((emp, i) => (
-                    <Radar key={emp.id} name={emp.name} dataKey={emp.name}
-                      stroke={radarColors[i]} fill={`${radarColors[i]}25`}
-                      strokeWidth={2} />
+                    <Radar
+                      key={emp.id}
+                      name={emp.name}
+                      dataKey={emp.name}
+                      stroke={CHART_COLORS[i]}
+                      fill={CHART_COLORS[i]}
+                      fillOpacity={0.08}
+                      strokeWidth={2}
+                      dot={{ r: 3, fill: CHART_COLORS[i] }}
+                    />
                   ))}
-                  <Legend wrapperStyle={{ fontSize: 12 }} />
                 </RadarChart>
               </ResponsiveContainer>
             </div>
           )}
         </div>
 
-        <div className="card" style={cardStyle}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 20px', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Users size={20} color="var(--color-primary)" />
-            توزيع الأدوار
-            <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-text-muted)', marginRight: 'auto' }}>
-              {activeEmployees.length} موظف نشط
-            </span>
-          </h3>
-          <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
-            <div style={{ width: 200, height: 200, flexShrink: 0, position: 'relative' }}>
+        {/* Role Distribution */}
+        <div style={premiumCard}>
+          {sectionHeader(<Shield size={19} />, 'توزيع الأدوار', `${activeEmployees.length} موظف نشط`)}
+          <div style={{ display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ width: 170, height: 170, flexShrink: 0, position: 'relative' }}>
               <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <RechartsPie>
-                  <Pie data={roleDist} cx="50%" cy="50%" outerRadius={90} innerRadius={55}
-                    paddingAngle={4} dataKey="value" startAngle={90} endAngle={-270}
+                  <Pie data={roleDist} cx="50%" cy="50%" outerRadius={80} innerRadius={50}
+                    paddingAngle={5} dataKey="value" startAngle={90} endAngle={-270}
                     strokeWidth={0}>
                     {roleDist.map((entry, index) => (
-                      <Cell key={index} fill={entry.color}
-                        stroke={dm ? 'var(--color-surface)' : 'white'} strokeWidth={3} />
+                      <Cell key={index} fill={entry.color} stroke="var(--color-surface)" strokeWidth={4} />
                     ))}
                   </Pie>
-                  <Tooltip contentStyle={{ borderRadius: 8, border: dm ? '1px solid var(--color-border)' : '1px solid #e2e8f0', fontSize: 13, direction: 'rtl' }} />
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: 16,
+                      border: `1px solid ${GOLD_BORDER}`,
+                      background: 'var(--color-surface)',
+                      fontSize: 13,
+                      direction: 'rtl',
+                      boxShadow: 'var(--shadow-lg)',
+                    }}
+                  />
                 </RechartsPie>
               </ResponsiveContainer>
-              <div style={{
-                position: 'absolute', top: '50%', left: '50%',
-                transform: 'translate(-50%, -50%)', textAlign: 'center',
-              }}>
-                <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1 }}>{activeEmployees.length}</div>
-                <div style={{ fontSize: 11, color: 'var(--color-text-muted)', fontWeight: 500 }}>موظف نشط</div>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', pointerEvents: 'none' }}>
+                <div style={{ fontSize: 28, fontWeight: 800, color: GOLD, lineHeight: 1, letterSpacing: '-0.02em' }}>{activeEmployees.length}</div>
+                <div style={{ fontSize: 10, color: 'var(--color-text-muted)', fontWeight: 600, marginTop: 2 }}>موظف</div>
               </div>
             </div>
 
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10, minWidth: 200 }}>
               {roleDist.map((item, i) => {
                 const pct = activeEmployees.length > 0 ? ((item.value / activeEmployees.length) * 100) : 0;
-                const empList = activeEmployees.filter(e => e.role === EMPLOYEE_ROLES.find(r => r.label === item.name)?.value);
                 return (
                   <div key={i} style={{
-                    padding: '12px 16px', borderRadius: 12,
+                    padding: '12px 16px', borderRadius: 14,
                     background: `${item.color}08`,
-                    border: `1px solid ${item.color}20`,
+                    border: `1.5px solid ${item.color}18`,
+                    transition: 'all 0.2s ease',
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{ width: 10, height: 10, borderRadius: 3, background: item.color }} />
-                        <span style={{ fontSize: 13, fontWeight: 700, color: item.color }}>{item.name}</span>
+                        <div style={{ width: 10, height: 10, borderRadius: 3, background: item.color, boxShadow: `0 2px 6px ${item.color}40` }}></div>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>{item.name}</span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
                         <span style={{ fontSize: 18, fontWeight: 800, color: item.color }}>{item.value}</span>
-                        <span style={{ fontSize: 12, color: 'var(--color-text-muted)', fontWeight: 600 }}>({pct.toFixed(0)}%)</span>
+                        <span style={{ fontSize: 11, color: 'var(--color-text-muted)', fontWeight: 600 }}>({pct.toFixed(0)}%)</span>
                       </div>
                     </div>
-                    <div style={{ height: 5, borderRadius: 3, background: `${item.color}15`, overflow: 'hidden' }}>
-                      <div style={{ height: '100%', borderRadius: 3, width: `${pct}%`, background: item.color, transition: 'width 0.5s ease' }} />
-                    </div>
-                    <div style={{ marginTop: 6, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                      {empList.map(emp => (
-                        <span key={emp.id} style={{
-                          fontSize: 11, padding: '2px 8px', borderRadius: 6,
-                          background: dm ? 'var(--color-surface)' : 'white', color: dm ? 'var(--color-text-secondary)' : '#475569',
-                          border: `1px solid ${item.color}30`,
-                        }}>
-                          {emp.fullName.split(' ')[0]}
-                        </span>
-                      ))}
+                    <div style={{ height: 5, borderRadius: 3, background: `${item.color}12`, overflow: 'hidden' }}>
+                      <div style={{
+                        height: '100%', borderRadius: 3,
+                        width: `${pct}%`,
+                        background: `linear-gradient(90deg, ${item.color}, ${item.color}90)`,
+                        boxShadow: `0 0 8px ${item.color}30`,
+                        transition: 'width 1.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                      }}></div>
                     </div>
                   </div>
                 );
@@ -580,34 +1019,76 @@ export default function EmployeeAnalyticsPage() {
         </div>
       </div>
 
-      {/* Performance Leaderboard */}
-      <div className="card" style={{ padding: 0, overflow: 'hidden', marginBottom: 24 }}>
-        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Star size={20} color="var(--color-secondary)" />
-            ترتيب أداء الموظفين
-          </h3>
-          <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
-            {reportsInPeriod.length} تقرير في الفترة المحددة
-          </span>
+      {/* ═══════════════════════════════════════════ */}
+      {/* PERFORMANCE LEADERBOARD */}
+      {/* ═══════════════════════════════════════════ */}
+      <div style={{
+        ...premiumCard,
+        padding: 0,
+        marginBottom: 28,
+      }}>
+        <div style={{
+          padding: '20px 28px',
+          borderBottom: `1px solid ${GOLD_BORDER}`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 14,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{
+              width: 42, height: 42, borderRadius: 14,
+              background: dm ? 'rgba(201,169,110,0.12)' : 'rgba(201,169,110,0.1)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: GOLD,
+              border: `1px solid ${GOLD_BORDER}`,
+            }}>
+              <Star size={20} />
+            </div>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text)' }}>ترتيب الأداء</div>
+              <div style={{ fontSize: 11, color: 'var(--color-text-muted)', fontWeight: 500 }}>
+                {reportsInPeriod.length} تقرير · {perfByEmployee.length} موظف نشط
+              </div>
+            </div>
+          </div>
+          <div style={{
+            padding: '6px 16px', borderRadius: 20,
+            background: `linear-gradient(135deg, ${GOLD}20, ${GOLD}08)`,
+            fontSize: 12, fontWeight: 700,
+            color: GOLD,
+            border: `1px solid ${GOLD_BORDER}`,
+          }}>
+            {perfByEmployee.length} موظف نشط
+          </div>
         </div>
-        <div style={{ overflowX: 'auto' }}>
-          <table className="data-table">
+
+        <div style={{ overflowX: 'auto', padding: '4px 0' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', margin: 0 }}>
             <thead>
               <tr>
-                <th>#</th>
-                <th>الموظف</th>
-                <th>الدور</th>
-                <th>التقارير</th>
-                <th>الاعتمادات</th>
-                <th>متوسط الوقت</th>
-                <th>الأتعاب</th>
-                <th>التقييم</th>
+                <th style={{ width: 48, padding: '14px 16px', fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center', borderBottom: `2px solid ${GOLD_BORDER}` }}>#</th>
+                <th style={{ padding: '14px 16px', fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right', borderBottom: `2px solid ${GOLD_BORDER}` }}>الموظف</th>
+                <th style={{ padding: '14px 16px', fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right', borderBottom: `2px solid ${GOLD_BORDER}` }}>الدور</th>
+                <th style={{ padding: '14px 16px', fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center', borderBottom: `2px solid ${GOLD_BORDER}` }}>تقارير</th>
+                <th style={{ padding: '14px 16px', fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center', borderBottom: `2px solid ${GOLD_BORDER}` }}>اعتمادات</th>
+                <th style={{ padding: '14px 16px', fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center', borderBottom: `2px solid ${GOLD_BORDER}` }}>الإنجاز</th>
+                <th style={{ padding: '14px 16px', fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right', borderBottom: `2px solid ${GOLD_BORDER}` }}>الأتعاب</th>
+                <th style={{ padding: '14px 16px', fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center', borderBottom: `2px solid ${GOLD_BORDER}`, minWidth: 120 }}>التقييم</th>
               </tr>
             </thead>
             <tbody>
               {perfByEmployee.length === 0 ? (
-                <tr><td colSpan={8} style={{ textAlign: 'center', padding: 40, color: 'var(--color-text-muted)' }}>لا توجد بيانات أداء في هذه الفترة — أنشئ تقارير لعرض التحليلات</td></tr>
+                <tr>
+                  <td colSpan={8}>
+                    <div style={{ textAlign: 'center', padding: 64, color: 'var(--color-text-muted)' }}>
+                      <BarChart3 size={48} style={{ marginBottom: 16, opacity: 0.2 }} />
+                      <p style={{ fontSize: 15, fontWeight: 600, margin: 0 }}>لا توجد بيانات أداء — قم بإنشاء تقارير لتظهر هنا</p>
+                      <p style={{ fontSize: 12, margin: '6px 0 0', opacity: 0.6 }}>يتم احتساب الأداء تلقائياً من التقارير المُنشأة</p>
+                    </div>
+                  </td>
+                </tr>
               ) : perfByEmployee.map((emp, i) => {
                 const maxTotal = perfByEmployee[0]?.total || 1;
                 const maxFees = perfByEmployee.reduce((s, e) => Math.max(s, e.totalFees), 0) || 1;
@@ -616,32 +1097,107 @@ export default function EmployeeAnalyticsPage() {
                   ((5 - Math.min(emp.avgCompletionDays, 5)) / 5) * 30 +
                   (emp.totalFees / maxFees) * 20
                 ));
-                const scoreColor = score >= 80 ? (dm ? '#34d399' : '#15803d') : score >= 50 ? (dm ? '#fbbf24' : '#b45309') : '#b91c1c';
-                const scoreBg = score >= 80 ? (dm ? '#14532d' : '#dcfce7') : score >= 50 ? (dm ? '#451a03' : '#fef3c7') : (dm ? '#450a0a' : '#fee2e2');
-                const rankIcon = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}`;
+                const scoreColor = score >= 80 ? '#22c55e' : score >= 50 ? GOLD : '#f43f5e';
+                const scoreBg = score >= 80 ? 'rgba(34,197,94,0.08)' : score >= 50 ? 'rgba(201,169,110,0.08)' : 'rgba(244,63,94,0.08)';
+                const rankEmoji = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : null;
+                const isTopThree = i < 3;
                 const roleInfo = EMPLOYEE_ROLES.find(r => r.value === emp.role);
+
                 return (
-                  <tr key={emp.id} style={{ cursor: 'pointer' }} onClick={() => setSelectedEmployee(emp.id)}>
-                    <td style={{ fontWeight: 800, fontSize: 16, textAlign: 'center', width: 40 }}>{rankIcon}</td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <div style={{ width: 34, height: 34, borderRadius: '50%', background: getAvatarColor(emp.id), display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
+                  <tr
+                    key={emp.id}
+                    onClick={() => setSelectedEmployee(emp.id)}
+                    style={{
+                      cursor: 'pointer',
+                      background: isTopThree ? (dm ? 'rgba(201,169,110,0.03)' : 'rgba(201,169,110,0.02)') : 'transparent',
+                      transition: 'background 0.2s ease',
+                      borderBottom: `1px solid ${isTopThree ? GOLD_BORDER : 'var(--color-border)'}`,
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = dm ? 'var(--color-surface-hover)' : '#faf8f3'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = isTopThree ? (dm ? 'rgba(201,169,110,0.03)' : 'rgba(201,169,110,0.02)') : 'transparent'; }}
+                  >
+                    <td style={{ textAlign: 'center', padding: '16px' }}>
+                      {rankEmoji ? (
+                        <span style={{ fontSize: 22, lineHeight: 1 }}>{rankEmoji}</span>
+                      ) : (
+                        <span style={{
+                          fontSize: 13, fontWeight: 700,
+                          color: dm ? '#4f5d75' : '#94a3b8',
+                          width: 28, height: 28, borderRadius: '50%',
+                          background: 'var(--color-surface-alt)',
+                          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                        }}>
+                          {i + 1}
+                        </span>
+                      )}
+                    </td>
+                    <td style={{ padding: '16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{
+                          width: 38, height: 38, borderRadius: '50%',
+                          background: isTopThree
+                            ? 'linear-gradient(135deg, #c9a96e, #e0c080)'
+                            : `linear-gradient(135deg, ${getAvatarColor(emp.id)}, ${getAvatarColor(emp.id)}dd)`,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          color: 'white', fontSize: 13, fontWeight: 700, flexShrink: 0,
+                          boxShadow: isTopThree ? '0 4px 12px rgba(201,169,110,0.3)' : undefined,
+                        }}>
                           {getInitials(emp.name)}
                         </div>
-                        <span style={{ fontWeight: 600 }}>{emp.name}</span>
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--color-text)' }}>{emp.name}</div>
+                          {isTopThree && (
+                            <div style={{ fontSize: 10, color: GOLD, fontWeight: 600, marginTop: 1 }}>
+                              {rankEmoji} المركز {i + 1 === 1 ? 'الأول' : i + 1 === 2 ? 'الثاني' : 'الثالث'}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </td>
-                    <td><span className="badge" style={{ background: `${roleInfo?.color}15`, color: roleInfo?.color, fontSize: 12 }}>{roleInfo?.label}</span></td>
-                    <td style={{ fontWeight: 700 }}>{emp.reportsCreated}</td>
-                    <td style={{ fontWeight: 700 }}>{emp.reportsApproved}</td>
-                    <td>{emp.avgCompletionDays > 0 ? emp.avgCompletionDays.toFixed(1) + ' يوم' : '—'}</td>
-                    <td style={{ fontWeight: 600 }}>{formatCurrency(emp.totalFees)}</td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{ flex: 1, height: 8, borderRadius: 4, background: dm ? 'var(--color-surface-alt)' : '#f1f5f9', overflow: 'hidden', minWidth: 60 }}>
-                          <div style={{ height: '100%', borderRadius: 4, width: `${score}%`, background: scoreColor, transition: 'width 0.5s' }} />
+                    <td style={{ padding: '16px' }}>
+                      <span style={{
+                        padding: '4px 12px', borderRadius: 14,
+                        background: `${roleInfo?.color}15`,
+                        border: `1px solid ${roleInfo?.color}25`,
+                        color: roleInfo?.color,
+                        fontSize: 12, fontWeight: 700,
+                      }}>
+                        {roleInfo?.label}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: 'center', padding: '16px' }}>
+                      <span style={{ fontWeight: 700, fontSize: 15, color: 'var(--color-text)' }}>{emp.reportsCreated}</span>
+                    </td>
+                    <td style={{ textAlign: 'center', padding: '16px' }}>
+                      <span style={{ fontWeight: 700, fontSize: 15, color: '#22c55e' }}>{emp.reportsApproved}</span>
+                    </td>
+                    <td style={{ textAlign: 'center', padding: '16px', fontSize: 13, color: 'var(--color-text-muted)', fontWeight: 500 }}>
+                      {emp.avgCompletionDays > 0 ? `${emp.avgCompletionDays.toFixed(1)} يوم` : '—'}
+                    </td>
+                    <td style={{ padding: '16px', textAlign: 'right' }}>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: GOLD }}>{formatCurrency(emp.totalFees)}</span>
+                    </td>
+                    <td style={{ padding: '16px', minWidth: 130 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div style={{
+                          flex: 1, height: 8, borderRadius: 5,
+                          background: 'var(--color-surface-alt)',
+                          overflow: 'hidden',
+                        }}>
+                          <div style={{
+                            height: '100%', borderRadius: 5,
+                            width: `${score}%`,
+                            background: `linear-gradient(90deg, ${scoreColor}, ${scoreColor}dd)`,
+                            boxShadow: `0 0 6px ${scoreColor}30`,
+                            transition: 'width 1.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                          }}></div>
                         </div>
-                        <span style={{ fontSize: 14, fontWeight: 800, color: scoreColor, minWidth: 32, textAlign: 'center' }}>
+                        <span style={{
+                          fontSize: 14, fontWeight: 800, color: scoreColor,
+                          minWidth: 32, textAlign: 'center',
+                          padding: '2px 8px', borderRadius: 8,
+                          background: scoreBg,
+                        }}>
                           {score}
                         </span>
                       </div>
@@ -654,50 +1210,124 @@ export default function EmployeeAnalyticsPage() {
         </div>
       </div>
 
-      {/* Recent Login Activity */}
-      <div className="card" style={cardStyle}>
-        <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 20px', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Activity size={20} color="var(--color-primary)" />
-          آخر نشاطات الدخول
-        </h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 320, overflowY: 'auto' }}>
+      {/* ═══════════════════════════════════════════ */}
+      {/* RECENT LOGIN ACTIVITY */}
+      {/* ═══════════════════════════════════════════ */}
+      <div style={premiumCard}>
+        {sectionHeader(<Clock size={19} />, 'آخر نشاطات الدخول', `${logsInPeriod.length} حدث في ${periodLabel}`)}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 380, overflowY: 'auto' }}>
           {logsInPeriod.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: 40, color: 'var(--color-text-muted)', fontSize: 14 }}>لا توجد سجلات نشاط في هذه الفترة</div>
-          ) : logsInPeriod.slice(0, 15).map(log => {
+            <div style={{ textAlign: 'center', padding: 48, color: 'var(--color-text-muted)' }}>
+              <Clock size={36} style={{ marginBottom: 12, opacity: 0.2 }} />
+              <p style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>لا توجد سجلات نشاط</p>
+            </div>
+          ) : logsInPeriod.slice(0, 20).map(log => {
             const emp = allEmployees.find(e => e.id === log.employeeId);
             const d = new Date(log.timestamp);
             return (
-              <div key={log.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: dm ? 'var(--color-surface-alt)' : '#f8fafc', borderRadius: 10 }}>
+              <div key={log.id} style={{
+                display: 'flex', alignItems: 'center', gap: 16,
+                padding: '12px 16px',
+                background: 'var(--color-bg)',
+                borderRadius: 16,
+                border: `1px solid ${log.action === 'login' ? 'rgba(34,197,94,0.12)' : 'rgba(244,63,94,0.12)'}`,
+                transition: 'all 0.2s ease',
+              }}>
                 <div style={{
-                  width: 36, height: 36, borderRadius: '50%',
-                  background: emp ? getAvatarColor(emp.id) : (dm ? 'var(--color-text-muted)' : '#94a3b8'),
+                  width: 40, height: 40, borderRadius: '50%',
+                  background: emp ? `linear-gradient(135deg, ${getAvatarColor(emp.id)}, ${getAvatarColor(emp.id)}dd)` : 'var(--color-text-secondary)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: 'white', fontSize: 12, fontWeight: 700, flexShrink: 0,
+                  color: 'white', fontSize: 13, fontWeight: 700, flexShrink: 0,
+                  position: 'relative',
                 }}>
                   {emp ? getInitials(emp.fullName) : '?'}
+                  <div style={{
+                    position: 'absolute', bottom: -1, right: -1,
+                    width: 10, height: 10, borderRadius: '50%',
+                    background: log.action === 'login' ? '#22c55e' : '#f43f5e',
+                    border: '2px solid var(--color-bg)',
+                  }}></div>
                 </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600 }}>{log.employeeName}</div>
-                  <div style={{ fontSize: 11, color: 'var(--color-text-muted)', fontFamily: 'monospace', direction: 'ltr', textAlign: 'right' }}>{log.ipAddress}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', marginBottom: 2 }}>
+                    {log.employeeName}
+                  </div>
+                  <div style={{ fontSize: 10, color: 'var(--color-text-muted)', fontFamily: 'monospace', direction: 'ltr', textAlign: 'right', fontWeight: 500 }}>
+                    {log.ipAddress}
+                  </div>
                 </div>
-                <span style={{
-                  padding: '4px 12px', borderRadius: 12, fontSize: 11, fontWeight: 700,
-                  background: log.action === 'login' ? (dm ? '#14532d' : '#dcfce7') : (dm ? '#450a0a' : '#fee2e2'),
-                  color: log.action === 'login' ? (dm ? '#34d399' : '#15803d') : '#b91c1c',
-                }}>
-                  {log.action === 'login' ? 'دخول' : 'خروج'}
-                </span>
-                <span style={{ fontSize: 12, color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>
-                  {d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                </span>
-                <span style={{ fontSize: 12, color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>
-                  {d.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' })}
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+                  <span style={{
+                    padding: '5px 12px', borderRadius: 14,
+                    fontSize: 11, fontWeight: 700,
+                    background: log.action === 'login' ? 'rgba(34,197,94,0.1)' : 'rgba(244,63,94,0.1)',
+                    color: log.action === 'login' ? '#22c55e' : '#f43f5e',
+                    border: `1px solid ${log.action === 'login' ? 'rgba(34,197,94,0.2)' : 'rgba(244,63,94,0.2)'}`,
+                  }}>
+                    {log.action === 'login' ? '● دخول' : '○ خروج'}
+                  </span>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', fontWeight: 600 }}>
+                      {d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                    <div style={{ fontSize: 10, color: 'var(--color-text-muted)', fontWeight: 500 }}>
+                      {d.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' })}
+                    </div>
+                  </div>
+                </div>
               </div>
             );
           })}
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ─── Sub-components ─── */
+
+function QuickStat({ icon, label, value, color }: {
+  icon: React.ReactNode;
+  label: string;
+  value: string | number;
+  color: string;
+}) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{
+        width: 36, height: 36, borderRadius: 12,
+        background: 'rgba(255,255,255,0.08)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: color,
+        flexShrink: 0,
+      }}>
+        {icon}
+      </div>
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', fontWeight: 500, marginBottom: 1 }}>{label}</div>
+        <div style={{
+          fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.9)',
+          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+        }}>
+          {value}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EmptyChart({ h }: { h?: number }) {
+  const H = h || 240;
+  return (
+    <div style={{
+      height: H, display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      color: 'var(--color-text-muted)', fontSize: 13,
+      gap: 8,
+    }}>
+      <BarChart3 size={32} style={{ opacity: 0.2 }} />
+      <span style={{ fontWeight: 600 }}>لا توجد بيانات كافية</span>
+      <span style={{ fontSize: 11, opacity: 0.6 }}>قم بإنشاء تقارير لعرض التحليلات</span>
     </div>
   );
 }

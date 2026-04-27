@@ -93,7 +93,7 @@ export default function ApartmentDetailsStep({ data, onChange }: ApartmentDetail
                   </td>
                 </tr>
               ))}
-              <tr style={{ fontWeight: 700, background: dm ? 'rgba(30, 58, 95, 0.3)' : '#e8eef6' }}>
+              <tr style={{ fontWeight: 700, background: dm ? 'rgba(30, 58, 95, 0.3)' : 'var(--color-primary-50)' }}>
                 <td style={{ padding: '10px 12px' }}>المجموع</td>
                 <td style={{ padding: '10px 12px', textAlign: 'center' }}>
                   {data.aptComponents.reduce((s, c) => s + (c.ff || 0), 0).toLocaleString()}

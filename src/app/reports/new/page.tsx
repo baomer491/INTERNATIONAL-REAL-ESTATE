@@ -208,6 +208,7 @@ function CreateReportWizardInner() {
   const { isDark } = useTheme();
   const dm = isDark;
   const [currentStep, setCurrentStep] = useState(1);
+  const [mode, setMode] = useState<'selection' | 'wizard'>(editId ? 'wizard' : 'selection');
   const [data, setData] = useState<WizardData>(() => {
     if (editId) {
       const existing = store.getReport(editId);
@@ -648,6 +649,25 @@ function CreateReportWizardInner() {
     store.updateSettings({ reportNextNumber: settings.reportNextNumber + 1 });
     store.clearDraft('new_report');
     notify({ type: 'approval', title: `تقرير جديد بانتظار الاعتماد: ${data.reportNumber}`, message: `تم إرسال تقرير تثمين ${propertyTypes.find(pt => pt.value === data.propertyType)?.label || ''} للمستفيد ${data.beneficiaryName} - القطعة رقم ${data.plotNumber} في ${data.wilayat}`, priority: 'high', relatedReportId: report.id });
+
+    // Auto-create review task for reviewers
+    try {
+      const reviewers = store.getEmployees().filter(e => e.role === 'reviewer' && e.status === 'active');
+      for (const reviewer of reviewers) {
+        await store.createAutoTask({
+          title: `مراجعة تقرير ${data.reportNumber}`,
+          description: `تقرير تثمين ${propertyTypes.find(pt => pt.value === data.propertyType)?.label || ''} — المستفيد: ${data.beneficiaryName} — القطعة: ${data.plotNumber} في ${data.wilayat}`,
+          category: 'review',
+          assignedTo: reviewer.id,
+          relatedReportId: report.id,
+          relatedReportNumber: data.reportNumber,
+          priority: 'high',
+        });
+      }
+    } catch (autoTaskErr) {
+      console.error('[reports] Auto-task creation error (new report):', autoTaskErr);
+    }
+
     showToast('تم إرسال التقرير للاعتماد بنجاح', 'success');
     router.push('/reports');
     } catch {
@@ -672,12 +692,266 @@ function CreateReportWizardInner() {
 
   return (
     <div>
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 800, margin: '0 0 4px' }}>{editId ? 'تعديل التقرير' : 'إنشاء تقرير جديد'}</h1>
-        <p style={{ fontSize: 14, color: 'var(--color-text-muted)', margin: 0 }}>{data.reportNumber}</p>
+      {mode === 'selection' && (
+        <div style={{
+          width: '100%',
+          maxWidth: 960,
+          margin: '0 auto',
+          padding: '48px 24px 60px',
+          minHeight: 'calc(100vh - 160px)',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
+          {/* Decorative top accent */}
+          <div style={{
+            width: 48, height: 4,
+            borderRadius: 2,
+            background: 'var(--color-secondary)',
+            margin: '0 auto 32px',
+            opacity: 0.7,
+          }} />
+
+          {/* Header */}
+          <div style={{ textAlign: 'center', marginBottom: 48, maxWidth: 560 }}>
+            <h1 style={{
+              fontSize: 32,
+              fontWeight: 800,
+              margin: '0 0 12px',
+              letterSpacing: '-0.03em',
+              color: 'var(--color-text)',
+              lineHeight: 1.3,
+            }}>
+              إنشاء تقرير جديد
+            </h1>
+            <p style={{
+              fontSize: 15,
+              color: 'var(--color-text-muted)',
+              margin: 0,
+              lineHeight: 1.7,
+            }}>
+              اختر نوع التقرير الذي تريد إنشاءه
+            </p>
+          </div>
+
+          {/* Cards Grid */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gap: 28,
+            width: '100%',
+            maxWidth: 760,
+          }}>
+            {/* Full Report Card */}
+            <button
+              onClick={() => setMode('wizard')}
+              style={{
+                position: 'relative',
+                padding: 0,
+                border: 'none',
+                borderRadius: 20,
+                cursor: 'pointer',
+                textAlign: 'inherit',
+                fontFamily: 'inherit',
+                background: 'none',
+                outline: 'none',
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                style={{
+                  borderRadius: 20,
+                  border: '1px solid var(--color-border)',
+                  background: 'var(--color-surface)',
+                  overflow: 'hidden',
+                  transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',
+                  boxShadow: 'var(--shadow-card)',
+                  padding: '40px 32px 36px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 20,
+                  position: 'relative',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-6px)';
+                  e.currentTarget.style.boxShadow = '0 16px 48px rgba(0,0,0,0.14)';
+                  e.currentTarget.style.borderColor = 'var(--color-primary)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'none';
+                  e.currentTarget.style.boxShadow = 'var(--shadow-card)';
+                  e.currentTarget.style.borderColor = 'var(--color-border)';
+                }}
+              >
+                {/* Icon container */}
+                <div style={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: 20,
+                  background: 'var(--color-primary-50)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  position: 'relative',
+                }}>
+                  <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    borderRadius: 20,
+                    background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-light))',
+                    opacity: 0.12,
+                  }} />
+                  <FileText size={34} color="var(--color-primary)" style={{ position: 'relative', zIndex: 1 }} />
+                </div>
+
+                {/* Text */}
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{
+                    fontSize: 19,
+                    fontWeight: 800,
+                    color: 'var(--color-text)',
+                    marginBottom: 8,
+                    letterSpacing: '-0.01em',
+                  }}>
+                    تقرير تثمين كامل
+                  </div>
+                  <div style={{
+                    fontSize: 13.5,
+                    color: 'var(--color-text-secondary)',
+                    lineHeight: 1.8,
+                    maxWidth: 260,
+                  }}>
+                    تقرير معتمد شامل يغطي جميع البيانات والمستندات والتقييم المالي المفصّل.
+                  </div>
+                </div>
+
+                {/* Bottom accent line */}
+                <div style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: 3,
+                  background: 'linear-gradient(90deg, var(--color-primary), var(--color-primary-light))',
+                  borderRadius: '0 0 20px 20px',
+                  opacity: 0.6,
+                  transition: 'opacity 0.3s ease',
+                }} />
+              </div>
+            </button>
+
+            {/* Preliminary Card */}
+            <button
+              onClick={() => router.push('/reports/preliminary/new')}
+              style={{
+                position: 'relative',
+                padding: 0,
+                border: 'none',
+                borderRadius: 20,
+                cursor: 'pointer',
+                textAlign: 'inherit',
+                fontFamily: 'inherit',
+                background: 'none',
+                outline: 'none',
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                style={{
+                  borderRadius: 20,
+                  border: '1px solid var(--color-border)',
+                  background: 'var(--color-surface)',
+                  overflow: 'hidden',
+                  transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',
+                  boxShadow: 'var(--shadow-card)',
+                  padding: '40px 32px 36px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 20,
+                  position: 'relative',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-6px)';
+                  e.currentTarget.style.boxShadow = '0 16px 48px rgba(0,0,0,0.14)';
+                  e.currentTarget.style.borderColor = 'var(--color-secondary)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'none';
+                  e.currentTarget.style.boxShadow = 'var(--shadow-card)';
+                  e.currentTarget.style.borderColor = 'var(--color-border)';
+                }}
+              >
+                {/* Icon container */}
+                <div style={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: 20,
+                  background: 'var(--color-secondary-50)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  position: 'relative',
+                }}>
+                  <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    borderRadius: 20,
+                    background: 'linear-gradient(135deg, var(--color-secondary), var(--color-secondary-light))',
+                    opacity: 0.12,
+                  }} />
+                  <Briefcase size={34} color="var(--color-secondary)" style={{ position: 'relative', zIndex: 1 }} />
+                </div>
+
+                {/* Text */}
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{
+                    fontSize: 19,
+                    fontWeight: 800,
+                    color: 'var(--color-text)',
+                    marginBottom: 8,
+                    letterSpacing: '-0.01em',
+                  }}>
+                    تثمين مبدئي سريع
+                  </div>
+                  <div style={{
+                    fontSize: 13.5,
+                    color: 'var(--color-text-secondary)',
+                    lineHeight: 1.8,
+                    maxWidth: 260,
+                  }}>
+                    تثمين أوّلي يحتوي على البيانات الأساسية والقيمة التقديرية الأولية للعقار.
+                  </div>
+                </div>
+
+                {/* Bottom accent line */}
+                <div style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: 3,
+                  background: 'linear-gradient(90deg, var(--color-secondary), var(--color-secondary-light))',
+                  borderRadius: '0 0 20px 20px',
+                  opacity: 0.6,
+                  transition: 'opacity 0.3s ease',
+                }} />
+              </div>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {mode === 'wizard' && (
+      <div>
+      <div style={{ marginBottom: 16 }}>
+        <h1 style={{ fontSize: 20, fontWeight: 800, margin: '0 0 2px', letterSpacing: '-0.02em', color: 'var(--color-text)' }}>{editId ? 'تعديل التقرير' : 'إنشاء تقرير جديد'}</h1>
+        <p style={{ fontSize: 12, color: 'var(--color-text-muted)', margin: 0 }}>{data.reportNumber}</p>
       </div>
 
-      <div className="card" style={{ marginBottom: 24, padding: '20px 24px' }}>
+      <div style={{ marginBottom: 16, padding: '16px 20px', background: 'var(--color-surface)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
         <StepIndicator
           steps={visibleSteps}
           currentStep={currentStep}
@@ -690,7 +964,7 @@ function CreateReportWizardInner() {
         />
       </div>
 
-      <div className="card" style={{ marginBottom: 0, minHeight: 400, paddingBottom: 80, overflow: 'hidden' }}>
+      <div style={{ marginBottom: 0, minHeight: 480, padding: '24px 28px 80px', overflow: 'hidden', background: 'var(--color-surface)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
         {contentStep === 1 && <ValuationTypeStep value={data.valuationType} onChange={(v) => update('valuationType', v)} />}
 
         {contentStep === 2 && data.valuationType === 'bank' && (
@@ -878,20 +1152,39 @@ function CreateReportWizardInner() {
           <ReviewSubmitStep data={data} isLand={isLand} isApartment={isApartment} renderReport={renderReport} />
         )}
 
-        <div className="wizard-nav-bar">
-          <div>
-            {currentStep > 1 && (
-              <button onClick={prev} className="btn btn-outline"><ChevronRight size={18} /> السابق</button>
-            )}
+        <div className="wizard-nav-bar" style={{ position: 'relative' }}>
+          {/* Step context */}
+          <div className="wizard-nav-step-context">
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)' }}>
+              {allSteps[getContentStep() - 1]?.title || visibleSteps[currentStep - 1]?.title}
+            </span>
+            <span style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>·</span>
+            <span className="wizard-nav-step-pill">
+              {currentStep} / {totalSteps}
+            </span>
           </div>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button onClick={handleSaveDraft} className="btn btn-ghost"><Save size={18} /> حفظ مسودة</button>
+
+          <div style={{ display: 'flex', gap: 8 }}>
+            {currentStep > 1 && (
+              <button onClick={prev} className="btn btn-outline" style={{ fontSize: 13, padding: '7px 14px' }}>
+                <ChevronRight size={16} /> السابق
+              </button>
+            )}
+            <button onClick={handleSaveDraft} className="btn btn-ghost" style={{ fontSize: 13, padding: '7px 14px' }}>
+              <Save size={16} /> حفظ مسودة
+            </button>
             {currentStep < totalSteps ? (
-              <button onClick={next} className="btn btn-primary">التالي <ChevronLeft size={18} /></button>
+              <button onClick={next} className="btn btn-primary" style={{ fontSize: 13, padding: '7px 16px' }}>
+                التالي <ChevronLeft size={16} />
+              </button>
             ) : (
               <>
-                <button onClick={() => setShowPreview(true)} className="btn btn-outline"><Eye size={18} /> معاينة</button>
-                <button onClick={() => setShowConfirm(true)} className="btn btn-success" disabled={submitting}><Send size={18} /> إرسال للاعتماد</button>
+                <button onClick={() => setShowPreview(true)} className="btn btn-outline" style={{ fontSize: 13, padding: '7px 14px' }}>
+                  <Eye size={16} /> معاينة
+                </button>
+                <button onClick={() => setShowConfirm(true)} className="btn btn-success" disabled={submitting} style={{ fontSize: 13, padding: '7px 16px' }}>
+                  <Send size={16} /> إرسال للاعتماد
+                </button>
               </>
             )}
           </div>
@@ -901,15 +1194,15 @@ function CreateReportWizardInner() {
       {showDraftModal && (
         <div className="wizard-modal-backdrop">
           <div className="wizard-modal-content">
-            <div style={{ width: 72, height: 72, borderRadius: '50%', background: dm ? '#451a03' : '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
-              <Save size={32} color="#d97706" />
+            <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--color-warning-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <Save size={28} color="var(--color-warning)" />
             </div>
-            <h3 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 8px' }}>مسودة محفوظة</h3>
-            <p style={{ fontSize: 14, color: 'var(--color-text-muted)', margin: '0 0 8px', lineHeight: 1.6 }}>تم العثور على مسودة غير مكتملة. هل تريد استئناف العمل من حيث توقفت؟</p>
-            <p style={{ fontSize: 12, color: 'var(--color-text-muted)', margin: '0 0 24px' }}>يمكنك البدء من جديد لمسح المسودة القديمة</p>
-            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-              <button onClick={() => { store.clearDraft('new_report'); setShowDraftModal(false); setData({ ...initialData, reportNumber: generateReportNumber(store.getSettings().reportNextNumber) }); }} className="btn btn-outline" style={{ flex: 1 }}>البدء من جديد</button>
-              <button onClick={() => { const draft = store.getDraft('new_report') as Partial<WizardData> | null; if (draft) setData({ ...initialData, ...draft, ownershipFile: null, mapFile: null, idFile: null, propertyPhotos: [], reportNumber: draft.reportNumber || generateReportNumber(store.getSettings().reportNextNumber) }); showToast('تم استعادة المسودة بنجاح', 'success'); setShowDraftModal(false); }} className="btn btn-primary" style={{ flex: 1 }}>استئناف المسودة</button>
+            <h3 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 6px' }}>مسودة محفوظة</h3>
+            <p style={{ fontSize: 13, color: 'var(--color-text-muted)', margin: '0 0 6px', lineHeight: 1.6 }}>تم العثور على مسودة غير مكتملة. هل تريد استئناف العمل من حيث توقفت؟</p>
+            <p style={{ fontSize: 11.5, color: 'var(--color-text-muted)', margin: '0 0 20px' }}>يمكنك البدء من جديد لمسح المسودة القديمة</p>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+              <button onClick={() => { store.clearDraft('new_report'); setShowDraftModal(false); setData({ ...initialData, reportNumber: generateReportNumber(store.getSettings().reportNextNumber) }); }} className="btn btn-outline" style={{ flex: 1, fontSize: 13, padding: '8px 14px' }}>البدء من جديد</button>
+              <button onClick={() => { const draft = store.getDraft('new_report') as Partial<WizardData> | null; if (draft) setData({ ...initialData, ...draft, ownershipFile: null, mapFile: null, idFile: null, propertyPhotos: [], reportNumber: draft.reportNumber || generateReportNumber(store.getSettings().reportNextNumber) }); showToast('تم استعادة المسودة بنجاح', 'success'); setShowDraftModal(false); }} className="btn btn-primary" style={{ flex: 1, fontSize: 13, padding: '8px 14px' }}>استئناف المسودة</button>
             </div>
           </div>
         </div>
@@ -918,14 +1211,14 @@ function CreateReportWizardInner() {
       {showConfirm && (
         <div className="wizard-modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) setShowConfirm(false); }}>
           <div className="wizard-modal-content">
-            <div style={{ width: 64, height: 64, borderRadius: '50%', background: dm ? 'var(--color-success-bg)' : '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-              <Send size={28} color="#15803d" />
+            <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--color-success-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
+              <Send size={24} color="var(--color-success)" />
             </div>
-            <h3 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 8px' }}>{editId ? 'إعادة إرسال التقرير بعد التعديل؟' : 'إرسال التقرير للاعتماد؟'}</h3>
-            <p style={{ fontSize: 14, color: 'var(--color-text-muted)', margin: '0 0 24px' }}>{editId ? `هل أنت متأكد من إعادة إرسال التقرير ${data.reportNumber} بعد التعديل؟` : `هل أنت متأكد من إرسال التقرير ${data.reportNumber} للاعتماد؟`}</p>
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-              <button onClick={() => setShowConfirm(false)} className="btn btn-ghost" disabled={submitting}>إلغاء</button>
-              <button onClick={handleSubmit} className="btn btn-primary" disabled={submitting}>
+            <h3 style={{ fontSize: 17, fontWeight: 700, margin: '0 0 6px' }}>{editId ? 'إعادة إرسال التقرير بعد التعديل؟' : 'إرسال التقرير للاعتماد؟'}</h3>
+            <p style={{ fontSize: 13, color: 'var(--color-text-muted)', margin: '0 0 20px' }}>{editId ? `هل أنت متأكد من إعادة إرسال التقرير ${data.reportNumber} بعد التعديل؟` : `هل أنت متأكد من إرسال التقرير ${data.reportNumber} للاعتماد؟`}</p>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+              <button onClick={() => setShowConfirm(false)} className="btn btn-ghost" disabled={submitting} style={{ fontSize: 13, padding: '8px 16px' }}>إلغاء</button>
+              <button onClick={handleSubmit} className="btn btn-primary" disabled={submitting} style={{ fontSize: 13, padding: '8px 18px' }}>
                 {submitting ? 'جاري الإرسال...' : 'تأكيد الإرسال'}
               </button>
             </div>
@@ -936,14 +1229,14 @@ function CreateReportWizardInner() {
       {showPreview && (
         <div className="wizard-preview-backdrop" onClick={(e) => { if (e.target === e.currentTarget) setShowPreview(false); }}>
           <div className="wizard-preview-panel">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderBottom: '1px solid var(--color-border)' }}>
-              <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>معاينة التقرير — {data.reportNumber}</h3>
-              <button onClick={() => setShowPreview(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}><X size={24} /></button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', borderBottom: '1px solid var(--color-border)' }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>معاينة التقرير — {data.reportNumber}</h3>
+              <button onClick={() => setShowPreview(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}><X size={20} /></button>
             </div>
             <div style={{ maxHeight: '85vh', overflowY: 'auto' }}>
               {renderReport()}
             </div>
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'center', padding: '16px 24px', borderTop: '1px solid var(--color-border)' }}>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center', padding: '14px 20px', borderTop: '1px solid var(--color-border)' }}>
               <button onClick={() => setShowPreview(false)} className="btn btn-ghost">إغلاق</button>
               <button onClick={() => { setShowPreview(false); setShowConfirm(true); }} className="btn btn-primary">إرسال للاعتماد</button>
             </div>
@@ -955,33 +1248,36 @@ function CreateReportWizardInner() {
         <div
           onClick={(e) => { if (e.target === e.currentTarget) { setFullscreenPreview(null); setPreviewZoom(1); } }}
           className="wizard-preview-backdrop"
-          style={{ background: 'rgba(0,0,0,0.85)' }}
+          style={{ background: 'rgba(0,0,0,0.82)' }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', maxWidth: 900, padding: '12px 20px', marginBottom: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ fontSize: 15, fontWeight: 700, color: 'white' }}>{fullscreenPreview.label}</span>
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>{fullscreenPreview.name}</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', maxWidth: 1100, padding: '10px 18px', marginBottom: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 14, fontWeight: 700, color: 'white' }}>{fullscreenPreview.label}</span>
+              <span style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.6)' }}>{fullscreenPreview.name}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               {fullscreenPreview.type !== 'application/pdf' && (
                 <>
-                  <button onClick={() => setPreviewZoom(z => Math.max(0.25, z - 0.25))} style={{ padding: 8, borderRadius: 8, border: 'none', background: 'rgba(255,255,255,0.15)', cursor: 'pointer', display: 'flex', color: 'white' }}><ZoomOut size={18} /></button>
-                  <span style={{ fontSize: 13, color: 'white', fontWeight: 600, minWidth: 48, textAlign: 'center' }}>{Math.round(previewZoom * 100)}%</span>
-                  <button onClick={() => setPreviewZoom(z => Math.min(4, z + 0.25))} style={{ padding: 8, borderRadius: 8, border: 'none', background: 'rgba(255,255,255,0.15)', cursor: 'pointer', display: 'flex', color: 'white' }}><ZoomIn size={18} /></button>
-                  <button onClick={() => setPreviewZoom(1)} style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: 'rgba(255,255,255,0.15)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'white', fontSize: 12, fontWeight: 500 }}><Maximize2 size={14} /> ملء الشاشة</button>
+                  <button onClick={() => setPreviewZoom(z => Math.max(0.25, z - 0.25))} style={{ padding: 7, borderRadius: 8, border: 'none', background: 'rgba(255,255,255,0.12)', cursor: 'pointer', display: 'flex', color: 'white' }}><ZoomOut size={16} /></button>
+                  <span style={{ fontSize: 12, color: 'white', fontWeight: 600, minWidth: 44, textAlign: 'center' }}>{Math.round(previewZoom * 100)}%</span>
+                  <button onClick={() => setPreviewZoom(z => Math.min(4, z + 0.25))} style={{ padding: 7, borderRadius: 8, border: 'none', background: 'rgba(255,255,255,0.12)', cursor: 'pointer', display: 'flex', color: 'white' }}><ZoomIn size={16} /></button>
+                  <button onClick={() => setPreviewZoom(1)} style={{ padding: '5px 10px', borderRadius: 8, border: 'none', background: 'rgba(255,255,255,0.12)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3, color: 'white', fontSize: 11, fontWeight: 500 }}><Maximize2 size={13} /> ملء الشاشة</button>
                 </>
               )}
               <button onClick={() => { setFullscreenPreview(null); setPreviewZoom(1); }} style={{ padding: 8, borderRadius: 8, border: 'none', background: 'rgba(255,255,255,0.15)', cursor: 'pointer', display: 'flex', color: 'white' }}><X size={20} /></button>
             </div>
           </div>
-          <div style={{ flex: 1, width: '100%', maxWidth: 900, maxHeight: 'calc(100vh - 100px)', overflow: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 12 }}>
+          <div style={{ flex: 1, width: '100%', maxWidth: 1100, maxHeight: 'calc(100vh - 90px)', overflow: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 10 }}>
             {fullscreenPreview.type === 'application/pdf' ? (
               <iframe src={fullscreenPreview.url} style={{ width: '100%', height: '100%', minHeight: '70vh', border: 'none', borderRadius: 12, background: 'var(--color-surface)' }} title={fullscreenPreview.name} />
             ) : (
-              <img src={fullscreenPreview.url} alt={fullscreenPreview.label} style={{ maxWidth: '100%', maxHeight: 'calc(100vh - 100px)', objectFit: 'contain', transform: `scale(${previewZoom})`, transformOrigin: 'center center', transition: 'transform 0.2s ease', borderRadius: 8 }} />
+              <img src={fullscreenPreview.url} alt={fullscreenPreview.label} style={{ maxWidth: '100%', maxHeight: 'calc(100vh - 90px)', objectFit: 'contain', transform: `scale(${previewZoom})`, transformOrigin: 'center center', transition: 'transform 0.2s ease', borderRadius: 6 }} />
             )}
           </div>
         </div>
+      )}
+
+      </div>
       )}
 
       <style dangerouslySetInnerHTML={{ __html: `@keyframes spin { to { transform: rotate(360deg); } }` }} />

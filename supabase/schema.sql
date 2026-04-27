@@ -213,6 +213,25 @@ CREATE INDEX idx_login_logs_employee_id ON login_logs(employee_id);
 CREATE INDEX idx_market_cache_expires ON market_cache(expires_at);
 
 -- =============================================
+-- TABLE: preliminary_templates
+-- =============================================
+CREATE TABLE preliminary_templates (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  description TEXT DEFAULT '',
+  file_name TEXT NOT NULL,
+  content_type TEXT DEFAULT 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  size INTEGER DEFAULT 0,
+  content TEXT NOT NULL DEFAULT '',
+  fields JSONB DEFAULT '[]',
+  created_by UUID REFERENCES employees(id) ON DELETE SET NULL,
+  created_by_name TEXT DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_preliminary_templates_created_at ON preliminary_templates(created_at);
+
+-- =============================================
 -- DEFAULT SETTINGS ROW
 -- =============================================
 INSERT INTO app_settings (office_name, office_name_en, logo, report_prefix, report_next_number, default_currency, default_fees)

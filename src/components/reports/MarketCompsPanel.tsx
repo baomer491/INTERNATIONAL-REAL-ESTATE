@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { saveToCache } from '@/lib/market-comps';
+import { getPriceForLocation, getPropertyTypeMarketKey } from '@/lib/market-price-lookup';
 import { generateOmanRealMapUrl, generateOmanRealSearchUrl, getWilayatCoords, PROPERTY_TYPE_URL_MAP } from '@/data/wilayat-coordinates';
 import type { MarketCompsResult, MarketComp } from '@/types';
 import { Search, ExternalLink, TrendingUp, AlertCircle, CheckCircle2, Loader2, Database, RefreshCw, BarChart3, X, MapPin, Globe, ArrowUpRight } from 'lucide-react';
@@ -217,6 +218,55 @@ export default function MarketCompsPanel({ wilayat, propertyType, area, usage, o
         )}
       </div>
 
+      {/* ===== Local Market Data Section ===== */}
+      {(() => {
+        const localPrice = getPriceForLocation(wilayat, wilayat, propertyType);
+        if (localPrice.low == null && localPrice.high == null) return null;
+        const avgLocal = ((localPrice.low || 0) + (localPrice.high || 0)) / 2;
+        const marketKey = getPropertyTypeMarketKey(propertyType);
+        const keyLabels: Record<string, string> = { residential: 'سكني', residential_commercial: 'سكني تجاري', industrial: 'صناعي', agricultural: 'زراعي', tourist: 'سياحي' };
+        return (
+          <div style={{
+            padding: '12px 18px',
+            background: dm ? 'var(--color-info-bg)' : '#f0fdf4',
+            borderBottom: '1px solid var(--color-border)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            flexWrap: 'wrap',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: dm ? '#34d399' : '#15803d' }}>
+              <Database size={15} />
+              أسعار السوق المحلية ({keyLabels[marketKey] || marketKey})
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--color-text)' }}>
+              <span style={{ fontWeight: 600 }}>{localPrice.low?.toFixed(2) || '—'}</span>
+              <span style={{ color: 'var(--color-text-muted)', margin: '0 4px' }}>—</span>
+              <span style={{ fontWeight: 600 }}>{localPrice.high?.toFixed(2) || '—'}</span>
+              <span style={{ color: 'var(--color-text-muted)', fontSize: 11, marginRight: 4 }}>ر.ع / م²</span>
+            </div>
+            {area > 0 && avgLocal > 0 && (
+              <div style={{ fontSize: 12, color: dm ? 'var(--color-text-secondary)' : '#64748b' }}>
+                القيمة التقديرية: <strong>{Math.round(avgLocal * area).toLocaleString()}</strong> ر.ع
+                ({avgLocal.toFixed(2)} × {area} م²)
+              </div>
+            )}
+            {onApplyValue && area > 0 && avgLocal > 0 && (
+              <button
+                onClick={() => onApplyValue(Math.round(avgLocal * area), avgLocal)}
+                style={{
+                  fontSize: 12, padding: '4px 12px', borderRadius: 8,
+                  background: dm ? '#15803d' : '#bbf7d0', color: dm ? '#fff' : '#15803d',
+                  border: 'none', cursor: 'pointer', fontWeight: 600, fontFamily: 'inherit',
+                }}
+              >
+                تطبيق السعر المحلي
+              </button>
+            )}
+          </div>
+        );
+      })()}
+
       {/* ===== Content Area ===== */}
       <div style={{ padding: 16 }}>
         {error && (
@@ -310,8 +360,8 @@ export default function MarketCompsPanel({ wilayat, propertyType, area, usage, o
                 {/* ===== Stats Cards ===== */}
                 <div style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-                  gap: 10,
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                  gap: 14,
                   marginBottom: 16,
                 }}>
                   <div style={{

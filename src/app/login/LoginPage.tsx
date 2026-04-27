@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useApp } from '@/components/layout/AppContext';
 import { useTheme } from '@/hooks/useTheme';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { Eye, EyeOff, Lock, User } from 'lucide-react';
+import { Eye, EyeOff, Lock, User, Building2, Shield, ChevronRight } from 'lucide-react';
 
 export default function LoginPage() {
   const { login, showToast } = useApp();
@@ -14,8 +14,6 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const dm = isDark;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,302 +51,261 @@ export default function LoginPage() {
     <ErrorBoundary>
     <div style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: dm
-        ? 'linear-gradient(135deg, #0a0f1a 0%, #111827 40%, #1a2332 100%)'
-        : 'linear-gradient(135deg, #0a1628 0%, #122a4e 40%, #1a3a6a 100%)',
-      padding: 20, position: 'relative', overflow: 'hidden',
+      background: "url('/login-bg.png') center center / cover no-repeat",
+      padding: 24, position: 'relative', overflow: 'hidden',
     }}>
-      {/* Animated floating geometric shapes */}
-      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
-        {/* Large circle top-right */}
-        <div style={{
-          position: 'absolute', top: '-15%', right: '-10%', width: '50vw', height: '50vw',
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(30, 58, 95, 0.3) 0%, transparent 70%)',
-          animation: 'float1 20s ease-in-out infinite',
-        }} />
-        {/* Medium circle bottom-left */}
-        <div style={{
-          position: 'absolute', bottom: '-10%', left: '-5%', width: '35vw', height: '35vw',
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(20, 50, 80, 0.25) 0%, transparent 70%)',
-          animation: 'float2 25s ease-in-out infinite',
-        }} />
-        {/* Small accent circles */}
-        <div style={{
-          position: 'absolute', top: '20%', left: '15%', width: 8, height: 8,
-          borderRadius: '50%', background: 'rgba(100, 160, 220, 0.3)',
-          animation: 'float3 15s ease-in-out infinite',
-        }} />
-        <div style={{
-          position: 'absolute', top: '60%', right: '20%', width: 6, height: 6,
-          borderRadius: '50%', background: 'rgba(100, 160, 220, 0.2)',
-          animation: 'float3 18s ease-in-out infinite reverse',
-        }} />
-        <div style={{
-          position: 'absolute', top: '35%', right: '8%', width: 4, height: 4,
-          borderRadius: '50%', background: 'rgba(100, 160, 220, 0.25)',
-          animation: 'float3 12s ease-in-out infinite',
-        }} />
-      </div>
-
-      {/* Cityscape SVG silhouette */}
+      {/* Cinematic dark overlay with vignette */}
       <div style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0, height: '35vh',
-        opacity: dm ? 0.06 : 0.08, pointerEvents: 'none',
-      }}>
-        <svg viewBox="0 0 1440 400" preserveAspectRatio="xMidYMax slice" style={{ width: '100%', height: '100%' }}>
-          {/* Background buildings */}
-          <rect x="0" y="180" width="60" height="220" fill="currentColor" />
-          <rect x="55" y="140" width="45" height="260" fill="currentColor" />
-          <rect x="95" y="200" width="70" height="200" fill="currentColor" />
-          <rect x="160" y="100" width="50" height="300" fill="currentColor" />
-          <rect x="205" y="160" width="40" height="240" fill="currentColor" />
-          <rect x="240" y="120" width="55" height="280" fill="currentColor" />
-          <rect x="290" y="80" width="40" height="320" fill="currentColor" />
-          <rect x="325" y="180" width="60" height="220" fill="currentColor" />
-          <rect x="380" y="60" width="35" height="340" fill="currentColor" />
-          <rect x="410" y="130" width="50" height="270" fill="currentColor" />
-          <rect x="455" y="170" width="65" height="230" fill="currentColor" />
-          <rect x="515" y="90" width="45" height="310" fill="currentColor" />
-          <rect x="555" y="150" width="55" height="250" fill="currentColor" />
-          {/* Tallest building (center tower) */}
-          <rect x="605" y="20" width="50" height="380" fill="currentColor" />
-          <rect x="615" y="0" width="30" height="20" fill="currentColor" />
-          {/* Right side buildings */}
-          <rect x="650" y="110" width="60" height="290" fill="currentColor" />
-          <rect x="705" y="170" width="45" height="230" fill="currentColor" />
-          <rect x="745" y="130" width="55" height="270" fill="currentColor" />
-          <rect x="795" y="190" width="40" height="210" fill="currentColor" />
-          <rect x="830" y="70" width="50" height="330" fill="currentColor" />
-          <rect x="875" y="160" width="65" height="240" fill="currentColor" />
-          <rect x="935" y="100" width="40" height="300" fill="currentColor" />
-          <rect x="970" y="180" width="55" height="220" fill="currentColor" />
-          <rect x="1020" y="140" width="45" height="260" fill="currentColor" />
-          <rect x="1060" y="200" width="60" height="200" fill="currentColor" />
-          <rect x="1115" y="110" width="50" height="290" fill="currentColor" />
-          <rect x="1160" y="170" width="40" height="230" fill="currentColor" />
-          <rect x="1195" y="80" width="55" height="320" fill="currentColor" />
-          <rect x="1245" y="150" width="45" height="250" fill="currentColor" />
-          <rect x="1285" y="190" width="60" height="210" fill="currentColor" />
-          <rect x="1340" y="120" width="50" height="280" fill="currentColor" />
-          <rect x="1385" y="180" width="55" height="220" fill="currentColor" />
-        </svg>
-      </div>
-
-      {/* Diagonal lines decoration */}
-      <div style={{
-        position: 'fixed', top: 0, right: 0, width: '50%', height: '100%',
-        opacity: 0.015, pointerEvents: 'none',
-        backgroundImage: `repeating-linear-gradient(
-          -45deg,
-          transparent,
-          transparent 40px,
-          rgba(255,255,255,0.5) 40px,
-          rgba(255,255,255,0.5) 41px
-        )`,
+        position: 'fixed', inset: 0,
+        background: 'linear-gradient(180deg, rgba(2,6,18,0.45) 0%, rgba(2,6,18,0.3) 40%, rgba(2,6,18,0.5) 100%)',
+        pointerEvents: 'none', zIndex: 0,
       }} />
 
-      {/* Login Card */}
-      <div style={{ width: '100%', maxWidth: 560, position: 'relative', zIndex: 1 }}>
-        {/* Glass card effect */}
+      {/* Subtle warm glow from city lights */}
+      <div style={{
+        position: 'fixed', bottom: '-20%', left: '50%', transform: 'translateX(-50%)',
+        width: '140%', height: '60%',
+        background: 'radial-gradient(ellipse at center bottom, rgba(201,169,110,0.06) 0%, transparent 55%)',
+        pointerEvents: 'none', zIndex: 0,
+      }} />
+
+      {/* Main login card */}
+      <div style={{ width: '100%', maxWidth: 460, position: 'relative', zIndex: 1 }}>
+
+        {/* Top gold accent line */}
         <div style={{
-          background: dm
-            ? 'rgba(15, 23, 42, 0.85)'
-            : 'rgba(255, 255, 255, 0.95)',
-          borderRadius: 24,
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          boxShadow: dm
-            ? '0 32px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)'
-            : '0 32px 64px rgba(0,0,0,0.25), 0 0 80px rgba(30, 58, 95, 0.15)',
+          height: 3,
+          background: 'linear-gradient(90deg, transparent, rgba(201,169,110,0.8), rgba(255,200,100,0.9), rgba(201,169,110,0.8), transparent)',
+          borderRadius: '3px 3px 0 0',
+          marginBottom: -1,
+          position: 'relative', zIndex: 2,
+        }} />
+
+        {/* Glass card */}
+        <div style={{
+          background: 'rgba(8, 14, 30, 0.4)',
+          borderRadius: '0 0 24px 24px',
+          backdropFilter: 'blur(40px) saturate(1.3)',
+          WebkitBackdropFilter: 'blur(40px) saturate(1.3)',
+          boxShadow: '0 40px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(201,169,110,0.1), inset 0 1px 0 rgba(255,255,255,0.04)',
           overflow: 'hidden',
-          border: dm ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(255,255,255,0.3)',
+          border: '1px solid rgba(255,255,255,0.06)',
+          borderTop: 'none',
         }}>
-          {/* Header with gradient */}
+
+          {/* Thin divider */}
           <div style={{
-            background: dm
-              ? 'linear-gradient(135deg, #0f2337, #1e3a5f, #1a4a7a)'
-              : 'linear-gradient(135deg, #0f2337, #1e3a5f, #2d5a8e)',
-            padding: '36px 24px', textAlign: 'center',
-            position: 'relative', overflow: 'hidden',
-          }}>
-            {/* Decorative circles in header */}
-            <div style={{
-              position: 'absolute', top: '-30px', right: '-30px', width: 100, height: 100,
-              borderRadius: '50%', background: 'rgba(255,255,255,0.05)',
-            }} />
-            <div style={{
-              position: 'absolute', bottom: '-20px', left: '-20px', width: 80, height: 80,
-              borderRadius: '50%', background: 'rgba(255,255,255,0.04)',
-            }} />
+            margin: '32px 32px 0',
+            height: 1,
+            background: 'linear-gradient(90deg, transparent, rgba(201,169,110,0.2), transparent)',
+          }} />
 
-            <img
-              src="/IRE-logopdf-trans.png"
-              alt="مكتب العقارات الدولية"
-              style={{
-                width: 140, height: 'auto',
-                margin: '0 auto 16px', display: 'block',
-                filter: 'brightness(0) invert(1)',
-                position: 'relative', zIndex: 1,
-              }}
-            />
-            <h1 style={{
-              color: 'white', fontSize: 26, fontWeight: 800,
-              margin: 0, position: 'relative', zIndex: 1,
-              textShadow: '0 2px 8px rgba(0,0,0,0.2)',
-            }}>
-              نظام التثمين العقاري
-            </h1>
-            <p style={{
-              color: 'rgba(255,255,255,0.6)', fontSize: 13, margin: '8px 0 0',
-              position: 'relative', zIndex: 1,
-            }}>
-              International Real Estate Valuation System
-            </p>
-          </div>
+          {/* Form Section */}
+          <form onSubmit={handleSubmit} style={{ padding: '28px 32px 32px' }}>
 
-          <form onSubmit={handleSubmit} style={{ padding: '28px 24px' }}>
-            <h2 style={{
-              fontSize: 20, fontWeight: 700, color: 'var(--color-text)',
-              margin: '0 0 28px', textAlign: 'center',
-            }}>
-              تسجيل الدخول
-            </h2>
+            {/* Section label */}
+            <div style={{ textAlign: 'center', marginBottom: 24 }}>
+              <h2 style={{
+                fontSize: 17, fontWeight: 700, color: 'rgba(255,255,255,0.88)',
+                margin: 0, letterSpacing: '0.02em',
+              }}>
+                تسجيل الدخول
+              </h2>
+              <p style={{
+                fontSize: 13, color: 'rgba(255,255,255,0.35)', margin: '6px 0 0',
+                fontWeight: 400,
+              }}>
+                أدخل بياناتك للوصول إلى النظام
+              </p>
+            </div>
 
             {error && (
               <div style={{
-                background: dm ? '#450a0a' : '#fef2f2',
-                border: `1px solid ${dm ? '#7f1d1d' : '#fecaca'}`,
-                color: dm ? '#fca5a5' : '#b91c1c',
-                padding: '10px 16px', borderRadius: 10,
-                fontSize: 13, marginBottom: 16, textAlign: 'center',
+                background: 'rgba(220, 38, 38, 0.12)',
+                border: '1px solid rgba(220, 38, 38, 0.25)',
+                color: '#fca5a5',
+                padding: '12px 16px', borderRadius: 14,
+                fontSize: 13, marginBottom: 20, textAlign: 'center',
+                fontWeight: 500, backdropFilter: 'blur(8px)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               }}>
+                <Shield size={15} />
                 {error}
               </div>
             )}
 
+            {/* Username field */}
             <div style={{ marginBottom: 16 }}>
               <label style={{
-                display: 'block', fontSize: 15, fontWeight: 600,
-                color: 'var(--color-text)', marginBottom: 6,
+                display: 'block', fontSize: 13, fontWeight: 600,
+                color: 'rgba(255,255,255,0.55)', marginBottom: 8,
+                letterSpacing: '0.02em',
               }}>
                 اسم المستخدم
               </label>
               <div style={{ position: 'relative' }}>
-                <User size={18} style={{
-                  position: 'absolute', right: 14, top: '50%',
-                  transform: 'translateY(-50%)', color: 'var(--color-text-muted)',
-                }} />
+                <div style={{
+                  position: 'absolute', right: 0, top: 0, bottom: 0, width: 48,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: 'rgba(201,169,110,0.08)',
+                  borderRadius: '0 12px 12px 0',
+                  borderRight: '1px solid rgba(201,169,110,0.15)',
+                }}>
+                  <User size={16} color="rgba(201,169,110,0.6)" />
+                </div>
                 <input
                   type="text" value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="أدخل اسم المستخدم"
                   style={{
-                    width: '100%', padding: '12px 44px 12px 14px',
-                    border: '1.5px solid var(--color-border)', borderRadius: 10,
+                    width: '100%', padding: '13px 16px 13px 16px',
+                    paddingRight: 56,
+                    border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12,
                     fontSize: 14, fontFamily: 'inherit', direction: 'rtl',
-                    background: dm ? 'var(--color-surface-alt)' : 'var(--color-surface)',
-                    color: 'var(--color-text)',
-                    transition: 'border-color 0.2s, box-shadow 0.2s',
+                    background: 'rgba(255,255,255,0.04)',
+                    color: 'rgba(255,255,255,0.9)',
+                    transition: 'all 0.3s ease',
                     outline: 'none',
                   }}
                   onFocus={(e) => {
-                    e.target.style.borderColor = 'var(--color-primary)';
-                    e.target.style.boxShadow = '0 0 0 3px rgba(30,58,95,0.1)';
+                    e.target.style.borderColor = 'rgba(201,169,110,0.4)';
+                    e.target.style.background = 'rgba(255,255,255,0.07)';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(201,169,110,0.08)';
                   }}
                   onBlur={(e) => {
-                    e.target.style.borderColor = 'var(--color-border)';
+                    e.target.style.borderColor = 'rgba(255,255,255,0.08)';
+                    e.target.style.background = 'rgba(255,255,255,0.04)';
                     e.target.style.boxShadow = 'none';
                   }}
                 />
               </div>
             </div>
 
-            <div style={{ marginBottom: 24 }}>
+            {/* Password field */}
+            <div style={{ marginBottom: 28 }}>
               <label style={{
-                display: 'block', fontSize: 15, fontWeight: 600,
-                color: 'var(--color-text)', marginBottom: 6,
+                display: 'block', fontSize: 13, fontWeight: 600,
+                color: 'rgba(255,255,255,0.55)', marginBottom: 8,
+                letterSpacing: '0.02em',
               }}>
                 كلمة المرور
               </label>
               <div style={{ position: 'relative' }}>
-                <Lock size={18} style={{
-                  position: 'absolute', right: 14, top: '50%',
-                  transform: 'translateY(-50%)', color: 'var(--color-text-muted)',
-                }} />
+                <div style={{
+                  position: 'absolute', right: 0, top: 0, bottom: 0, width: 48,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: 'rgba(201,169,110,0.08)',
+                  borderRadius: '0 12px 12px 0',
+                  borderRight: '1px solid rgba(201,169,110,0.15)',
+                }}>
+                  <Lock size={16} color="rgba(201,169,110,0.6)" />
+                </div>
                 <input
                   type={showPassword ? 'text' : 'password'} value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="أدخل كلمة المرور"
                   style={{
-                    width: '100%', padding: '12px 44px',
-                    border: '1.5px solid var(--color-border)', borderRadius: 10,
+                    width: '100%', padding: '13px 48px 13px 16px',
+                    paddingRight: 56,
+                    border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12,
                     fontSize: 14, fontFamily: 'inherit', direction: 'rtl',
-                    background: dm ? 'var(--color-surface-alt)' : 'var(--color-surface)',
-                    color: 'var(--color-text)',
-                    transition: 'border-color 0.2s, box-shadow 0.2s',
+                    background: 'rgba(255,255,255,0.04)',
+                    color: 'rgba(255,255,255,0.9)',
+                    transition: 'all 0.3s ease',
                     outline: 'none',
                   }}
                   onFocus={(e) => {
-                    e.target.style.borderColor = 'var(--color-primary)';
-                    e.target.style.boxShadow = '0 0 0 3px rgba(30,58,95,0.1)';
+                    e.target.style.borderColor = 'rgba(201,169,110,0.4)';
+                    e.target.style.background = 'rgba(255,255,255,0.07)';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(201,169,110,0.08)';
                   }}
                   onBlur={(e) => {
-                    e.target.style.borderColor = 'var(--color-border)';
+                    e.target.style.borderColor = 'rgba(255,255,255,0.08)';
+                    e.target.style.background = 'rgba(255,255,255,0.04)';
                     e.target.style.boxShadow = 'none';
                   }}
                 />
                 <button type="button" onClick={() => setShowPassword(!showPassword)}
                   style={{
                     position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)',
-                    background: 'none', border: 'none', cursor: 'pointer', padding: 4,
-                    color: 'var(--color-text-muted)',
-                  }}>
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    background: 'none', border: 'none', cursor: 'pointer', padding: 6,
+                    color: 'rgba(255,255,255,0.3)',
+                    borderRadius: 8,
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = 'rgba(201,169,110,0.7)'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </div>
 
+            {/* Submit button */}
             <button type="submit" disabled={loading}
               style={{
-                width: '100%', padding: '14px',
-                background: loading ? '#94a3b8' : 'linear-gradient(135deg, #1e3a5f, #2d5a8e)',
-                color: 'white', border: 'none', borderRadius: 10,
-                fontSize: 16, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer',
+                width: '100%', padding: '15px',
+                background: loading
+                  ? 'rgba(201,169,110,0.2)'
+                  : 'linear-gradient(135deg, #b8922e 0%, #d4a843 40%, #c9a96e 60%, #b8922e 100%)',
+                color: loading ? 'rgba(255,255,255,0.4)' : '#0a0f1a',
+                border: 'none', borderRadius: 14,
+                fontSize: 15, fontWeight: 800, cursor: loading ? 'not-allowed' : 'pointer',
                 fontFamily: 'inherit', display: 'flex', alignItems: 'center',
-                justifyContent: 'center', gap: 8,
-                transition: 'transform 0.15s, box-shadow 0.15s',
-                boxShadow: '0 4px 14px rgba(30, 58, 95, 0.4)',
+                justifyContent: 'center', gap: 10,
+                transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',
+                boxShadow: loading
+                  ? 'none'
+                  : '0 4px 20px rgba(201,169,110,0.3), inset 0 1px 0 rgba(255,255,255,0.2)',
+                position: 'relative', overflow: 'hidden',
+                letterSpacing: '0.02em',
               }}
               onMouseEnter={(e) => {
                 if (!loading) {
-                  e.currentTarget.style.transform = 'translateY(-1px)';
-                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(30, 58, 95, 0.5)';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 8px 32px rgba(201,169,110,0.4), inset 0 1px 0 rgba(255,255,255,0.3)';
                 }
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 14px rgba(30, 58, 95, 0.4)';
+                e.currentTarget.style.boxShadow = loading
+                  ? 'none'
+                  : '0 4px 20px rgba(201,169,110,0.3), inset 0 1px 0 rgba(255,255,255,0.2)';
               }}
             >
               {loading ? (
-                <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <div style={{
-                    width: 20, height: 20, border: '2px solid rgba(255,255,255,0.3)',
-                    borderTopColor: 'white', borderRadius: '50%', animation: 'spin 0.8s linear infinite',
+                    width: 18, height: 18, border: '2px solid rgba(255,255,255,0.2)',
+                    borderTopColor: 'rgba(255,255,255,0.6)', borderRadius: '50%', animation: 'spin 0.7s linear infinite',
                   }} />
-                  جاري التحميل...
-                </>
-              ) : 'تسجيل الدخول'}
+                  جاري التحقق...
+                </div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Building2 size={18} strokeWidth={2.5} />
+                  تسجيل الدخول
+                  <ChevronRight size={16} />
+                </div>
+              )}
             </button>
           </form>
         </div>
 
+        {/* Bottom gold accent line */}
+        <div style={{
+          height: 2, marginTop: -1,
+          background: 'linear-gradient(90deg, transparent, rgba(201,169,110,0.4), transparent)',
+          borderRadius: '0 0 2px 2px',
+          position: 'relative', zIndex: 2,
+        }} />
+
+        {/* Copyright */}
         <p style={{
           textAlign: 'center', marginTop: 24, fontSize: 12,
-          color: 'rgba(255,255,255,0.35)',
-          textShadow: '0 1px 3px rgba(0,0,0,0.3)',
+          color: 'rgba(255,255,255,0.2)',
+          textShadow: '0 1px 4px rgba(0,0,0,0.4)',
+          fontWeight: 500, letterSpacing: '0.02em',
         }}>
           &copy; 2026 مكتب العقارات الدولية &mdash; جميع الحقوق محفوظة
         </p>
@@ -357,18 +314,6 @@ export default function LoginPage() {
       <style dangerouslySetInnerHTML={{
         __html: `
           @keyframes spin { to { transform: rotate(360deg); } }
-          @keyframes float1 {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(-30px, 20px) scale(1.05); }
-          }
-          @keyframes float2 {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(20px, -30px) scale(1.08); }
-          }
-          @keyframes float3 {
-            0%, 100% { transform: translateY(0); opacity: 0.3; }
-            50% { transform: translateY(-20px); opacity: 0.6; }
-          }
         `
       }} />
     </div>

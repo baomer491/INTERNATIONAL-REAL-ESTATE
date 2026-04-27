@@ -5,7 +5,11 @@ import { useApp } from '@/components/layout/AppContext';
 import AppShell from '@/components/layout/AppShell';
 
 function AppRouter({ children }: { children: React.ReactNode }) {
-  const { isLoggedIn } = useApp();
+  const { isLoggedIn, isLoading } = useApp();
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
 
   if (!isLoggedIn) {
     const LoginPage = React.lazy(() => import('../login/LoginPage'));

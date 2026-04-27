@@ -13,9 +13,12 @@ export default function WizardStepLayout({ icon, title, subtitle, children }: Wi
     <div className="wizard-step-layout">
       <div className="wizard-step-header">
         <div className="wizard-step-header-icon">{icon}</div>
-        <h2 className="wizard-step-title">{title}</h2>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h2 className="wizard-step-title">{title}</h2>
+          {subtitle && <p className="wizard-step-subtitle">{subtitle}</p>}
+        </div>
       </div>
-      {subtitle && <p className="wizard-step-subtitle">{subtitle}</p>}
+      <div style={{ marginTop: subtitle ? 4 : 20 }} />
       {children}
     </div>
   );

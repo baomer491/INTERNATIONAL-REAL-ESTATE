@@ -15,6 +15,7 @@ import {
 } from '@/lib/realtime-engine';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { fetchCsrfToken, clearCsrfToken } from '@/lib/csrf-client';
+import { loadSeedMarketData } from '@/lib/market-price-lookup';
 
 interface AppContextType {
   isLoggedIn: boolean;
@@ -28,6 +29,8 @@ interface AppContextType {
   toast: { message: string; type: string } | null;
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
+  sidebarCollapsed: boolean;
+  setSidebarCollapsed: (collapsed: boolean) => void;
   isMobile: boolean;
   searchOpen: boolean;
   setSearchOpen: (open: boolean) => void;
@@ -52,6 +55,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [toast, setToast] = useState<{ message: string; type: string } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -79,16 +83,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     mq.addEventListener('change', handleResize);
 
     // Initialize store from Supabase, then set auth state
+    const initTimeout = setTimeout(() => {
+      console.warn('[AppContext] initializeStore timeout after 15s — forcing error state');
+      setInitError('انتهت مهلة الاتصال بالخادم. تحقق من اتصال الإنترنت وأعد المحاولة.');
+      setMounted(true);
+      setIsLoading(false);
+    }, 15000);
+
     initializeStore().then(() => {
+      // Load market price seed data in background
+      loadSeedMarketData();
+      clearTimeout(initTimeout);
       let loggedIn = store.isLoggedIn();
 
-      // Sync with cookie: if localStorage says logged in but cookie is missing,
-      // the session expired — clear localStorage to prevent redirect loop
-      const hasCookie = document.cookie.includes('ireo_session=1');
-      if (loggedIn && !hasCookie) {
-        store.logout();
-        loggedIn = false;
-      }
+      // The middleware already validates the httpOnly session cookie server-side.
+      // If we reached this code, the cookie is present and valid.
+      // No need for a redundant client-side cookie check.
 
       setIsLoggedIn(loggedIn);
       if (loggedIn) {
@@ -166,6 +176,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         });
       }
     }).catch((err) => {
+      clearTimeout(initTimeout);
       console.error('Failed to initialize store:', err);
       setInitError(err instanceof Error ? err.message : 'حدث خطأ أثناء تحميل البيانات');
       setMounted(true);
@@ -214,7 +225,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (username: string, password: string) => {
     const result = await store.login(username, password);
     if (result.success) {
-      document.cookie = 'ireo_session=1; path=/; max-age=86400; SameSite=Strict';
+      // Server already sets the httpOnly session cookie — no client-side cookie needed
       setIsLoggedIn(true);
       const user = store.getCurrentUser();
       setCurrentUser(user || null);
@@ -258,11 +269,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(async () => {
     stopRealtimeEngine();
     clearCsrfToken();
-    document.cookie = 'ireo_session=; path=/; max-age=0';
+    // Clear the httpOnly session cookie via server-side API
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (err) {
+      console.error('[AppContext] logout API call failed:', err);
+    }
     await store.logout();
     setIsLoggedIn(false);
     setCurrentUser(null);
-    // Redirect to home (login page) and clear any nested route
     if (typeof window !== 'undefined') {
       window.location.href = '/';
     }
@@ -344,7 +359,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     <AppContext.Provider value={{
       isLoggedIn, currentUser, login, logout, hasPermission,
       unreadNotifications, refreshNotifications, showToast, toast,
-      sidebarOpen, setSidebarOpen, isMobile, searchOpen, setSearchOpen,
+      sidebarOpen, setSidebarOpen, sidebarCollapsed, setSidebarCollapsed, isMobile, searchOpen, setSearchOpen,
       notify, isLoading,
     }}>
       <ErrorBoundary>
