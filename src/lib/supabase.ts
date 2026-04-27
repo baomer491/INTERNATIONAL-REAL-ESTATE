@@ -1,18 +1,50 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-// Client-side: always use /api/supabase proxy (no build-time env needed)
-// Server-side: use Docker internal URL when available
-const isServer = typeof window === 'undefined';
-const effectiveUrl = (isServer && process.env.SUPABASE_INTERNAL_URL)
-  || '/api/supabase';
+/**
+ * Supabase client initialization.
+ *
+ * Client-side: uses a custom fetch that rewrites all API calls to /api/supabase proxy.
+ * Server-side: uses SUPABASE_INTERNAL_URL directly (Docker network).
+ *
+ * The /api/supabase proxy injects the real apikey from server env vars,
+ * so the client doesn't need the key at all.
+ */
 
-// Key is used by client; the /api/supabase proxy injects the real apikey from server env.
-// A dummy value is fine for client-side initialization — the proxy overrides it.
-const effectiveKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'proxy-handled';
+const isServer = typeof window === 'undefined';
+
+/* ---------- Custom fetch for client-side proxy routing ---------- */
+
+function createProxyFetch(): typeof globalThis.fetch {
+  return (input: RequestInfo | URL, init?: RequestInit) => {
+    if (isServer) return globalThis.fetch(input, init);
+
+    const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+
+    // Rewrite any Supabase API call to go through our proxy
+    // Matches: /rest/v1/..., /auth/v1/..., /storage/v1/..., /realtime/v1/...
+    const rewritten = url.replace(/^https?:\/\/[^/]+\/(rest|auth|storage|realtime)\/v1\//, '/api/supabase/$1/v1/');
+
+    return globalThis.fetch(rewritten, init);
+  };
+}
+
+/* ---------- URLs and keys ---------- */
+
+const placeholderUrl = 'https://placeholder.supabase.co';
+const placeholderKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NDYzNjEwMTMsImV4cCI6MTk2MTkzNzAxM30.placeholder';
+
+const effectiveUrl = isServer && process.env.SUPABASE_INTERNAL_URL
+  ? process.env.SUPABASE_INTERNAL_URL
+  : placeholderUrl;
+
+const effectiveKey = isServer && process.env.SUPABASE_ANON_KEY
+  ? process.env.SUPABASE_ANON_KEY
+  : placeholderKey;
+
+const customFetch = createProxyFetch();
 
 /* ---------- Singleton helpers ---------- */
 
-// Use globalThis to persist across HMR and module re-evaluations
 const globalForDb = globalThis as unknown as { __supabaseDb?: SupabaseClient };
 const globalForAdmin = globalThis as unknown as { __supabaseAdmin?: SupabaseClient };
 
@@ -23,7 +55,6 @@ function getDbClient(): SupabaseClient {
         persistSession: false,
         autoRefreshToken: false,
         detectSessionInUrl: false,
-        // Use unique storage key to prevent GoTrueClient "multiple instances" warning
         storageKey: 'ireo-auth',
         storage: {
           getItem: () => null,
@@ -36,6 +67,9 @@ function getDbClient(): SupabaseClient {
           eventsPerSecond: 10,
         },
       },
+      global: {
+        fetch: customFetch,
+      },
     });
   }
 
@@ -46,7 +80,9 @@ function getAdminClient(): SupabaseClient {
   if (!globalForAdmin.__supabaseAdmin) {
     globalForAdmin.__supabaseAdmin = createClient(
       effectiveUrl,
-      process.env.SUPABASE_SERVICE_ROLE_KEY || effectiveKey,
+      isServer && process.env.SUPABASE_SERVICE_ROLE_KEY
+        ? process.env.SUPABASE_SERVICE_ROLE_KEY
+        : effectiveKey,
       {
         auth: {
           persistSession: false,
@@ -58,6 +94,9 @@ function getAdminClient(): SupabaseClient {
             setItem: () => {},
             removeItem: () => {},
           },
+        },
+        global: {
+          fetch: customFetch,
         },
       },
     );

@@ -1,4 +1,5 @@
-# Global ARGs — available in all stages (Coolify passes these as --build-arg)
+# Coolify passes env vars as Docker secrets (--mount=type=secret)
+# AND as build args (--build-arg). We use build args for build-time vars.
 ARG NEXT_PUBLIC_SUPABASE_URL
 ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
 ARG SUPABASE_ANON_KEY
@@ -23,12 +24,11 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
-# Build-time env vars for Next.js (NEXT_PUBLIC_* are inlined into client bundle)
-ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
-ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
-ENV SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
-ENV SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY
-ENV SUPABASE_INTERNAL_URL=$SUPABASE_INTERNAL_URL
+# Build-time env vars — use ARG defaults for Coolify build-arg injection
+ARG NEXT_PUBLIC_SUPABASE_URL
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
+ENV NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL:-https://placeholder.supabase.co}
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY:-placeholder-key}
 
 RUN npm run build
 
@@ -38,10 +38,6 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-# Runtime env vars for server-side Supabase access
-ENV SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
-ENV SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY
-ENV SUPABASE_INTERNAL_URL=$SUPABASE_INTERNAL_URL
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
