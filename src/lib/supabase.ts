@@ -1,17 +1,14 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-// Client-side URL (browser reaches Supabase via public URL)
-// Server-side URL: app runs on host, use public URL (INTERNAL_URL only works inside Docker)
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_INTERNAL_URL || '';
+// Client-side: always use /api/supabase proxy (no build-time env needed)
+// Server-side: use Docker internal URL when available
+const isServer = typeof window === 'undefined';
+const effectiveUrl = (isServer && process.env.SUPABASE_INTERNAL_URL)
+  || '/api/supabase';
 
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-
-// Use a dummy placeholder during build when env vars are not available
-const placeholderUrl = 'https://placeholder.supabase.co';
-const placeholderKey = 'placeholder-key';
-
-const effectiveUrl = supabaseUrl || placeholderUrl;
-const effectiveKey = supabaseAnonKey || placeholderKey;
+// Key is used by client; the /api/supabase proxy injects the real apikey from server env.
+// A dummy value is fine for client-side initialization — the proxy overrides it.
+const effectiveKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'proxy-handled';
 
 /* ---------- Singleton helpers ---------- */
 
